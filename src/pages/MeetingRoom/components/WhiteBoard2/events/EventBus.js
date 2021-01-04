@@ -9,8 +9,7 @@ class EventBus {
       TOOL_CHANGE: "toolChange",
       COLOR_CHANGE: "cororChange",
       PICK_VERSION: "pickVersion",
-      MOVE: "move",
-      RESIZE:"resize"
+      MOVE: "move"
     }
     Object.assign(this, events)
     this.listeners = {}
@@ -24,12 +23,9 @@ class EventBus {
 
   emit(event) {
     let callbacks = this.listeners[event] || []
-
-      callbacks.forEach(callback => {
-        callback.apply({}, arguments)
-      })
-    
-    
+    callbacks.forEach(callback => {
+      callback.apply({}, arguments)
+    })
   }
 }
 

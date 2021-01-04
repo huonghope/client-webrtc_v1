@@ -35,7 +35,7 @@ export default class Selection extends React.Component {
         id="selection"
         x={rect.x}
         y={rect.y}
-        width={ rect.width}
+        width={rect.width}
         height={rect.height}
         onMouseDown={this.startMove}
         onMouseUp={this.endMove}

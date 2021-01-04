@@ -130,19 +130,6 @@
 //     stroke: blue;
 //     stroke-dasharray: 5 10;
 // }
-.container{
- 
-    
-    
-
-    
-   
-    
-}
-::placeholder{
-    color: black;
-    font-size: 1.5em;
-}
 
 .paint-wrapper{
     height: 100%;
@@ -153,7 +140,7 @@
             height: 100%;
         }
         #selection {
-			cursor: all-scroll ;
+			cursor: all-scroll;
 			fill: aliceblue;
 			fill-opacity: 0.5;
 			stroke: blue;

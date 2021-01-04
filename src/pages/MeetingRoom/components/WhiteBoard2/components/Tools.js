@@ -148,14 +148,14 @@ export default function Tools() {
       label: Icon.resetIcon,
       type: "reset",
       child: [],
-      text: "재실행"
+      text: "실행취소"
     },
     {
       id: RESET_CANCEL,
       label: Icon.resetCancelIcon,
       type: "reset-cancel",
       child: [],
-      text: "실행취소"
+      text: "재실행"
     },
     {
       id: DEL,
@@ -213,130 +213,154 @@ export default function Tools() {
   ])
 
   useEffect(() => {
-    localStorage.setItem('history', 0)
+    localStorage.setItem("history", 0)
     ToolStore.subscribe(() => {
-      const _tools = tools.map(tool => ({ ...tool, selected: ToolStore.tool === tool.id }))
+      const _tools = tools.map(tool => ({
+        ...tool,
+        selected: ToolStore.tool === tool.id
+      }))
       setTools(_tools)
     })
   }, [])
+
   const handleSaveAs = () => {
     const fnCurrentTime = () => {
-      var _now = new Date();
-      var year = _now.getFullYear();
-      var month = _now.getMonth() + 1;
-      var date = _now.getDate();
-      var hour = _now.getHours();
-      var minutes = _now.getMinutes();
-      var seconds = _now.getSeconds();
-      if (10 > date) date = '0' + date;
-      if (10 > _now.getMinutes()) minutes = '0' + minutes;
-      return date + '' + month + '' + year + '' + hour + '' + minutes + '' + seconds;
+      var _now = new Date()
+      var year = _now.getFullYear()
+      var month = _now.getMonth() + 1
+      var date = _now.getDate()
+      var hour = _now.getHours()
+      var minutes = _now.getMinutes()
+      var seconds = _now.getSeconds()
+      if (10 > date) date = "0" + date
+      if (10 > _now.getMinutes()) minutes = "0" + minutes
+      return (
+        date + "" + month + "" + year + "" + hour + "" + minutes + "" + seconds
+      )
     }
-    saveSvgAsPng(document.getElementById("whiteBoard"), `${fnCurrentTime()}.png`, {backgroundColor: "f5f5f5"})
+    saveSvgAsPng(
+      document.getElementById("whiteBoard"),
+      `${fnCurrentTime()}.png`, { backgroundColor: "#f5f5f5" }
+    )
   }
-  
-  var prevConunt = useRef(Number(localStorage.getItem('history')));
-  // var prevConunt = Number(localStorage.getItem('history'));
+
+  var prevConunt = useRef(Number(localStorage.getItem("history")) - 2)
 
   useEffect(() => {
-    prevConunt.current = Number(localStorage.getItem('history'));
-  },[localStorage.getItem('history')]-1)
+    prevConunt.current = Number(localStorage.getItem("history")) - 1
+  }, [localStorage.getItem("history")])
 
   const handleClickTool = (type, index, key) => {
     //Save Event
-    if (type === 'Save') {
+    if (type === "Save") {
       handleSaveAs()
-      return;
+      return
     }
-    
+
     //툴이 숨기는 기능
-    if( type === 'Board_hidden'){
+    if (type === "Board_hidden") {
       setHidden(!hidden)
     }
 
+    // //재실행
+    // if (type === "Reset") {
+    //   console.log(prevConunt)
+    //   if (prevConunt.current >= 0) {
+    //     prevConunt.current--
+    //     EventBus.emit(EventBus.PICK_VERSION, Number(prevConunt.current))
+    //   } else {
+    //   }
+    // }
+
+
+    //전체 지우기
+    if (type === 'Del') {
+      prevConunt.current = 0;
+      EventBus.emit(EventBus.PICK_VERSION, Number(prevConunt.current));
+    }
+
     //재실행
-    if( type === 'Reset'){
-      EventBus.emit(EventBus.REDO)
-      
+    if (type === 'Reset') {
+      if (prevConunt.current >= 0) {
+        prevConunt.current--;
+        EventBus.emit(EventBus.PICK_VERSION, Number(prevConunt.current));
+      }
+      else {
+
+      }
     }
 
     //실행 취소
-    if( type === 'Reset_cancel'){
-
-      EventBus.emit(EventBus.UNDO)
+    if (type === 'Reset_cancel') {
+      prevConunt.current++;
+      console.log(prevConunt)
+      EventBus.emit(EventBus.PICK_VERSION, Number(prevConunt.current));
     }
 
-    
-    //전체 지우기
-    if (type === 'Del') {
-   
-      EventBus.emit(EventBus.DEL);
-    
-    }
 
     //Color Change Event
-    if (type === 'Color') {
+    if (type === "Color") {
       const filter = tools.filter(tool => tool.id === type)[0]
-      const { child } = filter;
+      const { child } = filter
       const tool = child[index]
-      EventBus.emit(EventBus.COLOR_CHANGE, tool.label);
-      return;
+      EventBus.emit(EventBus.COLOR_CHANGE, tool.label)
+      return
     }
 
     const filter = tools.filter(tool => tool.id === type)[0]
     if (filter.child.length !== 0) {
       //Click Parent Event - default 첫번쨰요소
       if (key) {
-        EventBus.emit(EventBus.TOOL_CHANGE, filter.child[0].id);
+        EventBus.emit(EventBus.TOOL_CHANGE, filter.child[0].id)
       } else {
-        const { child } = filter;
+        const { child } = filter
         const tool = child[index]
-        EventBus.emit(EventBus.TOOL_CHANGE, tool.id);
+        EventBus.emit(EventBus.TOOL_CHANGE, tool.id)
       }
     } else {
-      EventBus.emit(EventBus.TOOL_CHANGE, tools[index].id);
+      EventBus.emit(EventBus.TOOL_CHANGE, tools[index].id)
     }
   }
-  const [ hidden, setHidden] = useState(false);
+
   const [current, setCurrentTool] = useState()
   const checkCurrentTool = (toolId) => {
     setCurrentTool(toolId)
   }
+  const [hidden, setHidden] = useState(false)
   return (
     <div className="tools-list">
       <div className={hidden ? "hidden" : "full"}>
-        {
-          tools.length !== 0 &&
-          hidden ?
+        {tools.length !== 0 && hidden ? (
           <div>
-            <button className={'tool-parent'} onClick={() =>  setHidden(!hidden)}>
+            <button
+              className={"tool-parent"}
+              onClick={() => setHidden(!hidden)}
+            >
               <img src={Icon.boardDisplay} />
               <p>보기</p>
             </button>
-          </div> :
-          tools.map((tool, idx) =>
-          (
-            <ToolWrapperCom
-              index={idx}
-              tool={tool}
-              current={current}
-              activeClass={current === tool.id}
-              hidden={hidden}
-              handleClickTool={handleClickTool}
-              checkCurrentTool={checkCurrentTool}
-            />
-          ))
-        }
+          </div>
+        ) : (
+            tools.map((tool, idx) => (
+              <ToolWrapperCom
+                current={current}
+                index={idx}
+                tool={tool}
+                hidden={hidden}
+                handleClickTool={handleClickTool}
+                checkCurrentTool={checkCurrentTool}
+              />
+            ))
+          )}
       </div>
     </div>
-  );
+  )
 }
 
-const ToolWrapperCom = ({ tool, handleClickTool, index, current, activeClass,checkCurrentTool }) => {
+const ToolWrapperCom = ({ tool, handleClickTool, checkCurrentTool, index, current }) => {
 
-  const [display, setDisplay] = useState(false);
+  const [display, setDisplay] = useState(false)
   useEffect(() => {
-    setDisplay(activeClass)
   }, [current])
   const handleOnClick = () => {
     checkCurrentTool(tool.id)
@@ -350,45 +374,52 @@ const ToolWrapperCom = ({ tool, handleClickTool, index, current, activeClass,che
   }
   return (
     <div className="tool">
-      <button className={tool.selected ? 'tool-parent selected' : 'tool-parent'} onClick={() => handleOnClick()}>
+      <button
+        className={tool.selected ? "tool-parent selected" : "tool-parent"}
+        onClick={() => handleOnClick()}
+      >
         <img src={tool.label} />
         <p>{tool.text}</p>
       </button>
-      {
-        display &&
-        tool.child.length !== 0 &&
+      {display && tool.child.length !== 0 && (
         <div className={`tool-childs ${tool.type}`}>
-          {
-            tool.type === 'del' ?
-              tool.child.map((child, idx) => (
-                <p
+          {tool.type === "del"
+            ? tool.child.map((child, idx) => (
+              <p
+                onClick={() => {
+                  handleClickTool(tool.id, idx)
+                  setDisplay(!display)
+                }}
+              >
+                {child.text}
+              </p>
+            ))
+            : tool.type === "color"
+              ? tool.child.map((child, idx) => (
+                <button
                   onClick={() => {
                     handleClickTool(tool.id, idx)
                     setDisplay(!display)
                   }}
-                >{child.text}
-                </p>
-              )) :
-              tool.type === 'color' ?
-                tool.child.map((child, idx) => (
-                  <button onClick={() => {
+                  style={
+                    child.label === "#000000"
+                      ? { borderColor: "white", background: child.label }
+                      : { background: child.label }
+                  }
+                ></button>
+              ))
+              : tool.child.map((child, idx) => (
+                <button
+                  onClick={() => {
                     handleClickTool(tool.id, idx)
                     setDisplay(!display)
-                  }} style={child.label === "#000000" ? { borderColor: 'white', background: child.label } : { background: child.label }}>
-                  </button>
-                ))
-                :
-                tool.child.map((child, idx) => (
-                  <button onClick={() => {
-                    handleClickTool(tool.id, idx)
-                    setDisplay(!display)
-                  }} >
-                    <img src={child.label} />
-                  </button>
-                ))
-          }
+                  }}
+                >
+                  <img src={child.label} />
+                </button>
+              ))}
         </div>
-      }
+      )}
     </div>
   )
 }

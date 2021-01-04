@@ -53,8 +53,8 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
             <span>나가기</span>
           </li>
           <li>
-            <img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowBigIcon : Icon.lecWindowSmallIcon} /> 
-            <span>전체호면</span>  
+            <img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} /> 
+            <span>{windowSize ? "창모드" : "전체화면"}</span>  
           </li>
         </ul>
       </div>

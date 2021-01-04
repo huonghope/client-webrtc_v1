@@ -29,6 +29,7 @@ function ChatComponent(props) {
 
   const isHostUser = useSelector(roomSelector.selectIsHostUser)
   const listUser = useSelector(remoteStreamContainerSelector.getListUser)
+  const [disableChatUser, setDisableChatUser] = useState([])
   const dispatch = useDispatch()
 
   //!나중에 추가함
@@ -157,7 +158,6 @@ function ChatComponent(props) {
    */
   const renderMessage = (userType, data) => {
     const { type } = data
-    console.log(type)
     let msgDiv
     switch (type) {
       case "text":
@@ -176,7 +176,6 @@ function ChatComponent(props) {
       case "test-concentration-fail":
       case "disable-chat":
       case "user-warning":
-        console.log("aaaa")
         msgDiv = WarningMessComponent(userType, data)
         break;
       default: //!Error
@@ -230,6 +229,16 @@ function ChatComponent(props) {
 
   //유저별로 채팅금지
   const handleOffChatForUser = (userId, socketId) => {
+    const tempDisableChatUser = disableChatUser
+
+    let filter = tempDisableChatUser.find((e) => e.userId === userId)
+    if (filter) {
+      filter = tempDisableChatUser.filter((e) => e.userId !== userId)
+      setDisableChatUser(filter)
+    }else{
+      setDisableChatUser([...disableChatUser,{userId}])
+    }
+    
     setBoxedListUser(!boxedListUser)
     if (userId === 0) {
       let payload = {
@@ -245,43 +254,9 @@ function ChatComponent(props) {
       chatComponentSocket.emitDisableUserChat(payload)
     }
   }
+
   return (
     <div className="chat__component">
-      {/* <div className="chatting-tasks">
-        <ul>
-          {
-            isHostUser ?
-            <>
-              {
-                isMobile ? 
-                <li><img onClick={() => handleClickCameraOn()} src={Icon.chatCameraOnIcon}></img></li> :
-                <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
-                
-              }
-              <li className="chatting-hidden"><img  onClick={() => setBoxedListUser(!boxedListUser)} src={Icon.chatTalkOnIcon}></img>
-                {
-                  boxedListUser &&
-                  <div className="list-user-chat">
-                      {listUser.length !== 0 && (
-                      <ul>
-                          <li onClick={() => handleOffChatForUser(0)}> 1. 전체</li>
-                          {listUser.map((user, idx) => (
-                            <li onClick={() => handleOffChatForUser(user.user_idx, user.socket_id) }key={idx}>
-                              {idx + 2}. {user.user_name}
-                            </li>
-                          ))}
-                      </ul>
-                      )}
-                  </div>
-                }
-              </li>
-            </> :
-            <>
-              <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
-            </>
-          }
-        </ul>
-      </div> */}
       <div className="chat-content">
         <ul className="chat-rows" id="chatList">
           {messages.map((data, idx) => (
@@ -306,16 +281,25 @@ function ChatComponent(props) {
                     <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
 
                 }
-                <li className="chatting-hidden"><img onClick={() => setBoxedListUser(!boxedListUser)} src={Icon.chatTalkOnIcon}></img>
+                <li className="chatting-hidden"><img onClick={() => setBoxedListUser(!boxedListUser)} src={Icon.chatTalkOffIcon}></img>
                   {
                     boxedListUser &&
                     <div className="list-user-chat">
                       {listUser.length !== 0 && (
                         <ul>
-                          <li onClick={() => handleOffChatForUser(0)}> 1. 전체</li>
+                          <li onClick={() => handleOffChatForUser(0)}> 1. 전체
+                          {
+                            disableChatUser.find(e => e.userId === 0) && 
+                            <span>X</span>
+                          }
+                          </li>
                           {listUser.map((user, idx) => (
                             <li onClick={() => handleOffChatForUser(user.user_idx, user.socket_id)} key={idx}>
                               {idx + 2}. {user.user_name}
+                              {
+                                disableChatUser.find(e => e.userId === user.user_idx) && 
+                                <span>X</span>
+                              }
                             </li>
                           ))}
                         </ul>
@@ -480,8 +464,6 @@ const RequestComponent = (isHostUser, type, resData) => {
 }
 
 const WarningMessComponent = (type, resData) => {
-
-  console.log("warning", type, resData)
   let { type : requestType, sender, data } = resData
   let footerText = " 메시지 전송되었습니다"
   switch (requestType.trim()) {

@@ -70,6 +70,8 @@ class RemoteStreamContainerStudent extends Component {
     //자리비움 요청의 상태를 알림
     getSocket().on("alert-user-process-req-lecOut", data => {
       const time = moment().format('DD/MM/YYYYHH:mm:ss')
+
+      console.log(data)
       const { remoteStream } = this.state
       let video = <VideoItem 
         videoStream={remoteStream}

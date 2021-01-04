@@ -26,6 +26,16 @@ const actions = {
     } catch (error) {
       Errors.handle(error);
     }
+  },
+  saveListUserRequest: (data) => (dispatch) => {
+    try {
+      dispatch({
+        type: constants.SET_LIST_USER_REQUEST,
+        payload: {listUserRequest: data}
+      })
+    } catch (error) {
+      Errors.handle(error);
+    }
   }
 };
 export default actions;

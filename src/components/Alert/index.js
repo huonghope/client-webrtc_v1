@@ -3,12 +3,12 @@ import styled from "styled-components"
 import { render } from "react-dom"
 import "./style.scss"
 
-function Alert({ title, content, handleClickAccept, handleClickReject }) {
+function Alert({ title, content, handleClickAccept, handleClickReject, btnAccept = "종료하기", btnReject = "취소" }) {
   const modal = (
     <WrapperAlert>
       <div className="container-alert">
-        <i className="material-icons clear-icon" onClick={e => closeEvent(e)}>
-          clear
+        <i className="clear-icon" onClick={e => closeEvent(e)}>
+          X
         </i>
         <h3 className="container-alert__title">{title}</h3>
         <p className="container-alert__content">{content}</p>
@@ -20,7 +20,7 @@ function Alert({ title, content, handleClickAccept, handleClickReject }) {
               closeEvent()
             }}
           >
-            취소
+            {btnReject}
           </button>
           <button
             className="container-alert__btn--accept"
@@ -29,7 +29,7 @@ function Alert({ title, content, handleClickAccept, handleClickReject }) {
               closeEvent()
             }}
           >
-            종료하기
+            {btnAccept}
           </button>
         </div>
       </div>

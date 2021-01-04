@@ -9,13 +9,12 @@
         justify-content: center;
         .full {
             display: flex;
-
-            //width 수정했음
-            width: 660px;
+            // width: 775px;
             border-radius: 5px;
             // align-items: center;
             background: rgb(12, 11, 11);
             padding: 5px 0;
+            padding-right: 5px;
             button{
                 background: transparent;
                 color: white;

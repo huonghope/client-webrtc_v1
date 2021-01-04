@@ -3,7 +3,8 @@ import constants from './RemoteStreamContainer.Constants'
 
 const initialState = {
   listUser: [],
-  lectureInfo: null
+  lectureInfo: null,
+  listUserRequest: []
 }
 
 export const remoteReducer =(state = initialState, { type, payload })  =>
@@ -14,6 +15,9 @@ export const remoteReducer =(state = initialState, { type, payload })  =>
         break;
       case constants.SET_LECTURE_INFO:
         draft.lectureInfo = payload.lecture
+        break;
+      case constants.SET_LIST_USER_REQUEST:
+        draft.listUserRequest = payload.listUserRequest
         break;
       default:
         return state

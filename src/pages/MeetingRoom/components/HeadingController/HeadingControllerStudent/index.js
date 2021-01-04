@@ -20,6 +20,9 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   const lectureInfo = useSelector(remoteStreamContainerSelector.getLectureInfo)
   const dispatch = useDispatch();
 
+
+  const [isBtnRequestQuestion, setIsBtnRequestQuestion] = useState(false)
+  const [isBtnRequestLecOut, setIsBtnRequestLecOut] = useState(false)
   
   useEffect(() => {
 
@@ -58,6 +61,8 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   //Cancel 이벤트를 처리해야함
   //state에서 따라서 처리필요함
   const handleRequestQuestion = () => {
+    setIsBtnRequestQuestion(true)
+    setTimeout(() => setIsBtnRequestQuestion(false), 1000);
     //!처음에
     //아직 요청하지 않고 하고 있는 상태가 아님
     if(!requestQuestionSended && !requestQuestionDoing){
@@ -88,6 +93,9 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
 
   //Cancel 이벤트를 처리해야함
   const handleRequestLecOut = () => {
+    setIsBtnRequestLecOut(true)
+    setTimeout(() => setIsBtnRequestLecOut(false), 1000);
+    
      //!처음에
     //아직 요청하지 않고 하고 있는 상태가 아님
     if(!requestLecOutSended && !requestLecOutDoing){
@@ -120,25 +128,29 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   const StyleButtonRequestLecOut = requestLecOutSended ? {backgroundColor: "white", color: "black"} : requestLecOutDoing ? {backgroundColor: "yellow", color: "black"} : {}
   const TextButtonRequestLecOut = requestLecOutSended ? "자리비움 요청중/취소..." : requestLecOutDoing ? "자리비움 취소" : "자리비움 요청"
 
-  console.log(lectureInfo)  
+  console.log()  
   //!버튼 상태를 확인할 필요함
   return <div className="heading-stream__controller">
     <div className="heading-container__small">
       <div className="heading-col">
         <ul>
-          <li><img onClick={() => handleOutRoom()}  src={Icon.lecOutIcon} /></li>
-          <li><img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowBigIcon : Icon.lecWindowSmallIcon} /> </li>
+          <li><img onClick={() => handleOutRoom()}  src={Icon.lecOutIcon} />
+            <span>나가기</span>
+          </li>
+          <li><img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} /> 
+            <span>{ windowSize ? "창모드" : "전체화면"}</span>
+          </li>
         </ul>
       </div>
       <div className="heading-col">
         <ul>
           <li className="request-task">
-            <button onClick={() => handleRequestQuestion()} style={StyleButtonRequestQuestion} >
+            <button onClick={() => handleRequestQuestion()} style={StyleButtonRequestQuestion} disabled={isBtnRequestQuestion}  >
               {TextButtonRequestQuestion}
             </button>
           </li>
           <li className="request-task">
-            <button onClick={() => handleRequestLecOut()} style={StyleButtonRequestLecOut}>
+            <button onClick={() => handleRequestLecOut()} style={StyleButtonRequestLecOut} disabled={isBtnRequestLecOut}>
               {TextButtonRequestLecOut}
             </button>
           </li>
@@ -146,6 +158,7 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       </div>
       <div className="heading-col">
         <ul>
+          <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li>
           <li><p>{lectureInfo ? lectureInfo.lecture_nm : ""}</p></li>
         </ul>
       </div>

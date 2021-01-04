@@ -175,45 +175,12 @@ class Video extends Component {
                 <img src={this.props.disableAllChat ? Icon.chatTalkOffIcon : Icon.chatTalkOnIcon} />
               </li>
           </ul>
-          {/* <i
-            style={{
-              cursor: "pointer",
-              padding: 5,
-              fontSize: 20,
-              color: this.state.mic ? "white" : "red"
-            }}
-            class="material-icons"
-          >
-            {this.state.mic ? "mic" : "mic_off"}
-          </i>
-          <i
-            style={{
-              cursor: "pointer",
-              padding: 5,
-              fontSize: 20,
-              color: this.state.camera ? "white" : "red"
-            }}
-            class="material-icons"
-          >
-            {this.state.camera ? "videocam" : "videocam_off"}
-          </i>
-          <i
-            style={{
-              cursor: "pointer",
-              padding: 5,
-              fontSize: 20,
-              color: this.state.camera ? "white" : "red"
-            }}
-            class="material-icons"
-          >
-            {this.state.chat ? "chat" : "chat_off"}
-          </i> */}
         </div>
       )
     return (
       <>
         <video
-          id={this.props.id ? this.props.id : "local" }
+          id="local"
           muted={this.props.muted} //자기 muted 안 듣음
           autoPlay
           style={{

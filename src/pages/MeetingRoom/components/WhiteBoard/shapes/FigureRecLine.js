@@ -22,6 +22,8 @@ export default class FigureRecLine extends React.Component {
         height={rect.height}
         stroke={this.props.color}
         strokeWidth={1}
+        draggable
+        
         fill="none"
       />
     )

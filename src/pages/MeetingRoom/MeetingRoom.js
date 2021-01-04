@@ -24,7 +24,7 @@ import HeadingControllerStudent from './components/HeadingController/HeadingCont
 import RecordRTCPromisesHandler from 'recordrtc'
 import styled from 'styled-components'
 import {isMobile} from 'react-device-detect';
-// import adapter from 'webrtc-adapter'
+import adapter from 'webrtc-adapter'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
 
@@ -51,16 +51,19 @@ class MeetingRoom extends Component {
         ]
       },
 
+      // sdpConstraints: {
+      //   mandatory: {
+      //     OfferToReceiveAudio: true,
+      //     OfferToReceiveVideo: true
+      //   }
+      // },
       sdpConstraints: {
-        mandatory: {
-          OfferToReceiveAudio: true,
-          OfferToReceiveVideo: true
-        }
+        offerToReceiveAudio: 0,
+        offerToReceiveVideo: 1
       },
 
       isMainRoom: false,
 
-      requestUser: [],
       recordedBlobs: [],
       disconnected: false,
 
@@ -126,7 +129,7 @@ class MeetingRoom extends Component {
           }
         } 
         const  getStream = async() => {
-          const stream = await navigator.mediaDevices.getUserMedia(constraints)
+          const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
           handleSuccess(stream)
         }
 
@@ -247,7 +250,6 @@ class MeetingRoom extends Component {
         loading: false,
       })
     })
-
     // getSocket().on("joined-peers", data => {
     //   this.setState({
     //     status:
@@ -256,6 +258,7 @@ class MeetingRoom extends Component {
     //         : "기다리는 중.."
     //   })
     // })
+
     getSocket().on("peer-disconnected", data => {
       try {
         this.state.peerConnections[data.socketID].close()
@@ -280,7 +283,6 @@ class MeetingRoom extends Component {
         console.log(error)
       }
     })
-
     //!Create Local Peer
     //!pc1
     getSocket().on("online-peer", socketID => {
@@ -294,7 +296,6 @@ class MeetingRoom extends Component {
               local: getSocket().id,
               remote: socketID
             })
-
           }).then(() => {
               
           }).catch((error) => console.log('Failed to set session description: ' + error.toString()))
@@ -304,59 +305,60 @@ class MeetingRoom extends Component {
 
     //!pc2
     getSocket().on("offer", data => {
-      this.createPeerConnection(data.socketID, pc => {
-        try {
-          pc.addStream(this.state.localStream)
-          pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
-            () => {
-              // 2. Create Answer
-              pc.createAnswer(this.state.sdpConstraints).then( async sdp => {
-                pc.setLocalDescription(sdp)
-                console.log("send answer")
-                let tempSdp = await updateBandwidthRestriction(sdp.sdp, 30)
-                let answerSdp = {
-                  sdp: tempSdp,
-                  type: sdp.type
-                }
-
-                console.log('send ',answerSdp)
-                meetingRoomSocket.sendToPeer("answer", answerSdp, {
-                  local: getSocket().id,
-                  remote: data.socketID
-                })
-              })
+      try {
+        this.createPeerConnection(data.socketID, pc => {
+          try {
+            try {
+              pc.addStream(this.state.localStream)
+            } catch (error) {
+              console.log(this.state.localStream)
+              console.log("Add Stream Error", error)
             }
-          )
-        } catch (error) {
-          window.location.reload();
-        }
-      })
+            pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(() => {
+                // 2. Create Answer
+                pc.createAnswer(this.state.sdpConstraints).then( async sdp => {
+                  pc.setLocalDescription(sdp)
+                  // console.log("send answer")
+                  let tempSdp = await updateBandwidthRestriction(sdp.sdp, 10)
+                  let answerSdp = {
+                    sdp: tempSdp,
+                    type: sdp.type
+                  }
+                  meetingRoomSocket.sendToPeer("answer", answerSdp, {
+                    local: getSocket().id,
+                    remote: data.socketID
+                  })
+                }).catch(e => console.log(e))
+              }
+            )
+          } catch (error) {
+            window.location.reload();
+          }
+        })
+      } catch (error) {
+        console.log(error)        
+      }
     })
     const  updateBandwidthRestriction = async (sdp, bandwidth) => {
-      console.log(sdp)
       let modifier = 'AS';
-      // if (adapter.browserDetails.browser === 'firefox') {
-      //   bandwidth = (bandwidth >>> 0) * 1000;
-      //   modifier = 'TIAS';
-      // }
+      if (adapter.browserDetails.browser === 'firefox') {
+        bandwidth = (bandwidth >>> 0) * 1000;
+        modifier = 'TIAS';
+      }
       if (sdp.indexOf('b=' + modifier + ':') === -1) {
         // insert b= after c= line.
         sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n');
       } else {
         sdp = sdp.replace(new RegExp('b=' + modifier + ':.*\r\n'), 'b=' + modifier + ':' + bandwidth + '\r\n');
       }
-      console.log("return", sdp)
       return sdp;
     }
 
     //! pc1 setRemote
     getSocket().on("answer", data => {
       const pc = this.state.peerConnections[data.socketID]
-      console.log(data)
-      // pc.setRemoteDescription(
-      //   new RTCSessionDescription(data.sdp)
-      // ).then(() => { })
-      pc.setRemoteDescription({type: data.sdp.type, sdp: data.sdp.sdp}).then(() => { })
+      let desc = new RTCSessionDescription({type: data.sdp.type, sdp: data.sdp.sdp})
+      pc.setRemoteDescription(desc).then(() => { })
     })
     getSocket().on("candidate", data => {
       const pc = this.state.peerConnections[data.socketID]
@@ -458,24 +460,21 @@ class MeetingRoom extends Component {
   //!localStream 체크할 필요함
   handleScreamRecording = () => {
     var videoPreview = document.getElementById('local');
-    const { enableRecord } = this.state
+    const { enableRecord, localStream } = this.state
 
     //! start event
     if (!enableRecord) {
       //!RecordRTC
-      this.recordVideo = new RecordRTCPromisesHandler(this.state.localStream, {
+      this.recordVideo = new RecordRTCPromisesHandler(localStream, {
         type: 'video'
       });
+
       this.recordVideo.startRecording();
-
-      console.log("record Video", this.recordVideo)
-
       this.setState({
         enableRecord: !this.state.enableRecord
       })
 
     } else {
-      console.log("remoceVideo" , this.recordVideo)
       let tempVideo = this.recordVideo
       this.recordVideo.stopRecording(function(url) {
           alert("영상길이에 따라 시간이 걸립니다.")
@@ -615,15 +614,8 @@ class MeetingRoom extends Component {
       remoteStreams,
       isMainRoom,
       fullScream,
-      allMuted,
-      requestUser,
-      outEnable,
       paintScream,
-      shareScream,
-      enableRecord,
-      testConcentration,
-      flagControl,
-      loading
+      loading,
     } = this.state
     if (disconnected) {
       // disconnect socket
@@ -642,7 +634,7 @@ class MeetingRoom extends Component {
 
       this.props.history.push("/meetting")
     }
-    console.log(isMobile)
+    // console.log(isMobile)
     if(isMobile){
       return (
         <div className="chat-component-mobile">
@@ -663,8 +655,6 @@ class MeetingRoom extends Component {
     // }
 
     const windowSize = !fullScream ? "85%" : "100%"
-
-    console.log(localStream)
     return (
       <div className="meeting-room">
         <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
@@ -694,7 +684,6 @@ class MeetingRoom extends Component {
                     <RemoteStreamContainer
                       paintScream={!paintScream}
                       remoteStreams={remoteStreams}
-                      requestUser={requestUser}
                     />
                     :
                     <RemoteStreamContainerStudent

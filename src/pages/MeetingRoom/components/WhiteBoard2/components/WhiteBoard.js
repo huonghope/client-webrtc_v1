@@ -20,7 +20,6 @@ export default class WhiteBoard extends React.Component {
     document.addEventListener("mousemove", this.mouseMove.bind(this))
     document.addEventListener("mouseup", this.mouseUp.bind(this))
     document.addEventListener("keydown", this.keyDown.bind(this))
-
     window.addEventListener("resize", this.onResize.bind(this))
 
     this.onResize()
@@ -58,7 +57,6 @@ export default class WhiteBoard extends React.Component {
     if (this._insideRect(this.rect, { x: e.clientX, y: e.clientY })) {
       this.pressed = true
       EventBus.emit(EventBus.START_PATH, this.mousePos(e))
-  
     }
   }
 
@@ -71,7 +69,6 @@ export default class WhiteBoard extends React.Component {
   mouseUp(e) {
     this.pressed = false
     EventBus.emit(EventBus.END_PATH, this.mousePos(e))
-        this.keyDown(e)
   }
 
   keyDown(e) {
@@ -84,22 +81,11 @@ export default class WhiteBoard extends React.Component {
         break
     }
   }
-  // onResize(shape) {
-  //   return resize => {
-  //     EventBus.emit(EventBus.MOVE, { shape, resize })
-  //   }
-  // }
-
-
   onMove(shape) {
     return move => {
       EventBus.emit(EventBus.MOVE, { shape, move })
     }
   }
-
-
-  
-  
 
   render() {
     const data = this.state.data

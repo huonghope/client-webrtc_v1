@@ -13,8 +13,9 @@ import getSocket from "../../../../rootSocket"
 import Icon from '../../../../../constants/icons'
 import moment from "moment"
 import './style.scss'
-import { connect, useDispatch } from 'react-redux'
+import { connect, useDispatch, useSelector } from 'react-redux'
 import CountTime from '../../../../../components/CountTime'
+import Alert from "../../../../../components/Alert"
 
 let intervalTime = "";
 class RemoteStreamContainer extends Component {
@@ -23,13 +24,13 @@ class RemoteStreamContainer extends Component {
 
     this.state = {
       rVideos: [],
-      remoteStreams: [],
-      filterRemote: [],
+      listDescRemotes: [], //전체 유저의 리스트
+      listUserRequest: [], //요청을 하는 유저의 리스트
 
       selectedVideo: null,
       videoVisible: false,
-      loading: true,
 
+      loading: true,
       displayTaskVideo: false
     }
   }
@@ -37,128 +38,367 @@ class RemoteStreamContainer extends Component {
    * 먼저 API를 보내서 해당하는 방의 들어갈 사람을 체크함
    * Host누군이지를 체크하면서 Video를 출력함
    */
+
+  //! 자리비음 요청을 보냄
   componentDidMount() {
     getSocket().on("alert-host-lecOut", data => {
-      
-      const { filterRemote } = this.state;
-      const { remoteSocketId, status, userInfo} = data;
 
+      const { listDescRemotes, listUserRequest } = this.state;
+      const { remoteSocketId, status, reqInfo } = data;
       //요청한 유저의 Video를 수정
-      let _rVideos = filterRemote.map(rVideo => {
+      let _rVideos = listDescRemotes.map((rVideo, idx) => {
         const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
-        const requestValue = rVideo.name === remoteSocketId ? status : false;
-
+        let currentRequestUser = rVideo.name === remoteSocketId;
+        let requestValue = rVideo.name === remoteSocketId ? status : false;
         const time = moment().format('DD/MM/YYYYHH:mm:ss')
-        let video = _videoTrack ? (
-            <VideoItem 
+        let video = null;
+
+        //요청하고 있는 학생
+        if (currentRequestUser) {
+          //요청하고 있는학생
+          video = _videoTrack ? (
+            <VideoItem
               rVideo={rVideo}
-              userInfo={userInfo}
+              userInfo={rVideo.userInfo}
               request={requestValue}
               time={time}
               type="request_lecOut"
             />
-        ) : <img src={Icon.boardWarning}></img>
+          ) : <img src={Icon.boardWarning}></img>
+        } else { //반대되는 학생
+          //!다른학생이 체크함, 요청을하고 있는거나 이미 요청했는지 확인함
+          //요청 유저 리스트부터 확인 
+          //!존재하면 어떤건지 체크함
+          console.log(listUserRequest)
+          console.log(rVideo.userInfo.user_idx)
+          console.log(idx)
+
+          let isExistsRequest = listUserRequest.find(e => Number(e.reqInfo.user_idx) === Number(rVideo.userInfo.user_idx)) //요청이 없는 사람
+
+          console.log("isExis", isExistsRequest)
+          if (!isExistsRequest) { //!요청이 없는 경우에는
+            video = _videoTrack ? (
+              <VideoItem
+                rVideo={rVideo}
+                userInfo={rVideo.userInfo}
+                time={time}
+              />) : <img src={Icon.boardWarning}></img>
+          } else { //!요청이 있는 경우에는
+            const { type } = isExistsRequest
+            const { req_status } = isExistsRequest.reqInfo
+            let requestValue = false
+            let req_question_status = false
+            let req_lecOut_status = false
+
+            //허락하면 수정필요함
+            if (req_status === 'waiting') { //요청이 보내고 있음
+              requestValue = true
+            } else {
+              //요청을 진행하고 있음
+              console.log(type)
+              req_question_status = type === 'request_question' ? Number(req_status) : false
+              req_lecOut_status = type === 'request_lecOut' ? Number(req_status) : false
+            }
+            //음성질문이 하고 있는 요청
+            video = _videoTrack ? (
+              <VideoItem
+                rVideo={rVideo}
+                userInfo={rVideo.userInfo}
+                request={requestValue}
+                req_question_status={req_question_status}
+                req_lecOut_status={req_lecOut_status}
+                type={type}
+                time={time}
+              />) : <img src={Icon.boardWarning}></img>
+          }
+        }
         return video
       })
+      //!일반 유저를 하나씩 함
+      let tempListUserRequest = listUserRequest;
+      let filter;
+
+      //요청이 취소하는 경우에는 state에서 제거하
+      if (!status) {
+        filter = tempListUserRequest.filter(e => e.reqInfo.user_idx !== reqInfo.user_idx)
+      } else {
+        //!일반 유저를 하나씩 함
+        if (tempListUserRequest.length === 0) {
+          filter = [{ type: "request_lecOut", reqInfo }]
+        } else {
+          filter = tempListUserRequest.map(e => e.reqInfo.user_idx === reqInfo.user_idx ? { type: "request_lecOut", reqInfo } : e)
+        }
+      }
       this.setState({
-        rVideos: _rVideos
+        rVideos: _rVideos,
+        listUserRequest: filter
       })
+      this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
     })
+
+    //! 음성 질문 요청을 보냄
+    //! 일단 두개 나눔
     getSocket().on("alert-host-question", data => {
-
-      const { filterRemote } = this.state;
-      const { remoteSocketId, status, userInfo} = data;
-
-      const time = moment().format('DD/MM/YYYYHH:mm:ss')
+      const { listDescRemotes, listUserRequest } = this.state;
+      const { remoteSocketId, status, reqInfo } = data;
+      
       //요청한 유저의 Video를 수정
-      let _rVideos = filterRemote.map(rVideo => {
+      let _rVideos = listDescRemotes.map((rVideo, idx) => {
         const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
-        const requestValue = rVideo.name === remoteSocketId ? status : false;
-        let video = _videoTrack ? (
-            <VideoItem 
+        let currentRequestUser = rVideo.name === remoteSocketId;
+        let requestValue = rVideo.name === remoteSocketId ? status : false;
+        const time = moment().format('DD/MM/YYYYHH:mm:ss')
+        let video = null;
+
+        //요청하고 있는 학생
+        if (currentRequestUser) {
+          //요청하고 있는학생
+          video = _videoTrack ? (
+            <VideoItem
               rVideo={rVideo}
-              userInfo={userInfo}
+              userInfo={rVideo.userInfo}
               request={requestValue}
               time={time}
               type="request_question"
             />
-        ) : <img src={Icon.boardWarning}></img>
+          ) : <img src={Icon.boardWarning}></img>
+        } else { //반대되는 학생
+          //!다른학생이 체크함, 요청을하고 있는거나 이미 요청했는지 확인함
+          //요청 유저 리스트부터 확인 
+          //!존재하면 어떤건지 체크함
+          let isExistsRequest = listUserRequest.find(e => Number(e.reqInfo.user_idx) === Number(rVideo.userInfo.user_idx)) //요청이 없는 사람
+          if (!isExistsRequest) { //!요청이 없는 경우에는
+            video = _videoTrack ? (
+              <VideoItem
+                rVideo={rVideo}
+                userInfo={rVideo.userInfo}
+                time={time}
+              />) : <img src={Icon.boardWarning}></img>
+          } else { //!요청이 있는 경우에는
+            const { type } = isExistsRequest
+            const { req_status } = isExistsRequest.reqInfo
+            let requestValue = false
+            let req_question_status = false
+            let req_lecOut_status = false
+            if (req_status === 'waiting') { //요청이 보내고 있음
+              requestValue = true
+            } else {
+              //요청을 진행하고 있음
+              req_question_status = type === 'request_question' ? Number(req_status) : false
+              req_lecOut_status = type === 'request_lecOut' ? Number(req_status) : false
+            }
+            //음성질문이 하고 있는 요청
+            video = _videoTrack ? (
+              <VideoItem
+                rVideo={rVideo}
+                userInfo={rVideo.userInfo}
+                request={requestValue}
+                req_question_status={req_question_status}
+                req_lecOut_status={req_lecOut_status}
+                type={type}
+                time={time}
+              />) : <img src={Icon.boardWarning}></img>
+          }
+        }
         return video
       })
+      //!일반 유저를 하나씩 함
+      let tempListUserRequest = listUserRequest;
+      let filter;
+
+      //요청이 취소하는 경우에는 state에서 제거하
+      if (!status) {
+        filter = tempListUserRequest.filter(e => e.reqInfo.user_idx !== reqInfo.user_idx)
+      } else {
+        //!일반 유저를 하나씩 함
+        if (tempListUserRequest.length === 0) {
+          filter = [{ type: "request_question", reqInfo }]
+        } else {
+          filter = tempListUserRequest.map(e => e.reqInfo.user_idx === reqInfo.user_idx ? { type: "request_question", reqInfo } : e)
+        }
+      }
       this.setState({
-        rVideos: _rVideos
+        rVideos: _rVideos,
+        listUserRequest: filter
       })
+      this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
     })
 
     //강사는 유저의 요청을 처리한 다음에 화면을 어떻게 출력함
     getSocket().on("alert-host-process-req-question", data => {
-      const { filterRemote } = this.state;
-      const { remoteSocketId, type } = data;
-      const { req_status, timestamp } = data.data;
-      if(Number(req_status)){
+      const { listDescRemotes, listUserRequest } = this.state;
+      const { remoteSocketId, type, reqInfo } = data;
+      const { req_status } = reqInfo
+
+      //수락한 경우에는
+      if (Number(req_status)) {
         const time = moment().format('DD/MM/YYYYHH:mm:ss')
-        const { userInfo } = data.data
-        //요청한 유저의 Video를 수정
-        let _rVideos = filterRemote.map(rVideo => {
+        let _rVideos = listDescRemotes.map((rVideo, idx) => {
           const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
-          const req_question_status = rVideo.name === remoteSocketId ? Number(req_status) : false;
-          let video = _videoTrack ? (
-              <VideoItem 
-                rVideo={rVideo}
-                userInfo={userInfo}
-                req_question_status={req_question_status}
-                time={time}
-                type="request_question"
-              />
-          ) : <img src={Icon.boardWarning}></img>
+          let currentRequestUser = rVideo.name === remoteSocketId;
+
+          let video = null;
+          //현재 요청하는 유저를 처리
+          if (currentRequestUser) {
+            video = _videoTrack ? (<VideoItem
+              rVideo={rVideo}
+              userInfo={rVideo.userInfo}
+              req_question_status={req_status}
+              time={time}
+              type="request_question"
+            />) : <img src={Icon.boardWarning}></img>
+          } else { //다른 사람의 요청이 있는지 없는지 확인함
+            let isExistsRequest = listUserRequest.find(e => Number(e.reqInfo.user_idx) === Number(rVideo.userInfo.user_idx)) //요청이 없는 사람
+            if (!isExistsRequest) { //!요청이 없는 경우에는
+              video = _videoTrack ? (
+                <VideoItem
+                  rVideo={rVideo}
+                  userInfo={rVideo.userInfo}
+                  time={time}
+                />) : <img src={Icon.boardWarning}></img>
+            } else { //!요청이 있는 경우에는
+              const { type } = isExistsRequest
+              const { req_status } = isExistsRequest.reqInfo
+              let requestValue = false
+              let req_question_status = false
+              let req_lecOut_status = false
+              if (req_status === 'waiting') { //요청이 보내고 있음
+                requestValue = true
+              } else {
+                //요청을 진행하고 있음
+                req_question_status = type === 'request_question' ? Number(req_status) : false
+                req_lecOut_status = type === 'request_lecOut' ? Number(req_status) : false
+              }
+              //음성질문이 하고 있는 요청
+              video = _videoTrack ? (
+                <VideoItem
+                  rVideo={rVideo}
+                  userInfo={rVideo.userInfo}
+                  request={requestValue}
+                  req_question_status={req_question_status}
+                  req_lecOut_status={req_lecOut_status}
+                  type={type}
+                  time={time}
+                />) : <img src={Icon.boardWarning}></img>
+            }
+          }
           return video
         })
         this.setState({
           rVideos: _rVideos
         })
       }
+      let tempListUserRequest = listUserRequest;
+      let filter;
+
+      //요청이 취소하는 경우에는 state에서 제거하
+      if (!Number(req_status)) { //거절
+        filter = tempListUserRequest.filter(e => e.reqInfo.user_idx !== reqInfo.user_idx)
+      } else {
+        //!일반 유저를 하나씩 함
+        if (tempListUserRequest.length === 0) {
+          filter = [{ type: "request_question", reqInfo }]
+        } else {
+          filter = tempListUserRequest.map(e => e.reqInfo.user_idx === reqInfo.user_idx ? { type: "request_question", reqInfo } : e)
+        }
+      }
+      this.setState({
+        listUserRequest: filter
+      })
+      this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
     })
 
 
     //!오류
+    /**
+     * @data 받은 데이터
+     * @data.data 요청의 정보
+     * @data.listUser  현강의 요청을 되어 있는 리스트
+     * @data.remoteSocketId
+     * @data.type: request_lecOut or request_question
+     */
     getSocket().on("alert-host-process-req-lecOut", data => {
-      const { filterRemote } = this.state;
-      const { remoteSocketId, type, listUserOut } = data;
-      
-      console.log(listUserOut)
-      const { req_status, timestamp } = data.data;
-      if(Number(req_status)){
+      const { listDescRemotes, listUserRequest } = this.state;
+      const { remoteSocketId, type, reqInfo } = data;
+      const { req_status } = reqInfo
+
+      //수락한 경우에는
+      if (Number(req_status)) {
         const time = moment().format('DD/MM/YYYYHH:mm:ss')
-        const { userInfo } = data.data
-        //요청한 유저의 Video를 수정
-        let _rVideos = filterRemote.map(rVideo => {
+        let _rVideos = listDescRemotes.map((rVideo, idx) => {
           const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
+          let currentRequestUser = rVideo.name === remoteSocketId;
 
-          const  userRequestExists = (arr, socketId) =>  {
-            return arr.filter(element => element.socket_id === socketId)
+          let video = null;
+          //현재 요청하는 유저를 처리
+          if (currentRequestUser) {
+            video = _videoTrack ? (<VideoItem
+              rVideo={rVideo}
+              userInfo={rVideo.userInfo}
+              req_lecOut_status={req_status}
+              time={time}
+              type="request_lecOut"
+            />) : <img src={Icon.boardWarning}></img>
+          } else { //다른 사람의 요청이 있는지 없는지 확인함
+            let isExistsRequest = listUserRequest.find(e => Number(e.reqInfo.user_idx) === Number(rVideo.userInfo.user_idx)) //요청이 없는 사람
+            if (!isExistsRequest) { //!요청이 없는 경우에는
+              video = _videoTrack ? (
+                <VideoItem
+                  rVideo={rVideo}
+                  userInfo={rVideo.userInfo}
+                  time={time}
+                />) : <img src={Icon.boardWarning}></img>
+            } else { //!요청이 있는 경우에는
+              const { type } = isExistsRequest
+              const { req_status } = isExistsRequest.reqInfo
+              let requestValue = false
+              let req_question_status = false
+              let req_lecOut_status = false
+              if (req_status === 'waiting') { //요청이 보내고 있음
+                requestValue = true
+              } else {
+                //요청을 진행하고 있음
+                req_question_status = type === 'request_question' ? Number(req_status) : false
+                req_lecOut_status = type === 'request_lecOut' ? Number(req_status) : false
+              }
+              //음성질문이 하고 있는 요청
+              video = _videoTrack ? (
+                <VideoItem
+                  rVideo={rVideo}
+                  userInfo={rVideo.userInfo}
+                  request={requestValue}
+                  req_question_status={req_question_status}
+                  req_lecOut_status={req_lecOut_status}
+                  type={type}
+                  time={time}
+                />) : <img src={Icon.boardWarning}></img>
+            }
           }
-          let result = userRequestExists(listUserOut, rVideo.name)
-          result = result.length !== 0 ? result[result.length - 1] : null
-
-          const req_lecOut_status = Number(result.req_status);
-          const requestValue = result.req_status === 'waiting' ? true : false
-
-          let video = _videoTrack ? (
-              <VideoItem 
-                rVideo={rVideo}
-                userInfo={userInfo}
-                request={requestValue}
-                req_lecOut_status={req_lecOut_status}
-                time={time}
-                type="request_lecOut"
-              />
-          ) : <img src={Icon.boardWarning}></img>
           return video
         })
+        
         this.setState({
           rVideos: _rVideos
         })
       }
+      let tempListUserRequest = listUserRequest;
+      let filter;
+
+      //요청이 취소하는 경우에는 state에서 제거하
+      if (!Number(req_status)) { //거절
+        filter = tempListUserRequest.filter(e => e.reqInfo.user_idx !== reqInfo.user_idx)
+      } else {
+        //!일반 유저를 하나씩 함
+        if (tempListUserRequest.length === 0) {
+          filter = [{ type: "request_lecOut", reqInfo }]
+        } else {
+          filter = tempListUserRequest.map(e => e.reqInfo.user_idx === reqInfo.user_idx ? { type: "request_lecOut", reqInfo } : e)
+        }
+      }
+      this.setState({
+        listUserRequest: filter
+      })
+      this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
     })
 
     const UserRoomId = () => {
@@ -188,14 +428,14 @@ class RemoteStreamContainer extends Component {
         const { rVideos, filterRemote } = await SetVideos(remoteStreams, this.props)
         this.setState({
           rVideos: rVideos,
-          filterRemote: filterRemote,
+          listDescRemotes: filterRemote,
           loading: false
         })
       }
       fetchVideos();
     }
   }
-  componentWillUnmount(){
+  componentWillUnmount() {
     clearInterval(intervalTime)
   }
 
@@ -208,7 +448,7 @@ class RemoteStreamContainer extends Component {
         const { rVideos, filterRemote } = await SetVideos(nextProps.remoteStreams, this.props)
         this.setState({
           rVideos: rVideos,
-          filterRemote: filterRemote,
+          listDescRemotes: filterRemote,
           loading: false
         })
       }
@@ -225,7 +465,7 @@ class RemoteStreamContainer extends Component {
     }
   }
   handleResize = () => {
-    this.setState({resize: !this.state.resize})
+    this.setState({ resize: !this.state.resize })
   };
 
   render() {
@@ -250,10 +490,10 @@ class RemoteStreamContainer extends Component {
   }
 }
 //!rVideo.id = socket.id
-const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, req_lecOut_status}) => {
-  const[req, setReq] = useState()
-  const[reqQuestionStatus, setReqQuestionStatus] = useState()
-  const[reqLecOutStatus, setLecOutStatus] = useState()
+const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status, req_lecOut_status }) => {
+  const [req, setReq] = useState()
+  const [reqQuestionStatus, setReqQuestionStatus] = useState()
+  const [reqLecOutStatus, setLecOutStatus] = useState()
   //!체크필요함
   useEffect(() => {
     setReqQuestionStatus(req_question_status)
@@ -261,7 +501,7 @@ const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, 
     setReq(request)
   }, [time])
   // useEffect(() => {
-    
+
   //   setReq(request)
   // },[])
 
@@ -275,7 +515,7 @@ const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, 
   const UserRoomId = () => {
     return JSON.parse(window.localStorage.getItem("usr_id"))
   }
-  
+
   //!정보를 저장할필요함
   const handleClickReject = () => {
     setReq(false)
@@ -287,7 +527,7 @@ const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, 
       remoteSocketId: rVideo.id
     }
     remoteStreamContainer.emitProcessRequestUser(payload)
-    if(reqQuestionStatus){
+    if (reqQuestionStatus) {
       setReqQuestionStatus(!reqQuestionStatus)
     }
   }
@@ -304,6 +544,8 @@ const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, 
     remoteStreamContainer.emitProcessRequestUser(payload)
   }
 
+  console.log("cjecl", rVideo.stream)
+
   return (
     <div className="video-item">
       <Video
@@ -317,8 +559,8 @@ const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, 
         <WrapperTaskVideo
           userInfo={userInfo}
           socketId={rVideo.id}
-          //handleClickWarning={() => handleClickWarning(rVideo.name)}
-          //handleDisableChatting={() => handleDisableChatting(rVideo.name)}
+        //handleClickWarning={() => handleClickWarning(rVideo.name)}
+        //handleDisableChatting={() => handleDisableChatting(rVideo.name)}
         />
       </div>
       {
@@ -333,23 +575,23 @@ const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, 
         </div>
       }
       {
-        reqQuestionStatus && 
+        reqQuestionStatus &&
         <div className="wrapper-request">
           <div>
-              <h3>음성질문 중</h3>
-              {/* <CountTime /> */}
-              <button className="btn-cancel" onClick={() => handleClickReject()}>
-                음성질문 취소
+            <h3>음성질문 중</h3>
+            {/* <CountTime /> */}
+            <button className="btn-cancel" onClick={() => handleClickReject()}>
+              음성질문 취소
               </button>
           </div>
         </div>
       }
       {
-        reqLecOutStatus && 
+        reqLecOutStatus &&
         <div className="wrapper-request">
           <div>
-              <h3>자리비움 중</h3>
-              <CountTime />
+            <h3>자리비움 중</h3>
+            <CountTime />
           </div>
         </div>
       }
@@ -357,12 +599,12 @@ const VideoItem = ({rVideo, userInfo, request, type ,time, req_question_status, 
   )
 }
 
-const  SetVideos = (remoteStreams, props) => {
+const SetVideos = (remoteStreams, props) => {
   // const dispatch = useDispatch();
 
   return new Promise((resolve, rej) => {
     //!두개 값을 이렇게 하면 될것같음
-    let usr_id = localStorage.getItem("usr_id") 
+    let usr_id = localStorage.getItem("usr_id")
     let data = window.localStorage.getItem("asauth")
     let { userId } = JSON.parse(data).userInfoToken
     let params = { usr_id, userId }
@@ -373,13 +615,13 @@ const  SetVideos = (remoteStreams, props) => {
       //!여기서 유저인지 강사인지 구분해야됨
       const listUser = data.slice(1, data.length)
       props.dispatch(remoteStreamContainerAction.saveListUser(listUser))
-      
       let _filterRemote = remoteStreams.filter(rVideo => listUser.find(({ socket_id }) => rVideo.id === socket_id) && rVideo)
       let _rVideos = _filterRemote.map((rVideo, index) => {
         const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
         let [infoStreamBySocketId] = listUser.filter(element => element.socket_id === rVideo.name)
+        _filterRemote[index].userInfo = infoStreamBySocketId
         let video = _videoTrack ? (
-          <VideoItem 
+          <VideoItem
             rVideo={rVideo}
             userInfo={infoStreamBySocketId}
           />
@@ -396,15 +638,49 @@ const  SetVideos = (remoteStreams, props) => {
 }
 
 const WrapperUserRequest = ({ type, userInfo, handleClickAccept, handleClickReject }) => {
-  type = type === "request_question" ? "음성질문" : "자리비움";
+  let convertType = type === "request_question" ? "음성질문" : "자리비움";
+  const lectureInfo = useSelector(remoteStreamSelector.getListUserRequest)
 
+  const UserRoomId = () => {
+    return JSON.parse(window.localStorage.getItem("usr_id"))
+  }
+  const tryCatchHandleClickAccept = () => {
+    if(type === "request_question"){
+      let filter = lectureInfo.find((e) => e.type === 'request_question' && Number(e.reqInfo.req_status) === 1)
+      console.log(filter)
+      if(filter){
+        Alert({
+          title: "다른 학셍이 음성질문하고 있으니, 그래도 진행하겠습니까?",
+          btnAccept: "동의하기",
+          btnReject: "거절하기",
+          handleClickAccept: () => {
+            alert("개발 중")
+            // handleClickAccept();
+            // const payload = {
+            //   type: type,
+            //   status: "reject",
+            //   userId: filter.reqInfo.user_idx,
+            //   userRoomId: UserRoomId(),
+            //   remoteSocketId: undefined
+            // }
+            // remoteStreamContainer.emitProcessRequestUser(payload)
+          },
+          handleClickReject: () => { }
+        })
+      }else{
+        handleClickAccept();
+      }
+    }else{
+      handleClickAccept();
+    }
+  }
   return (
     <div>
       <p className="wrapper-request__name">{userInfo.user_name}</p>
-      <p className="wrapper-request__type"><span>{type}</span> 요청</p>
+      <p className="wrapper-request__type"><span>{convertType}</span> 요청</p>
       <div className="wrapper-request__btn">
         <button className="wrapper-request__btn--reject" onClick={() => handleClickReject()}>거절</button>
-        <button className="wrapper-request__btn--accept" onClick={() => handleClickAccept()}>수락</button>
+        <button className="wrapper-request__btn--accept" onClick={() => tryCatchHandleClickAccept()}>수락</button>
       </div>
     </div>
   )
@@ -414,7 +690,7 @@ const WrapperUserRequest = ({ type, userInfo, handleClickAccept, handleClickReje
 //!일단 여기서 socket만 적용함
 const WrapperTaskVideo = ({ userInfo, socketId }) => {
   const handleClickWarning = () => {
-    let usr_id = localStorage.getItem("usr_id") 
+    let usr_id = localStorage.getItem("usr_id")
     let payload = {
       userId: userInfo.user_idx,
       remoteSocketId: socketId,
@@ -460,4 +736,4 @@ const WrapperLoading = styled.div`
   height: 100%;
 `
 export default connect(mapStateToProps, mapDispatchToProps)(RemoteStreamContainer);
-// export default 
+// export default

@@ -1,4 +1,4 @@
-import { FIGURE_ELLIPSE_LINE, DRAW } from "./ToolStore"
+import { FIGURE_ELLIPSE_LINE, DRAW, FIGURE_ELLIPSE_FILL, TEXT, FIGURE_TRIANGLE_LINE } from "./ToolStore"
 
 export function pointInsideRect(point, rect) {
   return (
@@ -31,7 +31,40 @@ export function getShapeRect(shape) {
       width: maxX - minX,
       height: maxY - minY
     }
-  } else {
+    // ellipse 수정한 부분
+  } else if (shape.type === FIGURE_ELLIPSE_FILL) {
+    const halfWidth = Math.abs(shape.path[0].x - shape.path[end].x)
+    const halfHeight = Math.abs(shape.path[0].y - shape.path[end].y)
+    return {
+      x: Math.min(shape.path[0].x, shape.path[end].x) - halfWidth,
+      y: Math.min(shape.path[0].y, shape.path[end].y) - halfHeight,
+      width: 2 * halfWidth,
+      height: 2 * halfHeight
+    }
+  }
+  //text 수정한 부분
+  else if (shape.type === TEXT) {
+    const halfWidth = Math.abs(shape.path[0].x - shape.path[end].x) 
+    const halfHeight = Math.abs(shape.path[0].y - shape.path[end].y)
+    return {
+      x: Math.min(shape.path[0].x, shape.path[end].x),
+      y: Math.min(shape.path[0].y, shape.path[end].y),
+      width: halfWidth,
+      height: halfHeight
+    }
+  } 
+  //triangle 수정한 부분
+  else if (shape.type === FIGURE_TRIANGLE_LINE) {
+    const halfWidth = Math.abs(shape.path[0].x - shape.path[end].x)
+    const halfHeight = Math.abs(shape.path[0].y - shape.path[end].y)
+    return {
+      x: Math.min(shape.path[0].x, shape.path[end].x) - halfWidth,
+      y: Math.min(shape.path[0].y, shape.path[end].y),
+      width: 2 * halfWidth,
+      height: halfHeight
+    }
+  }
+  else {
     return {
       x: Math.min(shape.path[0].x, shape.path[end].x),
       y: Math.min(shape.path[0].y, shape.path[end].y),
