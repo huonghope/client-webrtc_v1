@@ -25,6 +25,7 @@ import RecordRTCPromisesHandler from 'recordrtc'
 import styled from 'styled-components'
 import {isMobile} from 'react-device-detect';
 import adapter from 'webrtc-adapter'
+import FFmpeg from "@ffmpeg/ffmpeg"
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
 
@@ -265,24 +266,24 @@ class MeetingRoom extends Component {
         const rVideo = this.state.remoteStreams.filter(
           stream => stream.id === data.socketID
         )
+
         rVideo && this.stopTracks(rVideo[0].stream)
+
 
         const remoteStreams = this.state.remoteStreams.filter(
           stream => stream.id !== data.socketID
         )
         this.setState(prevState => {
-          const selectedVideo =  prevState.selectedVideo.id === data.socketID && remoteStreams.length ? { selectedVideo: remoteStreams[0] } : null
           return {
-            // remoteStream: remoteStreams.length > 0 && remoteStreams[0].stream || null,
             remoteStreams,
             loading: false,
-            ...selectedVideo,
           }
         })
       } catch (error) {
         console.log(error)
       }
     })
+    
     //!Create Local Peer
     //!pc1
     getSocket().on("online-peer", socketID => {
@@ -366,19 +367,31 @@ class MeetingRoom extends Component {
     })
   }
   handleOutRoom = () => {
-    const { remoteStreams } = this.state
-    if (remoteStreams.length !== 0) {
-      Alert({
-        title: "수업을 종료하시겠습니까?",
-        content: `핵생이 남아있는 경우, 모도 퇴장됩니다.`,
-        handleClickAccept: () => {
-          this.setState({
-            disconnected: true
-          })
-        },
-        handleClickReject: () => { }
-      })
-    } else {
+    const { remoteStreams, isMainRoom } = this.state
+    if(isMainRoom){
+      if (remoteStreams.length !== 0) {
+        Alert({
+          title: "수업을 종료하시겠습니까?",
+          content: `핵생이 남아있는 경우, 모도 퇴장됩니다.`,
+          handleClickAccept: () => {
+            this.setState({
+              disconnected: true
+            })
+          },
+          handleClickReject: () => { }
+        })
+      } else {
+        Alert({
+          title: "수업을 종료하시겠습니까?",
+          handleClickAccept: () => {
+            this.setState({
+              disconnected: true
+            })
+          },
+          handleClickReject: () => { }
+        })
+      }
+    }else{
       Alert({
         title: "수업을 종료하시겠습니까?",
         handleClickAccept: () => {
@@ -390,6 +403,11 @@ class MeetingRoom extends Component {
       })
     }
   }
+
+  stopTracks = (stream) => {
+    stream.getTracks().forEach(track => track.stop())
+  }
+
   handleWindowSize = () => {
     this.setState({
       fullScream: !this.state.fullScream
@@ -459,150 +477,72 @@ class MeetingRoom extends Component {
   //!로컬 stream 작동하지 않으면 안됨
   //!localStream 체크할 필요함
   handleScreamRecording = () => {
-    var videoPreview = document.getElementById('local');
-    const { enableRecord, localStream } = this.state
+    const { createFFmpeg, fetchFile } = FFmpeg
+    const ffmpeg = createFFmpeg({ log: true })
+    const localRecord = document.getElementById("local")
+    const chunks = []
 
-    //! start event
+    const { enableRecord } = this.state
     if (!enableRecord) {
-      //!RecordRTC
-      this.recordVideo = new RecordRTCPromisesHandler(localStream, {
-        type: 'video'
-      });
+      let options = { mimeType: "video/webm;codecs=vp9,opus" }
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.error(`${options.mimeType} is not supported`)
+        options = { mimeType: "video/webm;codecs=vp8,opus" }
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          console.error(`${options.mimeType} is not supported`)
+          options = { mimeType: "video/webm" }
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            console.error(`${options.mimeType} is not supported`)
+            options = { mimeType: "" }
+          }
+        }
+      }
 
-      this.recordVideo.startRecording();
+      let mediaRecorder
+      try {
+        mediaRecorder = new MediaRecorder(localRecord.srcObject)
+      } catch (e) {
+        console.error("Exception while creating MediaRecorder:", e)
+        return
+      }
+      mediaRecorder.ondataavailable = e => chunks.push(e.data)
+      mediaRecorder.onstop = async () => {
+        const blob = new Uint8Array(await new Blob(chunks).arrayBuffer())
+
+        let currentDay = moment().format("l").replace("/", "_")
+        const name = "record.webm"
+        await ffmpeg.load()
+        ffmpeg.FS("writeFile", name, await fetchFile(blob))
+        await ffmpeg.run("-i", name, "output.mp4")
+        const data = ffmpeg.FS("readFile", "output.mp4")
+        const a = document.createElement("a")
+        a.style.display = "none"
+        a.href = URL.createObjectURL(
+          new Blob([data.buffer], { type: "video/mp4" })
+        )
+        a.download = `${currentDay}.mp4`
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => {
+          document.body.removeChild(a)
+          window.URL.revokeObjectURL(a.href)
+        }, 100)
+      }
+      mediaRecorder.start()
+      console.log("MediaRecorder started", mediaRecorder)
+
+      this.setState({
+        mediaRecorder,
+        enableRecord: !this.state.enableRecord
+      })
+    } else {
+      const { mediaRecorder } = this.state
+      mediaRecorder.stop()
       this.setState({
         enableRecord: !this.state.enableRecord
       })
-
-    } else {
-      let tempVideo = this.recordVideo
-      this.recordVideo.stopRecording(function(url) {
-          alert("영상길이에 따라 시간이 걸립니다.")
-          videoPreview.src = url;
-          videoPreview.download = 'video.webm';
-          
-          console.log("this record", tempVideo)
-          convertStreams(tempVideo.getBlob());
-      });
-      this.setState({
-            enableRecord: !this.state.enableRecord
-      })
-      
     }
-    
-    //! end - event
-    var workerPath = 'https://archive.org/download/ffmpeg_asm/ffmpeg_asm.js';
-    // if(document.domain == 'localhost') {
-    //     workerPath = window.location.href.replace(window.location.href.split('/').pop(), '') + 'ffmpeg_asm.js';
-    // }
-    const  processInWebWorker = () => {
-      console.log("pro in web woker")
-
-      var blob = URL.createObjectURL(new Blob(['importScripts("' + workerPath + '");var now = Date.now;function print(text) {postMessage({"type" : "stdout","data" : text});};onmessage = function(event) {var message = event.data;if (message.type === "command") {var Module = {print: print,printErr: print,files: message.files || [],arguments: message.arguments || [],TOTAL_MEMORY: message.TOTAL_MEMORY || false};postMessage({"type" : "start","data" : Module.arguments.join(" ")});postMessage({"type" : "stdout","data" : "Received command: " +Module.arguments.join(" ") +((Module.TOTAL_MEMORY) ? ".  Processing with " + Module.TOTAL_MEMORY + " bits." : "")});var time = now();var result = ffmpeg_run(Module);var totalTime = now() - time;postMessage({"type" : "stdout","data" : "Finished processing (took " + totalTime + "ms)"});postMessage({"type" : "done","data" : result,"time" : totalTime});}};postMessage({"type" : "ready"});'], {
-          type: 'application/javascript'
-      }));
-
-      var worker = new Worker(blob);
-      URL.revokeObjectURL(blob);
-      return worker;
-    }
-
-    var worker;
-    //!start - convert
-    const convertStreams = (videoBlob) => {
-
-      console.log("covert", videoBlob)
-      var aab;
-      var buffersReady;
-      var workerReady;
-      var posted;
-
-      var fileReader = new FileReader();
-      fileReader.onload = function() {
-          aab = this.result;
-          postMessage();
-      };
-      fileReader.readAsArrayBuffer(videoBlob);
-
-      if (!worker) {
-          worker = processInWebWorker();
-      }
-
-      worker.onmessage = function(event) {
-          console.log("on message")
-          console.log(event)
-
-          var message = event.data;
-          if (message.type == "ready") {
-              workerReady = true;
-              if (buffersReady)
-                  postMessage();
-          } else if (message.type == "stdout") {
-          } else if (message.type == "start") {
-          } else if (message.type == "done") {
-
-              var result = message.data[0];
-
-              var blob = new File([result.data], 'test.mp4', {
-                  type: 'video/mp4'
-              });
-
-
-              PostBlob(blob);
-          }
-      };
-      
-      var postMessage = function() {
-          posted = true;
-
-          worker.postMessage({
-              type: 'command',
-              arguments: '-i video.webm -c:v mpeg4 -b:v 6400k -strict experimental output.mp4'.split(' '),
-              files: [
-                  {
-                      data: new Uint8Array(aab),
-                      name: 'video.webm'
-                  }
-              ]
-          });
-      };
-    }
-      //!end - convert
-    const  PostBlob = (blob) => {
-      // const blob = new Blob(recordedBlobs, { type: "video/webm" })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.style.display = "none"
-      a.href = url
-      a.type = 'video/mp4; codecs=mpeg4';
-      let currentDay = moment().format("l").replace("/", "_")
-      a.download = `${currentDay}.mp4`
-      document.body.appendChild(a)
-      a.click()
-
-
-
-      // var video = document.createElement('video');
-      // video.controls = true;
-
-      // var source = document.createElement('source');
-      // source.src = URL.createObjectURL(blob);
-      // source.type = 'video/mp4; codecs=mpeg4';
-      // video.appendChild(source);
-
-      // video.download = 'Play mp4 in VLC Player.mp4';
-
-      // var h2 = document.createElement('h2');
-      // h2.innerHTML = '<a href="' + source.src + '" target="_blank" download="Play mp4 in VLC Player.mp4" style="font-size:200%;color:red;">Download Converted mp4 and play in VLC player!</a>';
-      // h2.style.display = 'block';
-
-      // video.tabIndex = 0;
-      // video.focus();
-      // video.play();
-
-      // document.querySelector('#record-video').disabled = false;
   }
-}
 
 
 
@@ -618,21 +558,24 @@ class MeetingRoom extends Component {
       loading,
     } = this.state
     if (disconnected) {
-      // disconnect socket
-      getSocket().close()
-      // stop local audio & video tracks
-      this.stopTracks(localStream)
+      try {
 
-      // stop all remote audio & video tracks
-      remoteStreams.forEach(rVideo => this.stopTracks(rVideo.stream))
-
-      const { timeTestConcentrationAPI, isMainRoom } = this.state
-      if (isMainRoom) clearInterval(timeTestConcentrationAPI)
-      // stop all remote peerconnections
-      peerConnections &&
-        Object.values(peerConnections).forEach(pc => pc.close())
-
-      this.props.history.push("/meetting")
+        console.log("aaaaaa")
+        // disconnect socket
+        getSocket().close()
+        // stop local audio & video tracks
+        this.stopTracks(localStream)
+  
+        // stop all remote audio & video tracks
+        remoteStreams.forEach(rVideo => this.stopTracks(rVideo.stream))
+  
+        peerConnections &&
+          Object.values(peerConnections).forEach(pc => pc.close())
+        
+        window.close();
+      } catch (error) {
+        console.log(error)        
+      }
     }
     // console.log(isMobile)
     if(isMobile){

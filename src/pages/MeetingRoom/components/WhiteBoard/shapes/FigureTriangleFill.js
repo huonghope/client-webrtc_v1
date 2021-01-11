@@ -128,9 +128,9 @@ export default class FigureTriangleLine extends React.Component {
     return (<path d={d} 
     x={this.props.path[0].x}
     y={this.props.path[0].y}
-    stroke="black"
+    stroke="none"
     strokeWidth="1"
-    fill="none" />);  
+    fill={this.props.color} />);  
     
   }
 

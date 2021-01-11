@@ -232,7 +232,7 @@ export default function Tools() {
       if (10 > _now.getMinutes()) minutes = '0' + minutes;
       return date + '' + month + '' + year + '' + hour + '' + minutes + '' + seconds;
     }
-    saveSvgAsPng(document.getElementById("whiteBoard"), `${fnCurrentTime()}.png`, {backgroundColor: "f5f5f5"})
+    saveSvgAsPng(document.getElementById("whiteBoard"), `${fnCurrentTime()}.png`, {backgroundColor: "ffffff"})
   }
   
   var prevConunt = useRef(Number(localStorage.getItem('history')));

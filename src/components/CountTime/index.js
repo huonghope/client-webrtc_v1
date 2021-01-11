@@ -17,7 +17,7 @@ function CountTime(props) {
 
   return (
     <h1>
-      {minutes} : {seconds}
+      {minutes < 10 ? `0${minutes}` : minutes} : {seconds < 10 ? `0${seconds}` : seconds }
     </h1>
   )
 }
