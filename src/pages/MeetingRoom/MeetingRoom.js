@@ -559,22 +559,21 @@ class MeetingRoom extends Component {
     } = this.state
     if (disconnected) {
       try {
-
-        console.log("aaaaaa")
         // disconnect socket
         getSocket().close()
         // stop local audio & video tracks
         this.stopTracks(localStream)
-  
+        
         // stop all remote audio & video tracks
         remoteStreams.forEach(rVideo => this.stopTracks(rVideo.stream))
-  
-        peerConnections &&
-          Object.values(peerConnections).forEach(pc => pc.close())
         
+        peerConnections &&
+        Object.values(peerConnections).forEach(pc => pc.close())
+        this.props.history.push("/")
         window.close();
       } catch (error) {
-        console.log(error)        
+        window.close();
+        console.log(error)
       }
     }
     // console.log(isMobile)

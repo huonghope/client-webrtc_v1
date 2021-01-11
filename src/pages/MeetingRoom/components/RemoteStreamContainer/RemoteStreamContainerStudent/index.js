@@ -113,7 +113,7 @@ class RemoteStreamContainerStudent extends Component {
 
   componentWillUnmount() {
     window.removeEventListener('resize', () => { })
-    clearInterval(intervalTime)
+    // clearInterval(intervalTime)
   }
   componentWillReceiveProps(nextProps) {
     if (this.props.remoteStreams !== nextProps.remoteStreams 

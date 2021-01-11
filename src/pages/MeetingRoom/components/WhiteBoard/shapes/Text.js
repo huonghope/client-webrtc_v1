@@ -42,7 +42,7 @@ prepareData(){
                     //추가적인 inline-styling 
                     style={{
                     borderStyle: "dotted",
-                    borderColor: this.state.isFocused? "#f5f5f5" : "#f5f5f5",
+                    borderColor: this.state.isFocused? "white" : "white",
                     background: this.state.isFocused? '#FFFFFF': '#FFFFFF',
                     padding: this.state.isFocused? '13px': '15px',
                     textAlign:'left',
