@@ -44,10 +44,11 @@ class Video extends Component {
     if (nextProps.videoStream && nextProps.videoStream !== this.props.videoStream) {
       this.video.srcObject = nextProps.videoStream
 
-      //Host가 아니면 음성 끄기
-      if (!this.props.isHostUser && nextProps.videoStream) {
-        this.mutemic()
-      }
+      // //Host가 아니면 음성 끄기
+      // if (!this.props.isHostUser && nextProps.videoStream) {
+      //   console.log("Host가 아니면 음성 끄기")
+      //   this.mutemic()
+      // }
     }
 
     //자기 음성을 끄기
@@ -58,7 +59,32 @@ class Video extends Component {
 
     //자기 카메라 끄기
     if (this.props.localStream  && nextProps.camState !== this.props.camState && nextProps.videoStream ) {
+      console.log("음성상태 바뀌")
       this.mutecamera()
+    }
+    // This is done only once when we receive a video track
+    const videoTrack = nextProps.videoStream && nextProps.videoStream.getVideoTracks()
+    if (this.props.videoType === 'remoteVideo' && videoTrack && videoTrack.length) {
+
+      videoTrack[0].onmute = () => {
+        // alert('muted')
+        this.setState({
+          videoVisible: false,
+        })
+        this.props.videoMuted(nextProps.videoStream)
+      }
+      
+      videoTrack[0].onunmute = () => {
+        this.setState({
+          videoVisible: true,
+        })
+        this.props.videoMuted(nextProps.videoStream)
+      }
+    }
+    
+    const audioTrack = nextProps.videoStream && nextProps.videoStream.getAudioTracks()
+    if (this.props.videoType === 'remoteVideo' && audioTrack && audioTrack.length) {
+      audioTrack[0].onmute = () => {}
     }
   }
 

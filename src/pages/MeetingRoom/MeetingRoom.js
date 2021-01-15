@@ -82,15 +82,15 @@ class MeetingRoom extends Component {
     const constraints = {
       audio: true,
       video: true,
-      options: {
-        mirror: true
-      }
     }
     //!refactory해야함
     const handleSuccess = stream => {
       const videoTracks = stream.getVideoTracks()
+      const video = document.querySelector("video");
       console.log(`Using video device: ${videoTracks[0].label}`)
       this.props.dispatch(meetingRoomAction.whoIsOnline())
+      window.stream = stream; // make variable available to browser console
+      video.srcObject = stream;
       this.setState({
         loading: false,
         localStream: stream,
@@ -304,7 +304,8 @@ class MeetingRoom extends Component {
         this.createPeerConnection(data.socketID, pc => {
           try {
             try {
-              pc.addStream(this.state.localStream)
+              if(this.state.localStream)              
+                pc.addStream(this.state.localStream)
             } catch (error) {
               console.log("Add Stream Error", error)
             }

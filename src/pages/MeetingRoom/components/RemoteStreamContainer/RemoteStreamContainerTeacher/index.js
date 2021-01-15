@@ -224,7 +224,7 @@ class RemoteStreamContainer extends Component {
       const { listDescRemotes, listUserRequest } = this.state;
       const { remoteSocketId, type, reqInfo } = data;
       const { req_status } = reqInfo
-
+      console.log(remoteSocketId, type, reqInfo)
       //수락한 경우에는
       if (Number(req_status)) {
         const time = moment().format('DD/MM/YYYYHH:mm:ss')
@@ -314,7 +314,7 @@ class RemoteStreamContainer extends Component {
      */
     getSocket().on("alert-host-process-req-lecOut", data => {
       const { listDescRemotes, listUserRequest } = this.state;
-      const { remoteSocketId, type, reqInfo } = data;
+      const { remoteSocketId, type, reqInfo, state } = data;
       const { req_status } = reqInfo
 
       //수락한 경우에는
@@ -331,6 +331,7 @@ class RemoteStreamContainer extends Component {
               rVideo={rVideo}
               userInfo={rVideo.userInfo}
               req_lecOut_status={req_status}
+              micStateChange={state}
               time={time}
               type="request_lecOut"
             />) : <img src={Icon.boardWarning}></img>
@@ -379,8 +380,10 @@ class RemoteStreamContainer extends Component {
       let tempListUserRequest = listUserRequest;
       let filter;
 
+      console.log(remoteSocketId, type, reqInfo, state)
       //요청이 취소하는 경우에는 state에서 제거하
       if (!Number(req_status)) { //거절
+        console.log(remoteSocketId, type, reqInfo, state)
         filter = tempListUserRequest.filter(e => e.reqInfo.user_idx !== reqInfo.user_idx)
       } else {
         //!일반 유저를 하나씩 함
@@ -587,6 +590,15 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
     }
     remoteStreamContainer.emitProcessRequestUser(payload)
   }
+  const videoMuted = (rVideo) => {
+    const muteTrack = rVideo.getVideoTracks()[0]
+    const isSelectedVideo = rVideo.id === this.state.selectedVideo.stream.id
+    if (isSelectedVideo) {
+      this.setState({
+        videoVisible: !muteTrack.muted
+      })
+    }
+  }
 
   return (
     <div className="video-item">
@@ -596,6 +608,7 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
         videoStream={rVideo.stream}
         req_question_status={req_question_status}
         micStateChange={micStateChange}
+        videoMuted={videoMuted}
       />
       <div className="btn-wrapper" style={req ? { display: "none" } : {}} >
         <WrapperTaskVideo

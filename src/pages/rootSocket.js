@@ -1,12 +1,17 @@
 import io from "socket.io-client"
 import { isAuthenticated } from "../routes/permissionChecker"
-
+import meetingRoomAction from "./MeetingRoom/MeetingRoom.Action"
 const endpoint = process.env.REACT_APP_SERVER_SOCKET
 
 let socket = null
 
 const onConnected = () => {
   console.log("socket: connected - Welcome to page")
+  getSocket().on("user-role", data => {
+    const { userRole } = data
+    console.log("i am ", userRole)
+    // this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }))
+  })
 }
 
 const onDisconnect = () => {

@@ -292,10 +292,6 @@ function ChatComponent(props) {
     />)
   }
 
-
-
-  console.log(listUser)
-  console.log(disableChatUser)
   return (
     <div className="chat__component">
       {imageZoom && showEnlargedImage(selectedImage)}
@@ -304,7 +300,6 @@ function ChatComponent(props) {
           {messages.map((data, idx) => (
             <div key={idx}>
               {
-                  console.log(data.sender) &&
                   getToken().userId === data.sender.uid
                   ? renderMessage("self", data)
                   : renderMessage("other", data)
