@@ -5,6 +5,8 @@ import headingControllerSelector from '../HeadingController/HeadingController.Se
 import chatComponentSelector from '../ChatComponent/ChatComponent.Selector'
 import roomSelector from '../../MeetingRoom.Selector'
 import Icon from "../../../../constants/icons"
+import getSocket from "../../../rootSocket"
+import authReducer from "../../../../features/AuthFeature/reducer"
 class Video extends Component {
   constructor(props) {
     super(props)
@@ -24,156 +26,115 @@ class Video extends Component {
     if (this.props.videoStream) {
       this.video.srcObject = this.props.videoStream
     }
+
+    getSocket().on("alert-user-mute-mic", data => {
+      if (this.props.videoStream) {
+        this.mutemic(data.data)
+        // this.video.srcObject = this.props.videoStream
+        console.log("모든 학생 음성", data.data)
+        // this.video.srcObject = this.props.videoStream
+      }
+    })
   }
 
   //보인 Stream를 먼저 Render - Stream를 전달함 하지만 this.props.videoStream 아직 값이 없음
   //그후에 다른 사람의 Stream를 Render
   // 전단해주는 Stream는 값이 있을떄
   componentWillReceiveProps(nextProps) {
-    if (
-      nextProps.videoStream &&
-      nextProps.videoStream !== this.props.videoStream
-    ) {
+    if (nextProps.videoStream && nextProps.videoStream !== this.props.videoStream) {
       this.video.srcObject = nextProps.videoStream
-      if(!this.props.isHostUser && nextProps.videoStream){
+
+      //Host가 아니면 음성 끄기
+      if (!this.props.isHostUser && nextProps.videoStream) {
         this.mutemic()
       }
-
-      // const { isMainRoom, showMuteControls } = this.props
-
-      // //Default Host방이 아니고, 보인 Stream라고, video-stream전달 완료
-      // if (!isMainRoom && showMuteControls && nextProps.videoStream) {
-      //   this.mutemic()
-      // }
     }
-    if(nextProps.micState !== this.props.micState && nextProps.videoStream){
+
+    //자기 음성을 끄기
+    if (this.props.localStream && nextProps.micState !== this.props.micState && nextProps.videoStream) {
+      console.log("음성상태 바뀌")
       this.mutemic()
     }
 
-    // console.log(this.props.videoStream)
-
-    //!HOST유저를 처음에는 mic는 default on
-    //Mic 기능 제어함
-    // if (
-    //   this.props.isMainRoom &&
-    //   this.props.showMuteControls &&
-    //   this.props.localMicMute !== nextProps.localMicMute
-    // ) {
-    //   this.mutemic()
-    // }
-    // //Camera 기능 제어함
-    if (
-      this.props.isMainRoom &&
-      this.props.showMuteControls &&
-      this.props.localVideoMute !== nextProps.localVideoMute
-    ) {
+    //자기 카메라 끄기
+    if (this.props.localStream  && nextProps.camState !== this.props.camState && nextProps.videoStream ) {
       this.mutecamera()
     }
-
-    // //!USER mic control
-    // //Mic 기능 제어함
-    // if (
-    //   !this.props.isMainRoom &&
-    //   this.props.showMuteControls &&
-    //   this.props.flagControl !== nextProps.flagControl &&
-    //   this.props.localMicMute !== nextProps.localMicMute
-    // ) {
-    //   this.mutemic()
-    // }
-    // //Camera 기능 제어함
-    // if (
-    //   !this.props.isMainRoom &&
-    //   this.props.showMuteControls &&
-    //   this.props.flagControl !== nextProps.flagControl &&
-    //   this.props.localVideoMute !== nextProps.localVideoMute
-    // ) {
-    //   this.mutecamera()
-    // }
-
-    // // This is done only once when we receive a video track
-    // const videoTrack =
-    //   nextProps.videoStream && nextProps.videoStream.getVideoTracks()
-    // if (
-    //   this.props.videoType === "remoteVideo" &&
-    //   videoTrack &&
-    //   videoTrack.length
-    // ) {
-    //   videoTrack[0].onmute = () => {
-    //     // alert('muted')
-    //     this.setState({
-    //       videoVisible: false
-    //     })
-    //     // this.props.videoMuted(nextProps.videoStream)
-    //   }
-
-    //   videoTrack[0].onunmute = () => {
-    //     this.setState({
-    //       videoVisible: true
-    //     })
-    //     // this.props.videoMuted(nextProps.videoStream)
-    //   }
-    // }
-
-    // const audioTrack =
-    //   nextProps.videoStream && nextProps.videoStream.getAudioTracks()
-    // if (
-    //   this.props.videoType === "remoteVideo" &&
-    //   audioTrack &&
-    //   audioTrack.length
-    // ) {
-    //   audioTrack[0].onmute = () => {
-    //     // this.setState({
-    //     //   videoVisible: false,
-    //     // })
-    //     // this.props.videoMuted(nextProps.videoStream)
-    //   }
-    // }
   }
 
-  mutemic = e => {
+  //음성 끄기
+  mutemic = (e = null) => {
     try {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "audio")
       if (stream.length !== 0)
+      {
+        if(e){
+          this.setState(prevState => {
+            if (stream) stream[0].enabled = e
+            return { mic: e }
+          })
+        }
         this.setState(prevState => {
           if (stream) stream[0].enabled = !prevState.mic
           return { mic: !prevState.mic }
         })
+      }
     } catch (error) {
       console.log(error)
-      alert("현재 접속한 컴퓨터에서 Audio 지원하지 않습니다")
+      // alert("현재 접속한 컴퓨터에서 Audio 지원하지 않습니다")
     }
   }
 
-  mutecamera = e => {
+  //카메라 끄기
+  mutecamera = (e = null) => {
     try {
-      const stream = this.video.srcObject
-        .getTracks()
-        .filter(track => track.kind === "video")
-      if (stream.length !== 0)
+      const stream = this.video.srcObject.getTracks().filter(track => track.kind === "video")
+      if (stream.length !== 0){
+        if(e){
+          this.setState(prevState => {
+            if (stream) stream[0].enabled = e
+            return { camera: e }
+          })
+        }
         this.setState(prevState => {
           if (stream) stream[0].enabled = !prevState.camera
           return { camera: !prevState.camera }
         })
+      }
     } catch (error) {
       console.log(error)
-      alert("현재 접속한 컴퓨터에서 Audio 지원하지 않습니다")
+      // alert("현재 접속한 컴퓨터에서 Audio 지원하지 않습니다")
     }
   }
 
   render() {
-    const muteControls = !this.props.showMuteControls &&
-      this.props.viewStateMicAndCam && (
+    const muteControls =  this.props.micStateChange !== undefined ?
+    <div className="stream-info">
+      <ul>
+        <li>
+          <img src={Icon.lecCamOnIcon} />
+        </li>
+        <li>
+          <img src={this.props.micStateChange ? Icon.lecMicOffIcon : Icon.lecMicOnIcon} />
+        </li>
+        <li>
+          <img src={this.props.disableAllChat ? Icon.chatTalkOffIcon : Icon.chatTalkOnIcon} />
+        </li>
+      </ul>
+    </div>
+    :
+    this.props.viewStateMicAndCam && (
         <div className="stream-info">
-            <ul>
-              <li>
-                <img src={Icon.lecCamOnIcon} />
-              </li>
-              <li>
-                <img src={this.props.req_question_status ? Icon.lecMicOnIcon : Icon.lecMicOffIcon}  />
-              </li>
-              <li>
-                <img src={this.props.disableAllChat ? Icon.chatTalkOffIcon : Icon.chatTalkOnIcon} />
-              </li>
+          <ul>
+            <li>
+              <img src={Icon.lecCamOnIcon} />
+            </li>
+            <li>
+              <img src={this.props.req_question_status ? Icon.lecMicOnIcon : Icon.lecMicOffIcon} />
+            </li>
+            <li>
+              <img src={this.props.disableAllChat ? Icon.chatTalkOffIcon : Icon.chatTalkOnIcon} />
+            </li>
           </ul>
         </div>
       )
@@ -198,8 +159,14 @@ class Video extends Component {
 }
 
 const mapStateToProps = state => ({
+  //local stream 상태를 제어한변수
   micState: headingControllerSelector.getLocalStreamMicState(state),
+  camState: headingControllerSelector.getLocalStreamCamState(state),
+
+  //Host인지 구분한 변수
   isHostUser: roomSelector.selectIsHostUser(state),
+
+  //채팅상태를 구분한 변수
   disableAllChat: chatComponentSelector.selectDisableAllChat(state)
 })
 

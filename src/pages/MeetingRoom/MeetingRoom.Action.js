@@ -30,7 +30,7 @@ const actions = {
         });
     }
   },
-  whoisOnline: () => async(dispatch) => {
+  whoIsOnline: () => async(dispatch) => {
     try {
         // dispatch({type: constants.WHO_IS_ONLINE_START})
         meetingRoomSocket.sendToPeer("onlinePeers", null, { local: getSocket().id});

@@ -31,11 +31,11 @@ function LocalStreamComponent({localStream}) {
         borderRadius: 5,
         backgroundColor: "black"
       }}
-      localMicMute={localStreamMicState}
-      localVideoMute={localStreamCamState}
+      // localMicMute={localStreamMicState}
+      // localVideoMute={localStreamCamState}
+      localStream={true}
       videoStream={localStream}
-      showMuteControls={true}
-      isMainRoom={"host"} //!수정필요함
+      isMainRoom={isHostUser} //!수정필요함
       autoPlay
       muted //local default true
     ></Video>

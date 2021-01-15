@@ -30,11 +30,12 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       dispatch(headingControllerAction.handleChangeMicState())
     }
   },[isHostUser])
+
+
+  //상태 확인 할 필요함
   useEffect(() => {
     getSocket().on("alert-user-process-req-question", data => {
-        if(data){
-          dispatch(headingControllerAction.handleChangeMicState())
-        }
+        dispatch(headingControllerAction.handleChangeMicState())
         setRequestQuestionSended(false)
         setRequestQuestionDoing(data)
     })
@@ -80,6 +81,7 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
         setRequestQuestionSended(false)
         setRequestQuestionDoing(false)
         headingControllerSocket.emitUserCancelRequestQuestion(payload);
+        dispatch(headingControllerAction.handleChangeMicState())
     }else if(requestQuestionSended){
       const payload = {
         status : false,
@@ -124,11 +126,10 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   }
 
   const StyleButtonRequestQuestion = requestQuestionSended ? {backgroundColor: "white", color: "black"} : requestQuestionDoing ? {backgroundColor: "yellow", color: "black"} : {}
-  const TextButtonRequestQuestion = requestQuestionSended ? "음성질문 요청중/취소..." : requestQuestionDoing ? "음성질문 취소" : "음성질문 요청"
+  const TextButtonRequestQuestion = requestQuestionSended ? "음성질문 요청중/취소..." : requestQuestionDoing ? "음성질문 끝내기" : "음성질문 요청"
   const StyleButtonRequestLecOut = requestLecOutSended ? {backgroundColor: "white", color: "black"} : requestLecOutDoing ? {backgroundColor: "yellow", color: "black"} : {}
   const TextButtonRequestLecOut = requestLecOutSended ? "자리비움 요청중/취소..." : requestLecOutDoing ? "자리비움 취소" : "자리비움 요청"
 
-  console.log()  
   //!버튼 상태를 확인할 필요함
   return <div className="heading-stream__controller">
     <div className="heading-container__small">

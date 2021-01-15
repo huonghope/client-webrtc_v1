@@ -13,6 +13,7 @@ import headingControllerSocket from '../../HeadingController/HeadingController.S
 import remoteStreamContainerSocket from '../RemoteStreamContainer.Socket'
 import remoteStreamContainerAction from '../RemoteStreamContainer.Action'
 import remoteStreamSelector from '../RemoteStreamContainer.Selector'
+import headingControllerAction from '../../HeadingController/HeadingController.Action'
 import moment from 'moment'
 import { set } from 'immutable'
 import { bindActionCreators } from 'redux'
@@ -39,7 +40,6 @@ class RemoteStreamContainerStudent extends Component {
   }
 
   componentDidMount() {
-    
     if (this.props.remoteStreams.length !== 0) {
       const fetchVideos = async() => {
         const { rVideos } = await SetVideo(this.props.remoteStreams[0], this.props)
@@ -54,24 +54,18 @@ class RemoteStreamContainerStudent extends Component {
 
     //!!store 저장할 필요함
     window.addEventListener('resize', this.handleResize);
+
     //질문 요청의 상태를 알람
     getSocket().on("alert-user-process-req-question", data => {
       if(data){
-        // const time = moment().format('DD/MM/YYYYHH:mm:ss')
-        // const { remoteStream } = this.state
-        // let video = <VideoItem 
-        //   videoStream={remoteStream}
-        //   req_question_status={data}
-        //   time={time}
-        // />
-        // this.setState({ rVideos : video})
+        // this.props.dispatch(headingControllerAction.handleChangeMicState())
       }
     })
+
+
     //자리비움 요청의 상태를 알림
     getSocket().on("alert-user-process-req-lecOut", data => {
       const time = moment().format('DD/MM/YYYYHH:mm:ss')
-
-      console.log(data)
       const { remoteStream } = this.state
       let video = <VideoItem 
         videoStream={remoteStream}
@@ -81,10 +75,10 @@ class RemoteStreamContainerStudent extends Component {
       this.setState({ rVideos : video})
     })
 
+    //집중테스트
     getSocket().on("alert-user-test-concentration", data => {
       const time = moment().format('DD/MM/YYYYHH:mm:ss')
       const { remoteStream } = this.state
-      console.log('집중도 테스트')
       let video = <VideoItem 
         videoStream={remoteStream}
         test_concentration_status={true}
@@ -129,26 +123,8 @@ class RemoteStreamContainerStudent extends Component {
       fetchVideos();
     }
   }
-
-  videoMuted = rVideo => {
-    const muteTrack = rVideo.getVideoTracks()[0]
-    const isSelectedVideo = rVideo.id === this.state.selectedVideo.stream.id
-    if (isSelectedVideo) {
-      this.setState({
-        videoVisible: !muteTrack.muted
-      })
-    }
-  }
-
-  switchVideo = _video => {
-    const muteTrack = _video.stream.getVideoTracks()[0]
-    this.setState({
-      selectedVideo: _video,
-      videoVisible: !muteTrack.muted
-    })
-  }
   render() {
-    const { loading } = this.state
+    const { loading, rVideos } = this.state
     if (loading) {
       return (
         <WrapperLoading className="loading">
@@ -156,9 +132,8 @@ class RemoteStreamContainerStudent extends Component {
         </WrapperLoading>
       )
     }
-    const { testConcentration, outEnable } = this.props
-    const { lecOutState } = this.state;
 
+    //비율기간이 맞춤
     let height = document.getElementById("video-body") ? document.getElementById("video-body").getBoundingClientRect().height : null;
     if (!height) {
       height = document.getElementById("left-content-id") ? document.getElementById("left-content-id").getBoundingClientRect().height : null
@@ -168,67 +143,8 @@ class RemoteStreamContainerStudent extends Component {
       <div className="remote-stream__container">
         <div className="single-video">
           <div className="single-video__body" id="video-body" style={{ width }}>
-            {
-              this.state.rVideos
-            }
-            {/* {
-              this.props.remoteStreams.length !== 0 ?
-                <VideoItem
-                  rVideo={this.state.remoteStream}
-                  lecOutEable={lecOutState}
-                /> :
-                <ReactLoading />
-            } */}
+            { rVideos }
           </div>
-          {/* <div className="single-video__body">
-            <Video
-              videoType="previewVideo"
-              videoStyles={{
-                width: "100%",
-                height: "100%",
-                visibility: "visible",
-                objectFit: "initial"
-              }}
-              videoStream={
-                this.props.remoteStreams.length !== 0 && this.props.remoteStreams[0].stream
-              }
-            /> */}
-          {/* {testConcentration.state ? (
-              <InputTestConcentration
-                testNumber={testConcentration.number}
-                handleCorrectInput={this.props.handleCorrectInput}
-                handleDownAllTime={this.props.handleDownAllTime}
-              />
-            ) : (
-                outEnable && (
-                  <div className="wrapper-outState">
-                    <div>
-                      <h3>자리비움 중</h3>
-                      <CountTime />
-                      <button onClick={() => this.props.handleCancelOut()}>
-                        복귀하기
-                        </button>
-                    </div>
-                  </div>
-                )
-              )} */}
-          {/* <div className="single-video__footer">
-                <i
-                  className="material-icons"
-                  onClick={() => this.props.handleUserOutRoom()}
-                >
-                  input
-                </i>
-                <div>
-                  <button onClick={() => this.props.handleRequestQuestion()}>
-                    음성 질문 요청
-                  </button>
-                  <button onClick={() => this.props.handleRequestGoOut()}>
-                    자리 비움 요청
-                  </button>
-                </div>
-                <span>수학 - 제1강 집합</span>
-              </div> */}
         </div>
       </div>
     )
@@ -249,7 +165,7 @@ const SetVideo = (remoteStream, props)=> {
 
 }
 //! 이미 추가해넣었음
-const VideoItem = ({ videoStream,  req_question_status, time, req_lecOut_status, test_concentration_status, test_concentration_number }) => {
+const VideoItem = ({ videoStream, time, req_question_status, req_lecOut_status, test_concentration_status, test_concentration_number }) => {
 
   const [reqQuestionStatus, setReqQuestionStatus] = useState(false)
   const [reqLecOutStatus, setLecOutStatus] = useState(false)
@@ -297,6 +213,7 @@ const VideoItem = ({ videoStream,  req_question_status, time, req_lecOut_status,
         videoStream={videoStream.stream}
       />
       {
+        //자리비움 요청을 학생 화면
         reqLecOutStatus &&
         <div className="wrapper-request wrapper-request-lecOut">
             <div>
@@ -309,6 +226,7 @@ const VideoItem = ({ videoStream,  req_question_status, time, req_lecOut_status,
         </div>
       }
       {
+        //집중도 테스트
         testConcentration && 
         <InputTestConcentration
           testNumber={test_concentration_number}
@@ -316,14 +234,6 @@ const VideoItem = ({ videoStream,  req_question_status, time, req_lecOut_status,
           handleDownAllTime={() => handleDownAllTime()}
         /> 
       }
-      
-      {/* 
-      //!시간 및 숙자를 세팅 해야됨
-      <InputTestConcentration
-        testNumber={4}
-        handleCorrectInput={() => handleCorrectInput()}
-        handleDownAllTime={() => handleDownAllTime()}
-      /> */}
     </>
   )
 }
@@ -342,11 +252,11 @@ const InputTestConcentration = React.memo(
         handleCorrectInput()
       }
     }
-    //알림
     const handleDownAllTimeCallback = useCallback(() => {
       setDisplayWrapper(false)
       handleDownAllTime()
     })
+
     if (displayWrapper) {
       return (
         <div className="test-wrapper">

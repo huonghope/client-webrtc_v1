@@ -21,6 +21,9 @@ const headingControllerSSocket = {
   emitUserCancelRequestLecOut: (payload) => {
     getSocket().emit("user-cancel-request-lecOut", payload)
   },
+  emitHandleStateMicAllStudent: (payload) => {
+    getSocket().emit("host-send-mute-mic-all", payload)
+  }
 } 
 
 export default headingControllerSSocket

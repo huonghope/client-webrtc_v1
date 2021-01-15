@@ -6,6 +6,7 @@ import Loading from '../../components/Loading'
 
 import actions from '../../features/AuthFeature/action';
 import selectors from '../../features/AuthFeature/selector';
+import { isMobile } from 'react-device-detect';
 
 import qs from 'query-string'
 
@@ -18,12 +19,11 @@ function CreateRoom(props) {
   useEffect(() => {
     const query = qs.parse(window.location.search.slice(1));
     const { redirect_key, sl_idx, user_idx } = query   
-    console.log(redirect_key, sl_idx, user_idx)
     if (redirect_key && sl_idx && user_idx) {
       let userInfo = {
         redirect_key,
         sl_idx,
-        user_idx
+        user_idx,
       }
       
       dispatch(actions.doSignin(userInfo))
@@ -31,7 +31,8 @@ function CreateRoom(props) {
       if(!signLoading && !error){
         let params = {
           lec_idx: sl_idx,
-          redirect_key
+          redirect_key,
+          isMobile
         }
         setTimeout(() => {
           const usr_id = window.localStorage.getItem("usr_id")

@@ -23,7 +23,7 @@ import HeadingControllerStudent from './components/HeadingController/HeadingCont
 
 import RecordRTCPromisesHandler from 'recordrtc'
 import styled from 'styled-components'
-import {isMobile} from 'react-device-detect';
+import { isMobile } from 'react-device-detect';
 import adapter from 'webrtc-adapter'
 import FFmpeg from "@ffmpeg/ffmpeg"
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
@@ -42,7 +42,6 @@ class MeetingRoom extends Component {
       peerConnections: {},
 
       mediaRecorder: null,
-      selectedVideo: null,
 
       pc_config: {
         iceServers: [
@@ -91,14 +90,18 @@ class MeetingRoom extends Component {
     const handleSuccess = stream => {
       const videoTracks = stream.getVideoTracks()
       console.log(`Using video device: ${videoTracks[0].label}`)
+      this.props.dispatch(meetingRoomAction.whoIsOnline())
       this.setState({
+        loading: false,
         localStream: stream,
-        loading: false
       })
-      this.props.dispatch(meetingRoomAction.whoisOnline())
     }
 
     const handleError = error => {
+      if (error) {
+        console.log("카메라를 찾을 수 없습니다.")
+        // window.location.reload();
+      }
       if (error.name === "ConstraintNotSatisfiedError") {
         const v = constraints.video
         console.log(
@@ -117,7 +120,7 @@ class MeetingRoom extends Component {
     //Check list devices
     async function init(e) {
       try {
-        const  gotDevices = (deviceInfos) => {
+        const gotDevices = (deviceInfos) => {
           for (let i = 0; i !== deviceInfos.length; ++i) {
             const deviceInfo = deviceInfos[i];
             if (deviceInfo.kind === "audioinput") {
@@ -128,18 +131,19 @@ class MeetingRoom extends Component {
               console.log("Found another kind of device: ", deviceInfo);
             }
           }
-        } 
-        const  getStream = async() => {
+        }
+        const getStream = async () => {
           const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
           handleSuccess(stream)
         }
 
         navigator.mediaDevices
-        .enumerateDevices()
-        .then(gotDevices)
-        .then(getStream)
-        .catch(handleError);
+          .enumerateDevices()
+          .then(gotDevices)
+          .then(getStream)
+          .catch(handleError);
       } catch (e) {
+        console.log(e)
         handleError(e)
       }
     }
@@ -175,7 +179,7 @@ class MeetingRoom extends Component {
         let remoteVideo = {}
 
         // 1. check if stream already exists in remoteStreams
-        const rVideos = this.state.remoteStreams.filter(stream => stream.id === socketID )
+        const rVideos = this.state.remoteStreams.filter(stream => stream.id === socketID)
         // 2. if it does exist then add track
         if (rVideos.length) {
           _remoteStream = rVideos[0].stream
@@ -200,23 +204,18 @@ class MeetingRoom extends Component {
             id: socketID,
             name: socketID,
             stream: _remoteStream
-            // isHost: this.state.isMainRoom
           }
           remoteStreams = [...this.state.remoteStreams, remoteVideo]
         }
 
         this.setState(prevState => {
-          let selectedVideo = prevState.remoteStreams[0] ? prevState.remoteStreams[0] : []
-          selectedVideo = selectedVideo.length  ? {} : { selectedVideo: remoteVideo }
           return {
-            ...selectedVideo,
             remoteStreams,
             loading: false
           }
         })
       }
       pc.close = () => {
-        // alert('GONE')
         console.log("pc closed")
       }
 
@@ -232,6 +231,15 @@ class MeetingRoom extends Component {
   }
 
   componentDidMount() {
+    getSocket().on("user-role", data => {
+      const { userRole } = data
+      console.log("i am ", userRole)
+      this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }))
+      this.setState({
+        isMainRoom: userRole,
+      })
+    })
+
     // console.log("adapete", adapter.browserDetails.browser)
     window.onunload = window.onbeforeunload = function () {
       getSocket.close()
@@ -240,25 +248,14 @@ class MeetingRoom extends Component {
     /************** Peer connect */
     getSocket().on("connection-success", data => {
       this.getLocalStream()
-      const { isHost } = data
-
-      this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: isHost }))
       this.setState({
         // status: status,
-        isMainRoom: isHost,
+        // isMainRoom: isHost,
         messages: data.messages,
-        localMicMute: isHost ? false : true,
+        localMicMute: this.state.isMainRoom ? false : true,
         loading: false,
       })
     })
-    // getSocket().on("joined-peers", data => {
-    //   this.setState({
-    //     status:
-    //       data.peerCount > 1
-    //         ? `Room : ${room}: ${data.peerCount}`
-    //         : "기다리는 중.."
-    //   })
-    // })
 
     getSocket().on("peer-disconnected", data => {
       try {
@@ -266,10 +263,7 @@ class MeetingRoom extends Component {
         const rVideo = this.state.remoteStreams.filter(
           stream => stream.id === data.socketID
         )
-
         rVideo && this.stopTracks(rVideo[0].stream)
-
-
         const remoteStreams = this.state.remoteStreams.filter(
           stream => stream.id !== data.socketID
         )
@@ -283,7 +277,7 @@ class MeetingRoom extends Component {
         console.log(error)
       }
     })
-    
+
     //!Create Local Peer
     //!pc1
     getSocket().on("online-peer", socketID => {
@@ -298,7 +292,7 @@ class MeetingRoom extends Component {
               remote: socketID
             })
           }).then(() => {
-              
+
           }).catch((error) => console.log('Failed to set session description: ' + error.toString()))
         }
       })
@@ -312,35 +306,33 @@ class MeetingRoom extends Component {
             try {
               pc.addStream(this.state.localStream)
             } catch (error) {
-              console.log(this.state.localStream)
               console.log("Add Stream Error", error)
             }
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(() => {
-                // 2. Create Answer
-                pc.createAnswer(this.state.sdpConstraints).then( async sdp => {
-                  pc.setLocalDescription(sdp)
-                  // console.log("send answer")
-                  let tempSdp = await updateBandwidthRestriction(sdp.sdp, 10)
-                  let answerSdp = {
-                    sdp: tempSdp,
-                    type: sdp.type
-                  }
-                  meetingRoomSocket.sendToPeer("answer", answerSdp, {
-                    local: getSocket().id,
-                    remote: data.socketID
-                  })
-                }).catch(e => console.log(e))
-              }
+              // 2. Create Answer
+              pc.createAnswer(this.state.sdpConstraints).then(async sdp => {
+                pc.setLocalDescription(sdp)
+                // let tempSdp = await updateBandwidthRestriction(sdp.sdp, 10)
+                // let answerSdp = {
+                //   sdp: tempSdp,
+                //   type: sdp.type
+                // }
+                meetingRoomSocket.sendToPeer("answer", sdp, {
+                  local: getSocket().id,
+                  remote: data.socketID
+                })
+              }).catch(e => console.log(e))
+            }
             )
           } catch (error) {
             window.location.reload();
           }
         })
       } catch (error) {
-        console.log(error)        
+        console.log(error)
       }
     })
-    const  updateBandwidthRestriction = async (sdp, bandwidth) => {
+    const updateBandwidthRestriction = async (sdp, bandwidth) => {
       let modifier = 'AS';
       if (adapter.browserDetails.browser === 'firefox') {
         bandwidth = (bandwidth >>> 0) * 1000;
@@ -358,7 +350,7 @@ class MeetingRoom extends Component {
     //! pc1 setRemote
     getSocket().on("answer", data => {
       const pc = this.state.peerConnections[data.socketID]
-      let desc = new RTCSessionDescription({type: data.sdp.type, sdp: data.sdp.sdp})
+      let desc = new RTCSessionDescription({ type: data.sdp.type, sdp: data.sdp.sdp })
       pc.setRemoteDescription(desc).then(() => { })
     })
     getSocket().on("candidate", data => {
@@ -368,7 +360,7 @@ class MeetingRoom extends Component {
   }
   handleOutRoom = () => {
     const { remoteStreams, isMainRoom } = this.state
-    if(isMainRoom){
+    if (isMainRoom) {
       if (remoteStreams.length !== 0) {
         Alert({
           title: "수업을 종료하시겠습니까?",
@@ -391,7 +383,7 @@ class MeetingRoom extends Component {
           handleClickReject: () => { }
         })
       }
-    }else{
+    } else {
       Alert({
         title: "수업을 종료하시겠습니까?",
         handleClickAccept: () => {
@@ -471,7 +463,7 @@ class MeetingRoom extends Component {
       })
     }
   }
-  
+
   //!로컬 stream 작동하지 않으면 안됨
   //!localStream 체크할 필요함
   //!로컬 stream 작동하지 않으면 안됨
@@ -563,12 +555,12 @@ class MeetingRoom extends Component {
         getSocket().close()
         // stop local audio & video tracks
         this.stopTracks(localStream)
-        
+
         // stop all remote audio & video tracks
         remoteStreams.forEach(rVideo => this.stopTracks(rVideo.stream))
-        
+
         peerConnections &&
-        Object.values(peerConnections).forEach(pc => pc.close())
+          Object.values(peerConnections).forEach(pc => pc.close())
         this.props.history.push("/")
         window.close();
       } catch (error) {
@@ -577,7 +569,7 @@ class MeetingRoom extends Component {
       }
     }
     // console.log(isMobile)
-    if(isMobile){
+    if (isMobile) {
       return (
         <div className="chat-component-mobile">
           <ChatComponent
@@ -585,16 +577,16 @@ class MeetingRoom extends Component {
           />
         </div>
       )
-    } 
+    }
 
     //! setState 확인필요함
-    // if (loading) {
-    //   return (
-    //     <WrapperLoading>
-    //       <ReactLoading type="spin" color="#000" />
-    //     </WrapperLoading>
-    //   )
-    // }
+    if (loading) {
+      return (
+        <WrapperLoading>
+          <ReactLoading type="spin" color="#000" />
+        </WrapperLoading>
+      )
+    }
 
     const windowSize = !fullScream ? "85%" : "100%"
     return (

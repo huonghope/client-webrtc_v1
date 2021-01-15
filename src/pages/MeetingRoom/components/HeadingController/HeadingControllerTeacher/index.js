@@ -6,13 +6,14 @@ import meetingRoomSelectors from '../../../MeetingRoom.Selector'
 import CountTime from "../../../../../components/CountTime";
 
 import headingControllerAction from '../HeadingController.Action'
+import headingControllerSocket from '../HeadingController.Socket'
 
 function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, handleWhiteBoard, handleScreamRecording}) {
 
   const dispatch = useDispatch();
   const localStreamState = useSelector(meetingRoomSelectors.getLocalStream);
 
-  const [soundState, setSoundState] = useState(false)
+  const [stateMicAllStudent, setStateMicAllStudent] = useState(false)
   const [micState, setMicState] = useState(false)
   const [camState, setCamState] = useState(false)
   const [recording, setRecording] = useState(false)
@@ -28,9 +29,10 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
     }
     handleWindowSize()
   }
-  const handleSoundState = () => {
-    setSoundState(!soundState)
-    dispatch(headingControllerAction.handleChangeSoundState())
+  const handleStateMicAllStudent = () => {
+    setStateMicAllStudent(!stateMicAllStudent)
+    dispatch(headingControllerAction.handleStateMicAllStudent())
+    headingControllerSocket.emitHandleStateMicAllStudent(stateMicAllStudent)
   }
   const handleMicState = () => {
     setMicState(!micState)
@@ -61,8 +63,8 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
       <div className="heading-col">
         <ul>
           <li>
-            <img onClick={() => handleSoundState()} src={soundState ? Icon.lecStudentSoundOffIcon : Icon.lecStudentSoundOnIcon} />
-            <span>학생 마이크</span>
+            <img onClick={() => handleStateMicAllStudent()} src={stateMicAllStudent ? Icon.lecStudentSoundOnIcon : Icon.lecStudentSoundOffIcon} />
+            <span>전체 학생 마이크</span>
           </li>
           <li>
             <img onClick={() => handleMicState()} src={micState ? Icon.lecMicOffIcon : Icon.lecMicOnIcon}  />

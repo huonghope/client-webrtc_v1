@@ -29,7 +29,10 @@ function ChatComponent(props) {
 
   const isHostUser = useSelector(roomSelector.selectIsHostUser)
   const listUser = useSelector(remoteStreamContainerSelector.getListUser)
+
   const [disableChatUser, setDisableChatUser] = useState([])
+  const [allDisable, setAllDisable] = useState(false)
+
   const dispatch = useDispatch()
 
   //!나중에 추가함
@@ -43,16 +46,16 @@ function ChatComponent(props) {
   }
 
   useEffect(() => {
-    let fetchData =  async() => {
+    let fetchData = async () => {
       let params = {
         userRoomId: userRoomId()
       }
       const listMessage = await chatComponentService.getListMessageByUserId(params)
-    
+
       setMessages(listMessage.data)
     }
     fetchData()
-  },[])
+  }, [])
 
   useEffect(() => {
     scrollToBottom()
@@ -150,7 +153,10 @@ function ChatComponent(props) {
     setMessage("")
     scrollToBottom()
   }
-
+  const handleSelectImage = (url) => {
+    setSelectedImage(url)
+    setImageZoom(true)
+  }
   /**
    * 각 메시지유형에 따라 맞는 출려형태를 매핑함
    * @param {*} userType 
@@ -177,6 +183,9 @@ function ChatComponent(props) {
       case "disable-chat":
       case "user-warning":
         msgDiv = WarningMessComponent(userType, data)
+        break;
+      case "image-message":
+        msgDiv = ImageComponent(userType, data, handleSelectImage)
         break;
       default: //!Error
         // msgDiv = ImageComponent(userType, data)
@@ -228,41 +237,75 @@ function ChatComponent(props) {
   }
 
   //유저별로 채팅금지
-  const handleOffChatForUser = (userId, socketId) => {
+  const handleOffChatForUser = (user_idx, socketId) => {
     const tempDisableChatUser = disableChatUser
 
-    let filter = tempDisableChatUser.find((e) => e.userId === userId)
+    //있는지 없는지 확인하여 추가함
+    let filter = tempDisableChatUser.find((e) => e.user_idx === user_idx)
     if (filter) {
-      filter = tempDisableChatUser.filter((e) => e.userId !== userId)
+      filter = tempDisableChatUser.filter((e) => e.user_idx !== user_idx)
       setDisableChatUser(filter)
-    }else{
-      setDisableChatUser([...disableChatUser,{userId}])
-    }
-    
-    setBoxedListUser(!boxedListUser)
-    if (userId === 0) {
-      let payload = {
-        remoteSocketId: "all"
-      }
-      dispatch(chatAction.disableAllChatting(true))
-      chatComponentSocket.emitDisableUserChat(payload)
     } else {
-      let payload = {
-        remoteSocketId: socketId,
-        userId
-      }
-      chatComponentSocket.emitDisableUserChat(payload)
+      setDisableChatUser([...disableChatUser, { user_idx }])
     }
+
+    setBoxedListUser(!boxedListUser)
+    let payload = {
+      remoteSocketId: socketId,
+      userId: user_idx
+    }
+    chatComponentSocket.emitDisableUserChat(payload)
   }
 
+
+  const handleOffChatAllUser = () => {
+    let payload = {
+      remoteSocketId: "all"
+    }
+    setAllDisable(!allDisable)
+    setBoxedListUser(!boxedListUser)
+    if(allDisable){
+      let tempUser = [{ user_idx : '0'}] //trick
+      setDisableChatUser(tempUser)
+    }else{
+      setDisableChatUser(listUser)
+    }
+    dispatch(chatAction.disableAllChatting(true))
+    chatComponentSocket.emitDisableUserChat(payload)
+  }
+
+  const showEnlargedImage = (data) => {
+    return (<img
+      src={data}
+      style={{
+        backgroundColor: 'black',
+        position: 'relative',
+        zIndex: 100,
+        display: 'block',
+        cursor: 'pointer',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        padding: 20,
+        borderRadius: 20,
+      }}
+      onClick={() => setImageZoom(false)}
+    />)
+  }
+
+
+
+  console.log(listUser)
+  console.log(disableChatUser)
   return (
     <div className="chat__component">
+      {imageZoom && showEnlargedImage(selectedImage)}
       <div className="chat-content">
         <ul className="chat-rows" id="chatList">
           {messages.map((data, idx) => (
             <div key={idx}>
               {
-                getToken().userId === data.sender.uid
+                  console.log(data.sender) &&
+                  getToken().userId === data.sender.uid
                   ? renderMessage("self", data)
                   : renderMessage("other", data)
               }
@@ -279,7 +322,6 @@ function ChatComponent(props) {
                   isMobile ?
                     <li><img onClick={() => handleClickCameraOn()} src={Icon.chatCameraOnIcon}></img></li> :
                     <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
-
                 }
                 <li className="chatting-hidden"><img onClick={() => setBoxedListUser(!boxedListUser)} src={Icon.chatTalkOffIcon}></img>
                   {
@@ -287,17 +329,14 @@ function ChatComponent(props) {
                     <div className="list-user-chat">
                       {listUser.length !== 0 && (
                         <ul>
-                          <li onClick={() => handleOffChatForUser(0)}> 1. 전체
-                          {
-                            disableChatUser.find(e => e.userId === 0) && 
-                            <span>X</span>
-                          }
+                          <li onClick={() => handleOffChatAllUser()}> 1. 전체
+                            {  allDisable && <span>X</span> }
                           </li>
                           {listUser.map((user, idx) => (
                             <li onClick={() => handleOffChatForUser(user.user_idx, user.socket_id)} key={idx}>
                               {idx + 2}. {user.user_name}
                               {
-                                disableChatUser.find(e => e.userId === user.user_idx) && 
+                                disableChatUser.find(e => e.user_idx === user.user_idx) &&
                                 <span>X</span>
                               }
                             </li>
@@ -414,7 +453,7 @@ const AlertTextComponent = (type, message) => {
 
 const RequestComponent = (isHostUser, type, resData) => {
 
-  const { type : requestType, sender, data} = resData
+  const { type: requestType, sender, data } = resData
   let msgDiv
   const userRoomId = () => {
     return JSON.parse(window.localStorage.getItem("usr_id"))
@@ -440,8 +479,8 @@ const RequestComponent = (isHostUser, type, resData) => {
         {
           isMobile &&
           <div className="msg-request__button mobile">
-            <button onClick={() => handleActionRequestUser( sender.uid, "accept", requestType )}> 수락 </button>
-            <button onClick={() => handleActionRequestUser( sender.uid, "reject", requestType )}> 취소 </button>
+            <button onClick={() => handleActionRequestUser(sender.uid, "accept", requestType)}> 수락 </button>
+            <button onClick={() => handleActionRequestUser(sender.uid, "reject", requestType)}> 취소 </button>
           </div>
         }
       </div>
@@ -464,7 +503,7 @@ const RequestComponent = (isHostUser, type, resData) => {
 }
 
 const WarningMessComponent = (type, resData) => {
-  let { type : requestType, sender, data } = resData
+  let { type: requestType, sender, data } = resData
   let footerText = " 메시지 전송되었습니다"
   switch (requestType.trim()) {
     case "test-concentration-fail":
@@ -495,28 +534,28 @@ const WarningMessComponent = (type, resData) => {
 }
 
 //일반 구현을 안 됨
-const ImageComponent = (type, message) => {
+const ImageComponent = (type, resData, handleSelectImage) => {
 
   //!나중에 추가함
-  const [imageZoom, setImageZoom] = useState(false)
-  const [selectedImage, setSelectedImage] = useState("")
+  // const [imageZoom, setImageZoom] = useState(false)
+  // const [selectedImage, setSelectedImage] = useState("")
 
   let msgDiv = (
     <div className="msg-row">
-      <p>{message.sender.username}</p>
+      <p>{resData.sender.username}</p>
       <img
         onClick={() => {
-          setImageZoom(true)
-          setSelectedImage(message.data)
+          // setImageZoom(true)
+          handleSelectImage(resData.data)
         }}
-        className="message"
+        className="img-message"
         style={{
           width: 200,
           // height: 100
           cursor: "pointer"
         }}
         alt="update img"
-        src={message.data}
+        src={resData.data}
       />
     </div>
   )

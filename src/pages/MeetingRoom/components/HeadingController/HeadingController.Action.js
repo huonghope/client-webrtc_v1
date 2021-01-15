@@ -7,16 +7,16 @@ import Errors from "../../../../components/Error/error";
 // import meetingRoomSocket from './MeetingRoom.Socket'
 
 const actions = {
-  handleChangeSoundState :  () => async(dispatch) => {
+  handleStateMicAllStudent :  () => async(dispatch) => {
     try {
       dispatch({
-          type: constants.CHANGE_SOUND_STATE,
+          type: constants.CHANGE_STATE_MIC_ALL_STUDENT_ERROR,
       });
     } catch (error) {
-        Errors.handle(error);
         dispatch({
-            type: constants.CHANGE_SOUND_STATE_ERROR,
+            type: constants.CHANGE_STATE_MIC_ALL_STUDENT,
         });
+        Errors.handle(error);
     }
   },
   handleChangeMicState :  () => async(dispatch) => {
@@ -25,10 +25,10 @@ const actions = {
           type: constants.CHANGE_MIC_STATE,
       });
     } catch (error) {
-        Errors.handle(error);
         dispatch({
             type: constants.CHANGE_MIC_STATE_ERROR,
         });
+        Errors.handle(error);
     }
   },
   handleChangeCamState :  () => async(dispatch) => {
