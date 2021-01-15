@@ -44,10 +44,10 @@ class Video extends Component {
     if (nextProps.videoStream && nextProps.videoStream !== this.props.videoStream) {
       this.video.srcObject = nextProps.videoStream
       // //Host가 아니면 음성 끄기
-      // if (!this.props.isHostUser && nextProps.videoStream) {
-      //   console.log("Host가 아니면 음성 끄기")
-      //   this.mutemic()
-      // }
+      if (!this.props.isHostUser && nextProps.videoStream) {
+        console.log("Host가 아니면 음성 끄기")
+        this.mutemic()
+      }
     }
 
     //자기 음성을 끄기

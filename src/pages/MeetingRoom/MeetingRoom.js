@@ -309,22 +309,39 @@ class MeetingRoom extends Component {
             } catch (error) {
               console.log("Add Stream Error", error)
             }
-            pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(() => {
-              // 2. Create Answer
-              pc.createAnswer(this.state.sdpConstraints).then(async sdp => {
-                pc.setLocalDescription(sdp)
-                // let tempSdp = await updateBandwidthRestriction(sdp.sdp, 10)
-                // let answerSdp = {
-                //   sdp: tempSdp,
-                //   type: sdp.type
-                // }
-                meetingRoomSocket.sendToPeer("answer", sdp, {
-                  local: getSocket().id,
-                  remote: data.socketID
-                })
-              }).catch(e => console.log(e))
-            }
-            )
+
+            
+            // pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(() => {
+            //   // 2. Create Answer
+            //   pc.createAnswer(this.state.sdpConstraints).then(async sdp => {
+            //     pc.setLocalDescription(sdp)
+            //     // let tempSdp = await updateBandwidthRestriction(sdp.sdp, 10)
+            //     // let answerSdp = {
+            //     //   sdp: tempSdp,
+            //     //   type: sdp.type
+            //     // }
+            //     meetingRoomSocket.sendToPeer("answer", sdp, {
+            //       local: getSocket().id,
+            //       remote: data.socketID
+            //     })
+            //   }).catch(e => console.log(e))
+            //   }
+            // )
+
+            pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
+              () => {
+                // 2. Create Answer
+                pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
+                  pc.setLocalDescription(sdp);
+    
+                  meetingRoomSocket.sendToPeer("answer", sdp, {
+                    local: getSocket().id,
+                    remote: data.socketID,
+                  });
+                });
+              }
+            );
+
           } catch (error) {
             window.location.reload();
           }
@@ -350,13 +367,16 @@ class MeetingRoom extends Component {
 
     //! pc1 setRemote
     getSocket().on("answer", data => {
-      const pc = this.state.peerConnections[data.socketID]
-      let desc = new RTCSessionDescription({ type: data.sdp.type, sdp: data.sdp.sdp })
-      pc.setRemoteDescription(desc).then(() => { })
+      const pc = this.state.peerConnections[data.socketID];
+      // console.log(data.sdp)
+      pc.setRemoteDescription(
+        new RTCSessionDescription(data.sdp)
+      ).then(() => { });
     })
     getSocket().on("candidate", data => {
-      const pc = this.state.peerConnections[data.socketID]
-      if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate))
+      const pc = this.state.peerConnections[data.socketID];
+
+      if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate));
     })
   }
   handleOutRoom = () => {
