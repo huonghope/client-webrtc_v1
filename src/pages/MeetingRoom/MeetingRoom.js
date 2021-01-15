@@ -309,8 +309,6 @@ class MeetingRoom extends Component {
             } catch (error) {
               console.log("Add Stream Error", error)
             }
-
-            
             // pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(() => {
             //   // 2. Create Answer
             //   pc.createAnswer(this.state.sdpConstraints).then(async sdp => {
