@@ -28,7 +28,7 @@ class Video extends Component {
     }
 
     getSocket().on("alert-user-mute-mic", data => {
-      if (this.props.videoStream) {
+      if (!this.props.isHostUser && this.props.videoStream) {
         this.mutemic(data.data)
         // this.video.srcObject = this.props.videoStream
         console.log("모든 학생 음성", data.data)
@@ -46,20 +46,20 @@ class Video extends Component {
       // //Host가 아니면 음성 끄기
       if (!this.props.isHostUser && nextProps.videoStream) {
         console.log("Host가 아니면 음성 끄기")
-        this.mutemic()
+        this.mutemic(false)
       }
     }
 
     //자기 음성을 끄기
     if (this.props.localStream && nextProps.micState !== this.props.micState && nextProps.videoStream) {
-      console.log("음성상태 바뀌")
-      this.mutemic()
+      console.log("음성상태 변화", this.props.micState)
+      this.mutemic(this.props.micState)
     }
 
     //자기 카메라 끄기
     if (this.props.localStream  && nextProps.camState !== this.props.camState && nextProps.videoStream ) {
-      console.log("음성상태 바뀌")
-      this.mutecamera()
+      console.log("카메로상태 변화", this.props.camState)
+      this.mutecamera(this.props.camState)
     }
     // This is done only once when we receive a video track
     const videoTrack = nextProps.videoStream && nextProps.videoStream.getVideoTracks()
@@ -90,11 +90,11 @@ class Video extends Component {
   mutemic = (e = null) => {
     try {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "audio")
-      if (stream.length !== 0)
-      {
+      if(stream.length !== 0){
+        console.log("변화정상")
         if(e){
           this.setState(prevState => {
-            if (stream) stream[0].enabled = e
+            if (stream) stream[0].enabled = !prevState.mic
             return { mic: e }
           })
         }
@@ -113,7 +113,7 @@ class Video extends Component {
   mutecamera = (e = null) => {
     try {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "video")
-      if (stream.length !== 0){
+      if(stream.length !== 0){
         if(e){
           this.setState(prevState => {
             if (stream) stream[0].enabled = e

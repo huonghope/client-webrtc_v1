@@ -76,80 +76,132 @@ class MeetingRoom extends Component {
     this.recordVideo = null;
   }
 
-  //로컬의 Stream는 출력함
-  //!기계를 체크할 필요함
+  // //로컬의 Stream는 출력함
+  // //!기계를 체크할 필요함
+  // getLocalStream = () => {
+  //   const constraints = {
+  //     audio: true,
+  //     video: true,
+  //   }
+  //   //!refactory해야함
+  //   const handleSuccess = stream => {
+  //     const videoTracks = stream.getVideoTracks()
+  //     const video = document.querySelector("video");
+  //     console.log(`Using video device: ${videoTracks[0].label}`)
+  //     this.props.dispatch(meetingRoomAction.whoIsOnline())
+  //     window.stream = stream; // make variable available to browser console
+  //     video.srcObject = stream;
+  //     this.setState({
+  //       loading: false,
+  //       localStream: stream,
+  //     })
+  //   }
+
+  //   const handleError = error => {
+  //     if (error) {
+  //       console.log("카메라를 찾을 수 없습니다.")
+  //       // window.location.reload();
+  //     }
+  //     if (error.name === "ConstraintNotSatisfiedError") {
+  //       const v = constraints.video
+  //       console.log(
+  //         `The resolution ${v.width.exact}x${v.height.exact} px is not supported by your device.`
+  //       )
+  //     } else if (error.name === "PermissionDeniedError") {
+  //       console.log(
+  //         "Permissions have not been granted to use your camera and " +
+  //         "microphone, you need to allow the page access to your devices in " +
+  //         "order for the demo to work."
+  //       )
+  //     }
+  //     console.log(`getUserMedia error: ${error.name}`, error)
+  //   }
+
+  //   //Check list devices
+  //   async function init(e) {
+  //     try {
+  //       const gotDevices = (deviceInfos) => {
+  //         for (let i = 0; i !== deviceInfos.length; ++i) {
+  //           const deviceInfo = deviceInfos[i];
+  //           if (deviceInfo.kind === "audioinput") {
+  //             console.log(deviceInfo.label)
+  //           } else if (deviceInfo.kind === "videoinput") {
+  //             console.log(deviceInfo.label)
+  //           } else {
+  //             console.log("Found another kind of device: ", deviceInfo);
+  //           }
+  //         }
+  //       }
+  //       const getStream = async () => {
+  //         const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
+  //         handleSuccess(stream)
+  //       }
+
+  //       navigator.mediaDevices
+  //         .enumerateDevices()
+  //         .then(gotDevices)
+  //         .then(getStream)
+  //         .catch(handleError);
+  //     } catch (e) {
+  //       console.log(e)
+  //       handleError(e)
+  //     }
+  //   }
+  //   init()
+  // }
+
   getLocalStream = () => {
     const constraints = {
       audio: true,
       video: true,
-    }
-    //!refactory해야함
-    const handleSuccess = stream => {
-      const videoTracks = stream.getVideoTracks()
-      const video = document.querySelector("video");
-      console.log(`Using video device: ${videoTracks[0].label}`)
+      options: {
+        mirror: true,
+      }
+    };
+    const handleSuccess = async (stream) => {
+      // const video = document.querySelector("video");
+      const videoTracks = stream.getVideoTracks();
+      // console.log("Got stream with constraints:", constraints);
+      console.log(`Using video device: ${videoTracks[0].label}`);
+
+      this.setState({
+        localStream: stream,
+      });
       this.props.dispatch(meetingRoomAction.whoIsOnline())
       window.stream = stream; // make variable available to browser console
-      video.srcObject = stream;
-      this.setState({
-        loading: false,
-        localStream: stream,
-      })
-    }
+      // video.srcObject = stream;
+      // await this.sleep(500)
+    };
 
-    const handleError = error => {
-      if (error) {
-        console.log("카메라를 찾을 수 없습니다.")
-        // window.location.reload();
-      }
+    const handleError = (error) => {
       if (error.name === "ConstraintNotSatisfiedError") {
-        const v = constraints.video
+        const v = constraints.video;
         console.log(
           `The resolution ${v.width.exact}x${v.height.exact} px is not supported by your device.`
-        )
+        );
       } else if (error.name === "PermissionDeniedError") {
         console.log(
           "Permissions have not been granted to use your camera and " +
           "microphone, you need to allow the page access to your devices in " +
           "order for the demo to work."
-        )
+        );
       }
-      console.log(`getUserMedia error: ${error.name}`, error)
-    }
+      console.log(`getUserMedia error: ${error.name}`, error);
+    };
 
-    //Check list devices
     async function init(e) {
       try {
-        const gotDevices = (deviceInfos) => {
-          for (let i = 0; i !== deviceInfos.length; ++i) {
-            const deviceInfo = deviceInfos[i];
-            if (deviceInfo.kind === "audioinput") {
-              console.log(deviceInfo.label)
-            } else if (deviceInfo.kind === "videoinput") {
-              console.log(deviceInfo.label)
-            } else {
-              console.log("Found another kind of device: ", deviceInfo);
-            }
-          }
-        }
-        const getStream = async () => {
-          const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
-          handleSuccess(stream)
-        }
-
-        navigator.mediaDevices
-          .enumerateDevices()
-          .then(gotDevices)
-          .then(getStream)
-          .catch(handleError);
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        handleSuccess(stream);
       } catch (e) {
-        console.log(e)
-        handleError(e)
+        handleError(e);
       }
     }
-    init()
+    init();
+  };
+  sleep = async (ms) => {
+    return new Promise((r) => setTimeout(() => r(), ms));
   }
-
   //!PeerConnection 
   createPeerConnection = (socketID, callback) => {
     try {
@@ -259,20 +311,22 @@ class MeetingRoom extends Component {
 
     getSocket().on("peer-disconnected", data => {
       try {
-        this.state.peerConnections[data.socketID].close()
-        const rVideo = this.state.remoteStreams.filter(
-          stream => stream.id === data.socketID
-        )
-        rVideo && this.stopTracks(rVideo[0].stream)
-        const remoteStreams = this.state.remoteStreams.filter(
-          stream => stream.id !== data.socketID
-        )
-        this.setState(prevState => {
-          return {
-            remoteStreams,
-            loading: false,
-          }
-        })
+        if(this.state.peerConnections[data.socketID]){
+          this.state.peerConnections[data.socketID].close()
+          const rVideo = this.state.remoteStreams.filter(
+            stream => stream.id === data.socketID
+          )
+          rVideo && this.stopTracks(rVideo[0].stream)
+          const remoteStreams = this.state.remoteStreams.filter(
+            stream => stream.id !== data.socketID
+          )
+          this.setState(prevState => {
+            return {
+              remoteStreams,
+              loading: false,
+            }
+          })
+        }
       } catch (error) {
         console.log(error)
       }

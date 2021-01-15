@@ -402,7 +402,7 @@ class RemoteStreamContainer extends Component {
     getSocket().on("alert-user-mute-mic", data => {
       const { data : state } = data;
       const { listDescRemotes, listUserRequest } = this.state;
-
+      console.log("alert-user-mute-mic")
       //요청한 유저의 Video를 수정
       let _rVideos = listDescRemotes.map((rVideo, idx) => {
         const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
@@ -590,9 +590,11 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
     }
     remoteStreamContainer.emitProcessRequestUser(payload)
   }
+
   const videoMuted = (rVideo) => {
     const muteTrack = rVideo.getVideoTracks()[0]
     const isSelectedVideo = rVideo.id === this.state.selectedVideo.stream.id
+    console.log("aaa")
     if (isSelectedVideo) {
       this.setState({
         videoVisible: !muteTrack.muted
@@ -604,11 +606,11 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
     <div className="video-item">
       <Video
         viewStateMicAndCam={true}
+        videoMuted={videoMuted}
         videoType="remoteVideo"
         videoStream={rVideo.stream}
         req_question_status={req_question_status}
         micStateChange={micStateChange}
-        videoMuted={videoMuted}
       />
       <div className="btn-wrapper" style={req ? { display: "none" } : {}} >
         <WrapperTaskVideo

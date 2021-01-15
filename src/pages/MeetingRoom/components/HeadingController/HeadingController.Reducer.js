@@ -3,7 +3,7 @@ import constants from './HeadingController.Constants'
 
 //default true
 const initialState = {
-  soundState: true,
+  muteAllStudent: true,
   micState: true,
   camState: true,
   requestQuestionStatus: false,
@@ -14,14 +14,17 @@ export const localStreamReducer =(state = initialState, { type, payload })  =>
   produce(state, draft => {
     switch (type) {
       //반대로
-      case constants.CHANGE_SOUND_STATE:
-        draft.soundState = !state.soundState;
-        break;
-      case constants.CHANGE_SOUND_STATE_ERROR:
-        draft.soundState = null
-        break;
+      // case constants.CHANGE_STATE_MIC_ALL_STUDENT:
+      //   draft.muteAllStudent = !state.muteAllStudent;
+      //   break;
+      // case constants.CHANGE_STATE_MIC_ALL_STUDENT_ERROR:
+      //   draft.muteAllStudent = null
+      //   break;
       case constants.CHANGE_MIC_STATE:
         draft.micState = !draft.micState
+        console.log(draft.micState)
+        console.log(draft.muteAllStudent)
+        console.log(draft.camState)
         break;
       case constants.CHANGE_MIC_STATE_ERROR:
         draft.micState = null
