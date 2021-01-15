@@ -43,7 +43,6 @@ class Video extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.videoStream && nextProps.videoStream !== this.props.videoStream) {
       this.video.srcObject = nextProps.videoStream
-
       // //Host가 아니면 음성 끄기
       // if (!this.props.isHostUser && nextProps.videoStream) {
       //   console.log("Host가 아니면 음성 끄기")
@@ -81,7 +80,6 @@ class Video extends Component {
         this.props.videoMuted(nextProps.videoStream)
       }
     }
-    
     const audioTrack = nextProps.videoStream && nextProps.videoStream.getAudioTracks()
     if (this.props.videoType === 'remoteVideo' && audioTrack && audioTrack.length) {
       audioTrack[0].onmute = () => {}
