@@ -51,14 +51,14 @@ class Video extends Component {
 
     //자기 음성을 끄기
     if (this.props.localStream && nextProps.micState !== this.props.micState && nextProps.videoStream) {
-      console.log("음성상태 변화 props this", this.props.micState)
-      this.mutemic(this.props.micState)
+      console.log("음성상태 변화 props this", nextProps.micState)
+      this.mutemic(nextProps.micState)
     }
 
     //자기 카메라 끄기
     if (this.props.localStream  && nextProps.camState !== this.props.camState && nextProps.videoStream ) {
-      console.log("카메로상태 변화", this.props.camState)
-      this.mutecamera(this.props.camState)
+      console.log("카메로상태 변화", nextProps.camState)
+      this.mutecamera(nextProps.camState)
     }
   }
 
@@ -75,10 +75,12 @@ class Video extends Component {
             return { mic: e }
           })
         }
-        this.setState(prevState => {
-          if (stream) stream[0].enabled = !prevState.mic
-          return { mic: !prevState.mic }
-        })
+        // else{
+        //   this.setState(prevState => {
+        //     if (stream) stream[0].enabled = !prevState.mic
+        //     return { mic: !prevState.mic }
+        //   })
+        // }
       }
     } catch (error) {
       console.log(error)
@@ -92,15 +94,12 @@ class Video extends Component {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "video")
       if(stream.length !== 0){
         if(e !== null){
+          console.log(e)
           this.setState(prevState => {
             if (stream) stream[0].enabled = e
             return { camera: e }
           })
         }
-        this.setState(prevState => {
-          if (stream) stream[0].enabled = !prevState.camera
-          return { camera: !prevState.camera }
-        })
       }
     } catch (error) {
       console.log(error)

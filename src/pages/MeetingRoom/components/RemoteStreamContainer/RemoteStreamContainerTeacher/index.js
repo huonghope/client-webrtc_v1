@@ -424,7 +424,6 @@ class RemoteStreamContainer extends Component {
 
           } else { //!요청이 있는 경우에는
 
-            console.log("요처ㅣ 없는 경우에는")
             const { type } = isExistsRequest
             const { req_status } = isExistsRequest.reqInfo
             let requestValue = false

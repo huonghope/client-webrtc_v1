@@ -30,7 +30,12 @@ export const localStreamReducer =(state = initialState, { type, payload })  =>
         draft.micState = null
         break;
       case constants.CHANGE_CAM_STATE:
+        console.log(draft.micState)
+        console.log(draft.muteAllStudent)
+        console.log(draft.camState)
+        console.log(!draft.camState)
         draft.camState = !draft.camState
+        console.log(!draft.camState)
         break;
       case constants.CHANGE_CAM_STATE_ERROR:
         draft.camState = null
