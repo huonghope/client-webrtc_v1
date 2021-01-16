@@ -124,7 +124,6 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       headingControllerSocket.emitUserCancelRequestLecOut(payload);
     }
   }
-
   const StyleButtonRequestQuestion = requestQuestionSended ? {backgroundColor: "white", color: "black"} : requestQuestionDoing ? {backgroundColor: "yellow", color: "black"} : {}
   const TextButtonRequestQuestion = requestQuestionSended ? "음성질문 요청중/취소..." : requestQuestionDoing ? "음성질문 끝내기" : "음성질문 요청"
   const StyleButtonRequestLecOut = requestLecOutSended ? {backgroundColor: "white", color: "black"} : requestLecOutDoing ? {backgroundColor: "yellow", color: "black"} : {}

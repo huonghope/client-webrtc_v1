@@ -27,7 +27,7 @@ class Video extends Component {
       this.video.srcObject = this.props.videoStream
     }
 
-    getSocket().on("alert-user-mute-mic", data => {
+    getSocket().on("alert-user-mute-mic-all", data => {
       if (!this.props.isHostUser && this.props.videoStream) {
         console.log("모든 학생 음성", data.data)
         this.mutemic(data.data)
@@ -67,20 +67,14 @@ class Video extends Component {
     try {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "audio")
       if(stream.length !== 0){
-        console.log("변화정상")
-        if(e !== null){
-          console.log("변화 값은", e)
-          this.setState(prevState => {
-            if (stream) stream[0].enabled = e
-            return { mic: e }
-          })
+        if(this.props.localStream){
+          if(e !== null){
+            this.setState(prevState => {
+              if (stream) stream[0].enabled = e
+              return { mic: e }
+            })
+          }
         }
-        // else{
-        //   this.setState(prevState => {
-        //     if (stream) stream[0].enabled = !prevState.mic
-        //     return { mic: !prevState.mic }
-        //   })
-        // }
       }
     } catch (error) {
       console.log(error)
@@ -107,7 +101,9 @@ class Video extends Component {
     }
   }
 
+  
   render() {
+    console.log("aa")
     const muteControls =  this.props.micStateChange !== undefined ?
     <div className="stream-info">
       <ul>

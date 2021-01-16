@@ -32,7 +32,7 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
   const handleStateMicAllStudent = () => {
     setStateMicAllStudent(!stateMicAllStudent)
     // dispatch(headingControllerAction.handleStateMicAllStudent())
-    headingControllerSocket.emitHandleStateMicAllStudent(stateMicAllStudent)
+    headingControllerSocket.emitHandleStateMicAllStudent(!stateMicAllStudent)
   }
   const handleMicState = () => {
     setMicState(!micState)

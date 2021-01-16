@@ -2,7 +2,7 @@
 import getSocket from "../../../rootSocket"
 import getStore from "../../../../store/config"
 
-const headingControllerSSocket = {
+const headingControllerSocket = {
   sendToPeer : (messageType, payload, socketID) => {
     getSocket().emit(messageType, {
       socketID,
@@ -26,4 +26,4 @@ const headingControllerSSocket = {
   }
 } 
 
-export default headingControllerSSocket
+export default headingControllerSocket

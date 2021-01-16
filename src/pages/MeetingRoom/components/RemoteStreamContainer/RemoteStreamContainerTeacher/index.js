@@ -31,7 +31,7 @@ class RemoteStreamContainer extends Component {
       videoVisible: false,
 
       loading: true,
-      displayTaskVideo: false
+      displayTaskVideo: false,
     }
   }
   /**
@@ -399,7 +399,7 @@ class RemoteStreamContainer extends Component {
       this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
     })
 
-    getSocket().on("alert-user-mute-mic", data => {
+    getSocket().on("alert-user-mute-mic-all", data => {
       const { data : state } = data;
       const { listDescRemotes, listUserRequest } = this.state;
       console.log("alert-user-mute-mic")
@@ -517,7 +517,7 @@ class RemoteStreamContainer extends Component {
 
   render() {
 
-    const { loading } = this.state
+    const { loading, test } = this.state
     if (loading) {
       return (
         <WrapperLoading className="loading">
