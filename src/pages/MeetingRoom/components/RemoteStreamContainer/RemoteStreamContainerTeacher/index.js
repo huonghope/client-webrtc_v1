@@ -413,7 +413,7 @@ class RemoteStreamContainer extends Component {
           //!존재하면 어떤건지 체크함
           let isExistsRequest = listUserRequest.find(e => Number(e.reqInfo.user_idx) === Number(rVideo.userInfo.user_idx)) //요청이 없는 사람
           if (!isExistsRequest) { //!요청이 없는 경우에는
-            
+            console.log("요처ㅣ 없는 경우에는")
             video = _videoTrack ? (
               <VideoItem
                 rVideo={rVideo}
@@ -423,6 +423,8 @@ class RemoteStreamContainer extends Component {
               />) : <img src={Icon.boardWarning}></img>
 
           } else { //!요청이 있는 경우에는
+
+            console.log("요처ㅣ 없는 경우에는")
             const { type } = isExistsRequest
             const { req_status } = isExistsRequest.reqInfo
             let requestValue = false
@@ -591,22 +593,10 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
     remoteStreamContainer.emitProcessRequestUser(payload)
   }
 
-  const videoMuted = (rVideo) => {
-    const muteTrack = rVideo.getVideoTracks()[0]
-    const isSelectedVideo = rVideo.id === this.state.selectedVideo.stream.id
-    console.log("aaa")
-    if (isSelectedVideo) {
-      this.setState({
-        videoVisible: !muteTrack.muted
-      })
-    }
-  }
-
   return (
     <div className="video-item">
       <Video
         viewStateMicAndCam={true}
-        videoMuted={videoMuted}
         videoType="remoteVideo"
         videoStream={rVideo.stream}
         req_question_status={req_question_status}

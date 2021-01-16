@@ -29,9 +29,9 @@ class Video extends Component {
 
     getSocket().on("alert-user-mute-mic", data => {
       if (!this.props.isHostUser && this.props.videoStream) {
+        console.log("모든 학생 음성", data.data)
         this.mutemic(data.data)
         // this.video.srcObject = this.props.videoStream
-        console.log("모든 학생 음성", data.data)
         // this.video.srcObject = this.props.videoStream
       }
     })
@@ -43,16 +43,15 @@ class Video extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.videoStream && nextProps.videoStream !== this.props.videoStream) {
       this.video.srcObject = nextProps.videoStream
-      // //Host가 아니면 음성 끄기
       if (!this.props.isHostUser && nextProps.videoStream) {
-        console.log("Host가 아니면 음성 끄기")
+        console.log("일반유저라 음성 끄기")
         this.mutemic(false)
       }
     }
 
     //자기 음성을 끄기
     if (this.props.localStream && nextProps.micState !== this.props.micState && nextProps.videoStream) {
-      console.log("음성상태 변화", this.props.micState)
+      console.log("음성상태 변화 props this", this.props.micState)
       this.mutemic(this.props.micState)
     }
 
@@ -60,29 +59,6 @@ class Video extends Component {
     if (this.props.localStream  && nextProps.camState !== this.props.camState && nextProps.videoStream ) {
       console.log("카메로상태 변화", this.props.camState)
       this.mutecamera(this.props.camState)
-    }
-    // This is done only once when we receive a video track
-    const videoTrack = nextProps.videoStream && nextProps.videoStream.getVideoTracks()
-    if (this.props.videoType === 'remoteVideo' && videoTrack && videoTrack.length) {
-
-      videoTrack[0].onmute = () => {
-        // alert('muted')
-        this.setState({
-          videoVisible: false,
-        })
-        this.props.videoMuted(nextProps.videoStream)
-      }
-      
-      videoTrack[0].onunmute = () => {
-        this.setState({
-          videoVisible: true,
-        })
-        this.props.videoMuted(nextProps.videoStream)
-      }
-    }
-    const audioTrack = nextProps.videoStream && nextProps.videoStream.getAudioTracks()
-    if (this.props.videoType === 'remoteVideo' && audioTrack && audioTrack.length) {
-      audioTrack[0].onmute = () => {}
     }
   }
 
@@ -92,9 +68,10 @@ class Video extends Component {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "audio")
       if(stream.length !== 0){
         console.log("변화정상")
-        if(e){
+        if(e !== null){
+          console.log("변화 값은", e)
           this.setState(prevState => {
-            if (stream) stream[0].enabled = !prevState.mic
+            if (stream) stream[0].enabled = e
             return { mic: e }
           })
         }
@@ -114,7 +91,7 @@ class Video extends Component {
     try {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "video")
       if(stream.length !== 0){
-        if(e){
+        if(e !== null){
           this.setState(prevState => {
             if (stream) stream[0].enabled = e
             return { camera: e }

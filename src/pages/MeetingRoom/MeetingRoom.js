@@ -44,23 +44,24 @@ class MeetingRoom extends Component {
       mediaRecorder: null,
 
       pc_config: {
-        iceServers: [
+        "iceServers": [
           {
-            urls: "stun:stun.l.google.com:19302"
-          }
+            urls : 'stun:stun.l.google.com:19302',
+            username: "webrtc",
+          },
         ]
       },
 
-      // sdpConstraints: {
-      //   mandatory: {
-      //     OfferToReceiveAudio: true,
-      //     OfferToReceiveVideo: true
-      //   }
-      // },
       sdpConstraints: {
-        offerToReceiveAudio: 0,
-        offerToReceiveVideo: 1
+        mandatory: {
+          OfferToReceiveAudio: true,
+          OfferToReceiveVideo: true
+        }
       },
+      // sdpConstraints: {
+      //   offerToReceiveAudio: 0,
+      //   offerToReceiveVideo: 1
+      // },
 
       isMainRoom: false,
 
@@ -78,127 +79,123 @@ class MeetingRoom extends Component {
 
   // //로컬의 Stream는 출력함
   // //!기계를 체크할 필요함
-  // getLocalStream = () => {
-  //   const constraints = {
-  //     audio: true,
-  //     video: true,
-  //   }
-  //   //!refactory해야함
-  //   const handleSuccess = stream => {
-  //     const videoTracks = stream.getVideoTracks()
-  //     const video = document.querySelector("video");
-  //     console.log(`Using video device: ${videoTracks[0].label}`)
-  //     this.props.dispatch(meetingRoomAction.whoIsOnline())
-  //     window.stream = stream; // make variable available to browser console
-  //     video.srcObject = stream;
-  //     this.setState({
-  //       loading: false,
-  //       localStream: stream,
-  //     })
-  //   }
-
-  //   const handleError = error => {
-  //     if (error) {
-  //       console.log("카메라를 찾을 수 없습니다.")
-  //       // window.location.reload();
-  //     }
-  //     if (error.name === "ConstraintNotSatisfiedError") {
-  //       const v = constraints.video
-  //       console.log(
-  //         `The resolution ${v.width.exact}x${v.height.exact} px is not supported by your device.`
-  //       )
-  //     } else if (error.name === "PermissionDeniedError") {
-  //       console.log(
-  //         "Permissions have not been granted to use your camera and " +
-  //         "microphone, you need to allow the page access to your devices in " +
-  //         "order for the demo to work."
-  //       )
-  //     }
-  //     console.log(`getUserMedia error: ${error.name}`, error)
-  //   }
-
-  //   //Check list devices
-  //   async function init(e) {
-  //     try {
-  //       const gotDevices = (deviceInfos) => {
-  //         for (let i = 0; i !== deviceInfos.length; ++i) {
-  //           const deviceInfo = deviceInfos[i];
-  //           if (deviceInfo.kind === "audioinput") {
-  //             console.log(deviceInfo.label)
-  //           } else if (deviceInfo.kind === "videoinput") {
-  //             console.log(deviceInfo.label)
-  //           } else {
-  //             console.log("Found another kind of device: ", deviceInfo);
-  //           }
-  //         }
-  //       }
-  //       const getStream = async () => {
-  //         const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
-  //         handleSuccess(stream)
-  //       }
-
-  //       navigator.mediaDevices
-  //         .enumerateDevices()
-  //         .then(gotDevices)
-  //         .then(getStream)
-  //         .catch(handleError);
-  //     } catch (e) {
-  //       console.log(e)
-  //       handleError(e)
-  //     }
-  //   }
-  //   init()
-  // }
-
   getLocalStream = () => {
     const constraints = {
       audio: true,
       video: true,
-      options: {
-        mirror: true,
-      }
-    };
-    const handleSuccess = async (stream) => {
-      // const video = document.querySelector("video");
-      const videoTracks = stream.getVideoTracks();
-      // console.log("Got stream with constraints:", constraints);
-      console.log(`Using video device: ${videoTracks[0].label}`);
-
-      this.setState({
-        localStream: stream,
-      });
+    }
+    //!refactory해야함
+    const handleSuccess = stream => {
+      const videoTracks = stream.getVideoTracks()
+      console.log(`Using video device: ${videoTracks[0].label}`)
       this.props.dispatch(meetingRoomAction.whoIsOnline())
-      window.stream = stream; // make variable available to browser console
-      // video.srcObject = stream;
-      // await this.sleep(500)
-    };
+      this.setState({
+        loading: false,
+        localStream: stream,
+      })
+    }
 
-    const handleError = (error) => {
+    const handleError = error => {
+      if (error) {
+        console.log("카메라를 찾을 수 없습니다.")
+        // window.location.reload();
+      }
       if (error.name === "ConstraintNotSatisfiedError") {
-        const v = constraints.video;
+        const v = constraints.video
         console.log(
           `The resolution ${v.width.exact}x${v.height.exact} px is not supported by your device.`
-        );
+        )
       } else if (error.name === "PermissionDeniedError") {
         console.log(
           "Permissions have not been granted to use your camera and " +
           "microphone, you need to allow the page access to your devices in " +
           "order for the demo to work."
-        );
+        )
       }
-      console.log(`getUserMedia error: ${error.name}`, error);
-    };
+      console.log(`getUserMedia error: ${error.name}`, error)
+    }
 
+    //Check list devices
     async function init(e) {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        handleSuccess(stream);
+        const gotDevices = (deviceInfos) => {
+          for (let i = 0; i !== deviceInfos.length; ++i) {
+            const deviceInfo = deviceInfos[i];
+            if (deviceInfo.kind === "audioinput") {
+              console.log(deviceInfo.label)
+            } else if (deviceInfo.kind === "videoinput") {
+              console.log(deviceInfo.label)
+            } else {
+              console.log("Found another kind of device: ", deviceInfo);
+            }
+          }
+        }
+        const getStream = async () => {
+          const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
+          handleSuccess(stream)
+        }
+
+        navigator.mediaDevices
+          .enumerateDevices()
+          .then(gotDevices)
+          .then(getStream)
+          .catch(handleError);
       } catch (e) {
-        handleError(e);
+        console.log(e)
+        handleError(e)
       }
     }
-    init();
-  };
+    init()
+  }
+
+  // getLocalStream = () => {
+  //   const constraints = {
+  //     audio: true,
+  //     video: true,
+  //     options: {
+  //       mirror: true,
+  //     }
+  //   };
+  //   const handleSuccess = async (stream) => {
+  //     // const video = document.querySelector("video");
+  //     const videoTracks = stream.getVideoTracks();
+  //     // console.log("Got stream with constraints:", constraints);
+  //     console.log(`Using video device: ${videoTracks[0].label}`);
+
+  //     this.setState({
+  //       localStream: stream,
+  //     });
+  //     this.props.dispatch(meetingRoomAction.whoIsOnline())
+  //     // window.stream = stream; // make variable available to browser console
+  //     // video.srcObject = stream;
+  //     // await this.sleep(500)
+  //   };
+
+  //   const handleError = (error) => {
+  //     if (error.name === "ConstraintNotSatisfiedError") {
+  //       const v = constraints.video;
+  //       console.log(
+  //         `The resolution ${v.width.exact}x${v.height.exact} px is not supported by your device.`
+  //       );
+  //     } else if (error.name === "PermissionDeniedError") {
+  //       console.log(
+  //         "Permissions have not been granted to use your camera and " +
+  //         "microphone, you need to allow the page access to your devices in " +
+  //         "order for the demo to work."
+  //       );
+  //     }
+  //     console.log(`getUserMedia error: ${error.name}`, error);
+  //   };
+
+  //   async function init(e) {
+  //     try {
+  //       await navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
+  //     } catch (e) {
+  //       handleError(e);
+  //     }
+  //   }
+  //   init();
+  // };
   sleep = async (ms) => {
     return new Promise((r) => setTimeout(() => r(), ms));
   }
@@ -363,22 +360,6 @@ class MeetingRoom extends Component {
             } catch (error) {
               console.log("Add Stream Error", error)
             }
-            // pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(() => {
-            //   // 2. Create Answer
-            //   pc.createAnswer(this.state.sdpConstraints).then(async sdp => {
-            //     pc.setLocalDescription(sdp)
-            //     // let tempSdp = await updateBandwidthRestriction(sdp.sdp, 10)
-            //     // let answerSdp = {
-            //     //   sdp: tempSdp,
-            //     //   type: sdp.type
-            //     // }
-            //     meetingRoomSocket.sendToPeer("answer", sdp, {
-            //       local: getSocket().id,
-            //       remote: data.socketID
-            //     })
-            //   }).catch(e => console.log(e))
-            //   }
-            // )
 
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
@@ -658,6 +639,7 @@ class MeetingRoom extends Component {
         <WrapperLoading>
           <ReactLoading type="spin" color="#000" />
         </WrapperLoading>
+
       )
     }
 
