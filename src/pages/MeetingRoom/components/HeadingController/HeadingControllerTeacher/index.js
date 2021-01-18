@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Icon from "../../../../../constants/icons"
 import './style.scss'
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,12 +18,17 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
   const [camState, setCamState] = useState(false)
   const [recording, setRecording] = useState(false)
   const [windowSize, setWindowSize] = useState(false)
+  const [paintScream, setPaintScream] = useState(false)
 
-  const handleChangeWindowSize = () => {
-    setWindowSize(!windowSize)
+
+  const handleChangeWindowSize = (e = null) => {
     if(!windowSize){
-      document.documentElement.requestFullscreen();
+      setWindowSize(!windowSize)
+      setTimeout(() => {
+        document.documentElement.requestFullscreen();
+      }, 300);
     } else{
+      setWindowSize(!windowSize)
       if(document.fullscreenElement !== null)
           document.exitFullscreen();
     }
@@ -46,6 +51,22 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
     setRecording(!recording)
     handleScreamRecording()
   }
+  const handleWhiteBoardClick = () => {
+    if(!paintScream){
+      //화이트보드 ON
+      setPaintScream(!paintScream)
+      handleWhiteBoard()
+      // handleWindowSize()
+      handleChangeWindowSize()
+      handleScreenMode()
+    } else{
+      //화이트보드 OFF
+         setPaintScream(!paintScream)
+        handleWhiteBoard()
+      }
+  }
+  
+
   return <div className="heading-stream__controller">
     <div className={windowSize ? "heading-container__big" : "heading-container__small"}>
       <div className="heading-col">
@@ -88,7 +109,7 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
       <div className="heading-col">
         <ul>
           <li>
-            <img onClick={() => handleWhiteBoard()} src={Icon.lecScreenWhiteBoard} />
+            <img onClick={() => handleWhiteBoardClick()} src={Icon.lecScreenWhiteBoard} />
             <span>화이트보드</span>
           </li>
           <li><img onClick={() => handleScreenMode()} src={Icon.lecScreenShare} />

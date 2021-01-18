@@ -137,11 +137,12 @@ class RemoteStreamContainerStudent extends Component {
     if (!height) {
       height = document.getElementById("left-content-id") ? document.getElementById("left-content-id").getBoundingClientRect().height : null
     }
-    let width = (height * 4) / 3
+    // let width = (height * 4) / 3
     return (
       <div className="remote-stream__container">
         <div className="single-video">
-          <div className="single-video__body" id="video-body" style={{ width }}>
+          {/* <div className="single-video__body" id="video-body" style={{ width }}> */}
+          <div className="single-video__body" id="video-body">
             { rVideos }
           </div>
         </div>

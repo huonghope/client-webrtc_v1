@@ -71,6 +71,7 @@ class MeetingRoom extends Component {
       fullScream: false,
       paintScream: false,
       enableRecord: false,
+      windowSize: false,
       loading: true,
     }
 
@@ -455,9 +456,34 @@ class MeetingRoom extends Component {
   }
 
   handleWindowSize = () => {
-    this.setState({
+
+    this.setState({ 
       fullScream: !this.state.fullScream
     })
+
+    // if(!this.state.fullScream && !this.state.paintScream){
+    //   console.log('1')
+    // }
+    // else if(this.state.fullScream && !this.state.paintScream){
+    //   console.log('2')
+      
+    //   this.setState({
+    //     fullScream: !this.state.fullScream
+    //   })
+    // }
+    // else if(!this.state.fullScream && this.state.paintScream){
+    //   console.log('2')
+
+    //   this.setState({
+    //       fullScream: !this.state.fullScream
+    //     })
+    // }
+    // else {
+    //   this.setState({
+    //       fullScream: !this.state.fullScream
+    //     })
+    // }
+
   }
   handleScreenMode = () => {
     try {
@@ -509,6 +535,7 @@ class MeetingRoom extends Component {
     this.setState({
       paintScream: !this.state.paintScream
     })
+    // this.HeadingController.handleWindowSize();
   }
   handleDataAvailable = event => {
     if (event.data && event.data.size > 0) {
