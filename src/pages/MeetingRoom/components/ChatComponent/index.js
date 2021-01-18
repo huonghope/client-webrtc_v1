@@ -349,7 +349,7 @@ function ChatComponent(props) {
         </ul>
       </div>
       <div className="chat-form">
-        <form onSubmit={handleSubmit} className="form-container">
+        <form onSubmit={handleSubmit} className="form-container" style={disableChatInput ? {background : "#D7CEDC"  } : {}}>
           <input
             className="b"
             type="text"
@@ -359,7 +359,8 @@ function ChatComponent(props) {
             onChange={(event) => setMessage(event.target.value)}
             value={message}
             readOnly={disableChatInput}
-            style={disableChatInput ? { border: "2px solid red" } : {}} />
+            style={disableChatInput ? {background : "#D7CEDC"  } : {}}
+             />
           <button>전송</button>
         </form>
       </div>

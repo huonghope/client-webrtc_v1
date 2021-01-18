@@ -96,8 +96,8 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
             <span>내 웹캡</span>
           </li>
           <li>
-            <img onClick={() => handleRecording()} src={recording ? Icon.lecRecodingIcon : Icon.lecRecodingIcon} />
-            <span>기록</span>
+            <img onClick={() => handleRecording()} src={recording ? Icon.lecPauseIcon : Icon.lecRecodingIcon } />
+            <span>{recording ? "녹화중" : "녹화"}</span>
           </li>
           {
             //!refactory

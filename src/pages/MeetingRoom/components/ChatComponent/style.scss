@@ -120,9 +120,6 @@
           margin-left: 5px;
         }
       }
-      input.b {
-        font-size: 9px;
-      }
       //SELF
       .self {
         justify-content: flex-end;
@@ -323,8 +320,9 @@
       background: white;
       padding: 0px 10px;
     }
-
+    
     input {
+      font-size: 9px;
       flex-grow: 2;
       border: none;
       height: 100%;

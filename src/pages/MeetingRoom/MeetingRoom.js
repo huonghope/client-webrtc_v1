@@ -289,6 +289,7 @@ class MeetingRoom extends Component {
         isMainRoom: userRole,
       })
     })
+    
 
     // console.log("adapete", adapter.browserDetails.browser)
     window.onunload = window.onbeforeunload = function () {
@@ -550,67 +551,58 @@ class MeetingRoom extends Component {
   //!로컬 stream 작동하지 않으면 안됨
   //!localStream 체크할 필요함
   handleScreamRecording = () => {
-    const { createFFmpeg, fetchFile } = FFmpeg
-    const ffmpeg = createFFmpeg({ log: true })
-    const localRecord = document.getElementById("local")
-    const chunks = []
-
     const { enableRecord } = this.state
-    if (!enableRecord) {
-      let options = { mimeType: "video/webm;codecs=vp9,opus" }
+    if(!enableRecord){
+      let options = {mimeType: 'video/webm;codecs=vp9,opus'};
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        console.error(`${options.mimeType} is not supported`)
-        options = { mimeType: "video/webm;codecs=vp8,opus" }
+        console.error(`${options.mimeType} is not supported`);
+        options = {mimeType: 'video/webm;codecs=vp8,opus'};
         if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-          console.error(`${options.mimeType} is not supported`)
-          options = { mimeType: "video/webm" }
+          console.error(`${options.mimeType} is not supported`);
+          options = {mimeType: 'video/webm'};
           if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            console.error(`${options.mimeType} is not supported`)
-            options = { mimeType: "" }
+            console.error(`${options.mimeType} is not supported`);
+            options = {mimeType: ''};
           }
         }
       }
-
-      let mediaRecorder
+  
+      let mediaRecorder;
       try {
-        mediaRecorder = new MediaRecorder(localRecord.srcObject)
+        mediaRecorder = new MediaRecorder(this.state.localStream, options);
       } catch (e) {
-        console.error("Exception while creating MediaRecorder:", e)
-        return
+        console.error('Exception while creating MediaRecorder:', e);
+        return;
       }
-      mediaRecorder.ondataavailable = e => chunks.push(e.data)
-      mediaRecorder.onstop = async () => {
-        const blob = new Uint8Array(await new Blob(chunks).arrayBuffer())
-
-        let currentDay = moment().format("l").replace("/", "_")
-        const name = "record.webm"
-        await ffmpeg.load()
-        ffmpeg.FS("writeFile", name, await fetchFile(blob))
-        await ffmpeg.run("-i", name, "output.mp4")
-        const data = ffmpeg.FS("readFile", "output.mp4")
-        const a = document.createElement("a")
-        a.style.display = "none"
-        a.href = URL.createObjectURL(
-          new Blob([data.buffer], { type: "video/mp4" })
-        )
-        a.download = `${currentDay}.mp4`
-        document.body.appendChild(a)
-        a.click()
+    
+      mediaRecorder.ondataavailable = this.handleDataAvailable;
+      mediaRecorder.onstop = () =>{
+        const { recordedBlobs } = this.state;
+        const blob = new Blob(recordedBlobs, {type: 'video/webm'});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        
+        let currentDay = moment().format('l').replace("/", "_")
+        a.download = `${currentDay}.webm`;
+        document.body.appendChild(a);
+        a.click();
         setTimeout(() => {
-          document.body.removeChild(a)
-          window.URL.revokeObjectURL(a.href)
-        }, 100)
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 100);
       }
-      mediaRecorder.start()
-      console.log("MediaRecorder started", mediaRecorder)
-
+      mediaRecorder.start();
+      console.log('MediaRecorder started', mediaRecorder);
+  
       this.setState({
         mediaRecorder,
         enableRecord: !this.state.enableRecord
       })
-    } else {
-      const { mediaRecorder } = this.state
-      mediaRecorder.stop()
+    }else{
+      const { mediaRecorder } = this.state;
+      mediaRecorder.stop();
       this.setState({
         enableRecord: !this.state.enableRecord
       })

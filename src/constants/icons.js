@@ -9,7 +9,7 @@ import lecMicOffIcon from '../assets/room-icon/mic_off.png'
 import lecCamOnIcon from '../assets/room-icon/cam_on.png'
 import lecCamOffIcon from '../assets/room-icon/cam_off.png'
 import lecRecodingIcon from '../assets/room-icon/recoding.png'
-// import lecPauseIcon from '../assets/room-icon/icon_lec_pause.svg'
+import lecPauseIcon from '../assets/room-icon/Svg/icon_lec_pause.svg'
 import lecScreenWhiteBoard from '../assets/room-icon/screenWhiteboard.png'
 import lecScreenShare from '../assets/room-icon/screenShare.png'
 
@@ -57,6 +57,8 @@ import chatCameraOnIcon from '../assets/chat-icon/Svg/icon_chat_camera_on.svg'
 import chatFileIcon from '../assets/chat-icon/Svg/icon_chat_file.svg'
 import chatTalkOnIcon from '../assets/chat-icon/Svg/icon_chat_talk_on.svg'
 import chatTalkOffIcon from '../assets/chat-icon/Svg/icon_chat_talk_off.svg'
+import chatWTalkOnIcon from '../assets/chat-icon/talk_on_white.png'
+import chatWTalkOffIcon from '../assets/chat-icon/talk_off_white.png'
 
 
 import smallLoading from '../assets/loading.gif'
@@ -73,7 +75,7 @@ const Icon = {
   lecCamOnIcon, 
   lecCamOffIcon,
   lecRecodingIcon,
-  // lecPauseIcon,
+  lecPauseIcon,
   lecScreenWhiteBoard,
   lecScreenShare,
 
@@ -120,6 +122,9 @@ const Icon = {
   chatFileIcon,
   chatTalkOnIcon,
   chatTalkOffIcon,
+  chatWTalkOnIcon,
+  chatWTalkOffIcon,
+
 
   smallLoading
 }

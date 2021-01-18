@@ -103,7 +103,6 @@ class Video extends Component {
 
   
   render() {
-    console.log("aa")
     const muteControls =  this.props.micStateChange !== undefined ?
     <div className="stream-info">
       <ul>
@@ -129,7 +128,7 @@ class Video extends Component {
               <img src={this.props.req_question_status ? Icon.lecMicOnIcon : Icon.lecMicOffIcon} />
             </li>
             <li>
-              <img src={this.props.disableAllChat ? Icon.chatTalkOffIcon : Icon.chatTalkOnIcon} />
+              <img src={this.props.disableAllChat ? Icon.chatWTalkOffIcon : Icon.chatWTalkOnIcon} />
             </li>
           </ul>
         </div>
