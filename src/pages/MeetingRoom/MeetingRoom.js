@@ -307,7 +307,6 @@ class MeetingRoom extends Component {
         loading: false,
       })
     })
-
     getSocket().on("peer-disconnected", data => {
       try {
         if(this.state.peerConnections[data.socketID]){
@@ -330,7 +329,6 @@ class MeetingRoom extends Component {
         console.log(error)
       }
     })
-
     //!Create Local Peer
     //!pc1
     getSocket().on("online-peer", socketID => {
@@ -365,7 +363,6 @@ class MeetingRoom extends Component {
 
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
-                // 2. Create Answer
                 pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
                   pc.setLocalDescription(sdp);
     
@@ -392,7 +389,6 @@ class MeetingRoom extends Component {
         modifier = 'TIAS';
       }
       if (sdp.indexOf('b=' + modifier + ':') === -1) {
-        // insert b= after c= line.
         sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n');
       } else {
         sdp = sdp.replace(new RegExp('b=' + modifier + ':.*\r\n'), 'b=' + modifier + ':' + bandwidth + '\r\n');
@@ -403,7 +399,6 @@ class MeetingRoom extends Component {
     //! pc1 setRemote
     getSocket().on("answer", data => {
       const pc = this.state.peerConnections[data.socketID];
-      // console.log(data.sdp)
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
       ).then(() => { });
@@ -457,34 +452,9 @@ class MeetingRoom extends Component {
   }
 
   handleWindowSize = () => {
-
     this.setState({ 
       fullScream: !this.state.fullScream
     })
-
-    // if(!this.state.fullScream && !this.state.paintScream){
-    //   console.log('1')
-    // }
-    // else if(this.state.fullScream && !this.state.paintScream){
-    //   console.log('2')
-      
-    //   this.setState({
-    //     fullScream: !this.state.fullScream
-    //   })
-    // }
-    // else if(!this.state.fullScream && this.state.paintScream){
-    //   console.log('2')
-
-    //   this.setState({
-    //       fullScream: !this.state.fullScream
-    //     })
-    // }
-    // else {
-    //   this.setState({
-    //       fullScream: !this.state.fullScream
-    //     })
-    // }
-
   }
   handleScreenMode = () => {
     try {
