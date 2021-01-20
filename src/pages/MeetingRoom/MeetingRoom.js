@@ -420,7 +420,7 @@ class MeetingRoom extends Component {
       if (remoteStreams.length !== 0) {
         Alert({
           title: "수업을 종료하시겠습니까?",
-          content: `핵생이 남아있는 경우, 모도 퇴장됩니다.`,
+          content: `학생이 남아있는 경우, 모두 퇴장됩니다.`,
           handleClickAccept: () => {
             this.setState({
               disconnected: true
