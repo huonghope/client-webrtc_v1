@@ -1,16 +1,18 @@
+import { useDispatch } from "react-redux"
 import io from "socket.io-client"
 import { isAuthenticated } from "../routes/permissionChecker"
+import getStore from "../store/config"
 import meetingRoomAction from "./MeetingRoom/MeetingRoom.Action"
 const endpoint = process.env.REACT_APP_SERVER_SOCKET
-
-let socket = null
+let socket = null;
 
 const onConnected = () => {
   console.log("socket: connected - Welcome to page")
   getSocket().on("user-role", data => {
     const { userRole } = data
+    getStore().dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole}));
+    // dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }))
     console.log("i am ", userRole)
-    // this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }))
   })
 }
 
@@ -43,5 +45,6 @@ export const socketDisconnect = () => {
 }
 
 export default function getSocket() {
+  console.log("get socket", socket)
   return socket
 }

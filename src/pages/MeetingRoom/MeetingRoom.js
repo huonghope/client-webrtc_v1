@@ -592,6 +592,7 @@ class MeetingRoom extends Component {
       paintScream,
       loading,
     } = this.state
+    const { isHostUser } = this.props
     if (disconnected) {
       try {
         // disconnect socket
@@ -612,33 +613,24 @@ class MeetingRoom extends Component {
       }
     }
     // console.log(isMobile)
-    if (isMobile) {
-      return (
-        <div className="chat-component-mobile">
-          <ChatComponent
-            remoteStreams={remoteStreams}
-          />
-        </div>
-      )
-    }
-
-    //! setState 확인필요함
-    if (loading) {
-      return (
-        <WrapperLoading>
-          <ReactLoading type="spin" color="#000" />
-        </WrapperLoading>
-
-      )
-    }
-
+    // if (isMobile) {
+    //   return (
+    //     <div className="chat-component-mobile">
+    //       <ChatComponent
+    //         remoteStreams={remoteStreams}
+    //       />
+    //     </div>
+    //   )
+    // }
     const windowSize = !fullScream ? "85%" : "100%"
+    console.log(this.props)
     return (
       <div className="meeting-room">
         <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
           <div className="heading-controller">
             {
-              isMainRoom ?
+              !loading &&
+              isHostUser ?
                 <HeadingController
                   handleOutRoom={this.handleOutRoom}
                   handleWindowSize={this.handleWindowSize}
@@ -699,7 +691,7 @@ const WrapperLoading = styled.div`
 `
 
 const mapStateToProps = state => ({
-  // listUser: remoteStreamSelector.getListUser(state)
+  isHostUser: meetingRoomSelect.selectIsHostUser(state)
 })
 
 

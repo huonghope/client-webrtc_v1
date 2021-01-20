@@ -26,15 +26,6 @@ const RoutesComponent = () => (
       />
     ))}
 
-    {/* {routes.authRoutes.map(route => (
-            <AuthRoute
-                key={route.path}
-                exact
-                path={route.path}
-                component={CustomLoadable({ loader: route.loader })}
-            />
-        ))} */}
-
     {routes.errorRoutes.map(route => (
       <Route
         key={route.path}

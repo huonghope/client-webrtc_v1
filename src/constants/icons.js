@@ -12,7 +12,8 @@ import lecRecodingIcon from '../assets/room-icon/recoding.png'
 import lecPauseIcon from '../assets/room-icon/Svg/icon_lec_pause.svg'
 import lecScreenWhiteBoard from '../assets/room-icon/screenWhiteboard.png'
 import lecScreenShare from '../assets/room-icon/screenShare.png'
-
+import WaitImage from '../assets/room-icon/img_wait.png'
+import TimeImage from '../assets/room-icon/img_time.png'
 //화이트보드 아이콘
 import selectIcon from "../assets/whiteboard-icon/icon_board_select.svg"
 import textIcon from "../assets/whiteboard-icon/icon_board_text.svg"
@@ -78,6 +79,7 @@ const Icon = {
   lecPauseIcon,
   lecScreenWhiteBoard,
   lecScreenShare,
+  WaitImage,
 
   //Whiteboard Icon
   selectIcon,
