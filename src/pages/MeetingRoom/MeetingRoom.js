@@ -73,6 +73,7 @@ class MeetingRoom extends Component {
       enableRecord: false,
       windowSize: false,
       loading: true,
+      shareScream: null
     }
 
     this.recordVideo = null;
@@ -468,7 +469,7 @@ class MeetingRoom extends Component {
         .then(stream => {
           this.setState({
             localStreamTemp: this.state.localStream,
-            localStream: stream
+            localStream: stream,
           })
 
           const { peerConnections, shareScream } = this.state
@@ -480,6 +481,7 @@ class MeetingRoom extends Component {
             this.setState({
               shareScream: !shareScream
             })
+            this.sleep(1000)
             sender.replaceTrack(videoTrack)
           })
           //화면 공유 중지
@@ -490,6 +492,7 @@ class MeetingRoom extends Component {
               var sender = pc.getSenders().find(function (s) {
                 return s.track.kind === videoTrack.kind
               })
+              this.sleep(1000)
               sender.replaceTrack(videoTrack)
             })
             this.setState({
@@ -626,6 +629,11 @@ class MeetingRoom extends Component {
     console.log(this.props)
     return (
       <div className="meeting-room">
+        <button onClick={() => {
+          const { localStream } = this.state
+          let videoTrack = localStream.getVideoTracks()[0]
+          videoTrack.stop();
+        }}>Hello</button>
         <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
           <div className="heading-controller">
             {
