@@ -18,6 +18,7 @@ import moment from 'moment'
 import { set } from 'immutable'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
+import Icon from '../../../../../constants/icons'
 
 let intervalTime = "";
 class RemoteStreamContainerStudent extends Component {
@@ -126,8 +127,12 @@ class RemoteStreamContainerStudent extends Component {
     const { loading, rVideos } = this.state
     if (loading) {
       return (
-        <WrapperLoading className="loading">
-          <ReactLoading type="spin" color="#000" />
+        <WrapperLoading className="loading" style={{background: 'black'}}>
+          <div style={{transform: `translateY(${-50}%)`}}>
+            <img src={Icon.TimeImage} style={{width: "140px", height: "140px"}} />
+            <p style={{textAlign: 'center', color: 'white'}}>학생의 입장을<br/> 
+            기다리고 있습니다.</p>
+          </div>
         </WrapperLoading>
       )
     }

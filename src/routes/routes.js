@@ -15,6 +15,11 @@ const publicRoutes = [
     path: "/",
     exact: true,
     loader: () => import("../pages/CreateRoom")
+  },
+  {
+    path: "/meeting",
+    exact: true,
+    loader: () => import("../pages/LandingPage")
   }
 ]
 
