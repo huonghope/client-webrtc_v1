@@ -27,11 +27,8 @@ const actions = {
   //!꼭 Redux에서 저장할 필요하는가?
   createRoom: (params) => async(dispatch) => {
     try {
-      console.log("create Room")
-
       dispatch({ type: constants.JOINROOM_START });
       let response = await fetJoinRoom(params)
-
       const { data, result } = response;
       if(result)
       {
@@ -39,13 +36,20 @@ const actions = {
           type: constants.JOINROOM_SUCCESS,
           payload: data
         })
-
+        console.log(data)
         const { room, usr_id } = data
         window.localStorage.setItem(
           "usr_id",
           JSON.stringify(usr_id)
         );
-        getHistory().push(`/meetting/open?room=${room.room_name}&user=${room.user_idx}`);
+        const roomInfo = {
+          roomName: room.room_name
+        }
+        window.localStorage.setItem(
+          "roomInfo",
+          JSON.stringify(roomInfo)
+        );
+        getHistory().push(`/meeting`);
         configSocket();
       }else{
         alert("해당하는 강죄는 없습니다")
@@ -62,13 +66,10 @@ const actions = {
   //create room
   doSignin: (userInfo) => async (dispatch) => {
     try {
-      console.log("sign ")
       dispatch({ type: constants.SIGNIN_START });
 
       // call api: signin
       let response = await fetchSignin(userInfo);
-
-      console.log(response)
       const { result } = response;
       if(result) {
         window.localStorage.setItem(
@@ -79,11 +80,8 @@ const actions = {
           type: constants.SIGNIN_SUCCESS,
           payload: response.data,
         });
-        // configSocket();
-        // const { roomInfo } = response.a;
-        // getHistory().push(`/meetting/open?room=${roomInfo.roomname}&user=${roomInfo.user_id}`);
       }else{
-        window.localStorage.removeItem("asauth");
+        localStorage.clear()
         getHistory().push('/401')
         dispatch({
           type: constants.SIGNIN_ERROR,

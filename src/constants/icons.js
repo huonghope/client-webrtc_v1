@@ -14,6 +14,7 @@ import lecScreenWhiteBoard from '../assets/room-icon/screenWhiteboard.png'
 import lecScreenShare from '../assets/room-icon/screenShare.png'
 import WaitImage from '../assets/room-icon/img_wait.png'
 import TimeImage from '../assets/room-icon/img_time.png'
+import IconLogo from '../assets/ico_logo.png'
 //화이트보드 아이콘
 import selectIcon from "../assets/whiteboard-icon/icon_board_select.svg"
 import textIcon from "../assets/whiteboard-icon/icon_board_text.svg"
@@ -80,6 +81,8 @@ const Icon = {
   lecScreenWhiteBoard,
   lecScreenShare,
   WaitImage,
+  TimeImage,
+  IconLogo,
 
   //Whiteboard Icon
   selectIcon,

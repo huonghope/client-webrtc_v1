@@ -5,3 +5,8 @@ export const getInformationRoom = async (params) => {
   return response;
 };
 
+export const getUserRole = async (params) => {
+  const response = await axios.get("/user/profile", {params});
+  return response
+}
+

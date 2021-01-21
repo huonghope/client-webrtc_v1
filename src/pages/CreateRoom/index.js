@@ -47,7 +47,7 @@ function CreateRoom(props) {
   }, [])
   return (
     <div className="create-room">
-      <Loading />
+      <Loading type={"bars"} color={"white"} />
     </div>
     
   )

@@ -26,6 +26,10 @@ import styled from 'styled-components'
 import { isMobile } from 'react-device-detect';
 import adapter from 'webrtc-adapter'
 import FFmpeg from "@ffmpeg/ffmpeg"
+import WrapperLoading from '../../components/Loading/WrapperLoading'
+import userAction from '../../features/UserFeature/actions'
+import userSelect from '../../features/UserFeature/selector'
+import services from '../../features/UserFeature/service'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
 
@@ -73,6 +77,7 @@ class MeetingRoom extends Component {
       enableRecord: false,
       windowSize: false,
       loading: true,
+      shareScream: null
     }
 
     this.recordVideo = null;
@@ -88,12 +93,18 @@ class MeetingRoom extends Component {
     //!refactory해야함
     const handleSuccess = stream => {
       const videoTracks = stream.getVideoTracks()
-      console.log(`Using video device: ${videoTracks[0].label}`)
       this.props.dispatch(meetingRoomAction.whoIsOnline())
-      this.setState({
-        loading: false,
-        localStream: stream,
-      })
+      if(this.props.localStream){
+        this.setState({
+          loading: false,
+          localStream: this.props.localStream,
+        })
+      }else{
+        this.setState({
+          loading: false,
+          localStream: stream,
+        })
+      }
     }
 
     const handleError = error => {
@@ -123,11 +134,11 @@ class MeetingRoom extends Component {
           for (let i = 0; i !== deviceInfos.length; ++i) {
             const deviceInfo = deviceInfos[i];
             if (deviceInfo.kind === "audioinput") {
-              console.log(deviceInfo.label)
+              // console.log(deviceInfo.label)
             } else if (deviceInfo.kind === "videoinput") {
-              console.log(deviceInfo.label)
+              console.log("video input", deviceInfo.label)
             } else {
-              console.log("Found another kind of device: ", deviceInfo);
+              // console.log("Found another kind of device: ", deviceInfo);
             }
           }
         }
@@ -149,54 +160,6 @@ class MeetingRoom extends Component {
     init()
   }
 
-  // getLocalStream = () => {
-  //   const constraints = {
-  //     audio: true,
-  //     video: true,
-  //     options: {
-  //       mirror: true,
-  //     }
-  //   };
-  //   const handleSuccess = async (stream) => {
-  //     // const video = document.querySelector("video");
-  //     const videoTracks = stream.getVideoTracks();
-  //     // console.log("Got stream with constraints:", constraints);
-  //     console.log(`Using video device: ${videoTracks[0].label}`);
-
-  //     this.setState({
-  //       localStream: stream,
-  //     });
-  //     this.props.dispatch(meetingRoomAction.whoIsOnline())
-  //     // window.stream = stream; // make variable available to browser console
-  //     // video.srcObject = stream;
-  //     // await this.sleep(500)
-  //   };
-
-  //   const handleError = (error) => {
-  //     if (error.name === "ConstraintNotSatisfiedError") {
-  //       const v = constraints.video;
-  //       console.log(
-  //         `The resolution ${v.width.exact}x${v.height.exact} px is not supported by your device.`
-  //       );
-  //     } else if (error.name === "PermissionDeniedError") {
-  //       console.log(
-  //         "Permissions have not been granted to use your camera and " +
-  //         "microphone, you need to allow the page access to your devices in " +
-  //         "order for the demo to work."
-  //       );
-  //     }
-  //     console.log(`getUserMedia error: ${error.name}`, error);
-  //   };
-
-  //   async function init(e) {
-  //     try {
-  //       await navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
-  //     } catch (e) {
-  //       handleError(e);
-  //     }
-  //   }
-  //   init();
-  // };
   sleep = async (ms) => {
     return new Promise((r) => setTimeout(() => r(), ms));
   }
@@ -281,9 +244,20 @@ class MeetingRoom extends Component {
   }
 
   componentDidMount() {
+    this.props.dispatch(userAction.getCurrent())
+    let fetchCurrentUser = async () => {
+      const response = await services.getCurrent()
+      const { data } = response
+      this.setState({
+        isMainRoom: data.user_tp === 'T' || data.user_tp === 'I' 
+      })
+    }
+
+    fetchCurrentUser()
+    
+    getSocket().emit("join-room")
     getSocket().on("user-role", data => {
       const { userRole } = data
-      console.log("i am ", userRole)
       this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }))
       this.setState({
         isMainRoom: userRole,
@@ -468,7 +442,7 @@ class MeetingRoom extends Component {
         .then(stream => {
           this.setState({
             localStreamTemp: this.state.localStream,
-            localStream: stream
+            localStream: stream,
           })
 
           const { peerConnections, shareScream } = this.state
@@ -480,6 +454,7 @@ class MeetingRoom extends Component {
             this.setState({
               shareScream: !shareScream
             })
+            this.sleep(1000)
             sender.replaceTrack(videoTrack)
           })
           //화면 공유 중지
@@ -490,6 +465,7 @@ class MeetingRoom extends Component {
               var sender = pc.getSenders().find(function (s) {
                 return s.track.kind === videoTrack.kind
               })
+              this.sleep(1000)
               sender.replaceTrack(videoTrack)
             })
             this.setState({
@@ -623,14 +599,19 @@ class MeetingRoom extends Component {
     //   )
     // }
     const windowSize = !fullScream ? "85%" : "100%"
-    console.log(this.props)
     return (
       <div className="meeting-room">
+        {/* <button onClick={() => {
+          const { localStream } = this.state
+          let videoTrack = localStream.getVideoTracks()[0]
+          videoTrack.stop();
+        }}>Hello</button> */}
         <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
-          <div className="heading-controller">
+          <div className="heading-controller" style={{background: 'black'}}>
             {
-              !loading &&
-              isHostUser ?
+              
+              !loading ?
+              isMainRoom ?
                 <HeadingController
                   handleOutRoom={this.handleOutRoom}
                   handleWindowSize={this.handleWindowSize}
@@ -642,6 +623,7 @@ class MeetingRoom extends Component {
                   handleOutRoom={this.handleOutRoom}
                   handleWindowSize={this.handleWindowSize}
                 />
+              : <WrapperLoading type={"bars"} color={"black"} />
             }
           </div>
           <div className="remote-stream">
@@ -683,15 +665,11 @@ class MeetingRoom extends Component {
     )
   }
 }
-const WrapperLoading = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-`
 
 const mapStateToProps = state => ({
-  isHostUser: meetingRoomSelect.selectIsHostUser(state)
+  isHostUser: meetingRoomSelect.selectIsHostUser(state),
+  localStream: meetingRoomSelect.getLocalStream(state),
+  currentUser: userSelect.selectCurrentUser(state)
 })
 
 

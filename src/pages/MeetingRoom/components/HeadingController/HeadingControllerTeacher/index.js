@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import Icon from "../../../../../constants/icons"
 import './style.scss'
+import '../style.scss'
 import { useDispatch, useSelector } from 'react-redux';
 import meetingRoomSelectors from '../../../MeetingRoom.Selector'
 import CountTime from "../../../../../components/CountTime";

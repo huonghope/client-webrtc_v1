@@ -19,6 +19,7 @@ const actions = {
   },
   doCreateLocalStream :  (localStream) => async(dispatch) => {
     try {
+        console.log(localStream)
         dispatch({
             type: constants.CREATE_LOCALSTREAM,
             payload: { localStream: localStream },
@@ -32,7 +33,6 @@ const actions = {
   },
   whoIsOnline: () => async(dispatch) => {
     try {
-        // dispatch({type: constants.WHO_IS_ONLINE_START})
         meetingRoomSocket.sendToPeer("onlinePeers", null, { local: getSocket().id});
     } catch (error) {
       console.log(error)

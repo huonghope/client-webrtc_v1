@@ -4,6 +4,7 @@ const initialState = {
   initLoading: true,
   signinLoading: false,
   signinError: null,
+  roomInfo: null,
 };
 
 const authReducer = (state = initialState, { type, payload }) =>
@@ -13,6 +14,7 @@ const authReducer = (state = initialState, { type, payload }) =>
         draft.initLoading = false;
         break;
       case constants.SIGNIN_START:
+        draft.roomInfo = payload;
         draft.signinLoading = true;
         draft.signinError = null;
         break;
@@ -24,18 +26,9 @@ const authReducer = (state = initialState, { type, payload }) =>
         draft.signinLoading = false;
         draft.signinError = payload || null;
         break;
-      // case constants.SIGNUP_START:
-      //   draft.signupLoading = true;
-      //   draft.sigupError = null;
-      //   break;
-      // case constants.SIGNUP_SUCCESS:
-      //   draft.signupLoading = false;
-      //   draft.sigupError = null;
-      //   break;
-      // case constants.SIGNUP_ERROR:
-      //   draft.signupLoading = false;
-      //   draft.sigupError = payload || null;
-      //   break;
+      case constants.JOINROOM_SUCCESS:
+        console.log(payload)
+        draft.roomInfo  = payload
       default:
         break;
     }

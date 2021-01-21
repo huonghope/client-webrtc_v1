@@ -63,60 +63,39 @@ function ChatComponent(props) {
 
   useEffect(() => {
     //요청하고 있는거 알려줌
-    getSocket().on("alert-all-request-message", data => {
-      let newMessage = data
-      setMessages(prevState => [...prevState, newMessage])
-      scrollToBottom()
-    })
-    getSocket().on("alert-host-test-concentration-fail", data => {
-      let newMessage = data
-      setMessages(prevState => [...prevState, newMessage])
-      scrollToBottom()
-    })
-    getSocket().on("alert-user-warning", data => {
-      let newMessage = data
-      setMessages(prevState => [...prevState, newMessage])
-      scrollToBottom()
-    })
-    getSocket().on("alert_user_disable_chat", data => {
-      let newMessage = data
-      setMessages(prevState => [...prevState, newMessage])
-      scrollToBottom()
-    })
-
-    // getSocket().on("action_user_disable_chat", data => {
-    //   setDisableChatInput(!disableChatInput)
-    // })
-
-    getSocket().on("res-sent-message", data => {
-      let newMessage = data
-      setMessages(prevState => [...prevState, newMessage])
-      scrollToBottom()
-    })
-    getSocket().on("res-sent-files", data => {
-      console.log(data)
-      let newMessage = data
-      setMessages(prevState => [...prevState, newMessage])
-      scrollToBottom()
-      // const { senderId, senderName, fileHash, originalname, size, mimetype } = data
-      // let message = {
-      //   type: "file",
-      //   message: {
-      //     id: data,
-      //     sender: {
-      //       uid: senderId,
-      //       username: senderName
-      //     },
-      //     data: {
-      //       text: originalname,
-      //       size: size,
-      //       fileHash: fileHash,
-      //       mimetype
-      //     }
-      //   }
-      // }
-      // setMessages(prevState => [...prevState, message])
-    })
+    if(getSocket() != null){
+      getSocket().on("alert-all-request-message", data => {
+        let newMessage = data
+        setMessages(prevState => [...prevState, newMessage])
+        scrollToBottom()
+      })
+      getSocket().on("alert-host-test-concentration-fail", data => {
+        let newMessage = data
+        setMessages(prevState => [...prevState, newMessage])
+        scrollToBottom()
+      })
+      getSocket().on("alert-user-warning", data => {
+        let newMessage = data
+        setMessages(prevState => [...prevState, newMessage])
+        scrollToBottom()
+      })
+      getSocket().on("alert_user_disable_chat", data => {
+        let newMessage = data
+        setMessages(prevState => [...prevState, newMessage])
+        scrollToBottom()
+      })
+      getSocket().on("res-sent-message", data => {
+        let newMessage = data
+        setMessages(prevState => [...prevState, newMessage])
+        scrollToBottom()
+      })
+      getSocket().on("res-sent-files", data => {
+        console.log(data)
+        let newMessage = data
+        setMessages(prevState => [...prevState, newMessage])
+        scrollToBottom()
+      })
+    }
   }, [])
 
   useEffect(() => {
@@ -215,31 +194,34 @@ function ChatComponent(props) {
 
   //파일을 업데이트
   const handleClickUpFile = () => {
-    const upFile = document.createElement("input")
-    upFile.setAttribute("type", "file")
-    upFile.setAttribute("name", "file")
-    upFile.setAttribute("style", "display: none")
-    document.body.appendChild(upFile)
-    upFile.click()
-    upFile.onchange = handleValueFile
+    if(!disableChatInput){
+      const upFile = document.createElement("input")
+      upFile.setAttribute("type", "file")
+      upFile.setAttribute("name", "file")
+      upFile.setAttribute("style", "display: none")
+      document.body.appendChild(upFile)
+      upFile.click()
+      upFile.onchange = handleValueFile
+    }else{
+      alert("채팅 금지되어 있는 상태입니다.")
+    }
   }
 
   //카메라클릭하여 이미지 업데이트
   const handleClickCameraOn = () => {
-    const upImage = document.createElement("input")
-    upImage.setAttribute("type", "file")
-    upImage.setAttribute("name", "file")
-    upImage.setAttribute("accept", "image/*")
-    upImage.setAttribute("style", "display: none")
-    document.body.appendChild(upImage)
-    upImage.click()
-    upImage.onchange = handleValueFile
+      const upImage = document.createElement("input")
+      upImage.setAttribute("type", "file")
+      upImage.setAttribute("name", "file")
+      upImage.setAttribute("accept", "image/*")
+      upImage.setAttribute("style", "display: none")
+      document.body.appendChild(upImage)
+      upImage.click()
+      upImage.onchange = handleValueFile
   }
 
   //유저별로 채팅금지
   const handleOffChatForUser = (user_idx, socketId) => {
     const tempDisableChatUser = disableChatUser
-
     //있는지 없는지 확인하여 추가함
     let filter = tempDisableChatUser.find((e) => e.user_idx === user_idx)
     if (filter) {
@@ -256,7 +238,6 @@ function ChatComponent(props) {
     }
     chatComponentSocket.emitDisableUserChat(payload)
   }
-
 
   const handleOffChatAllUser = () => {
     let payload = {
@@ -291,6 +272,12 @@ function ChatComponent(props) {
       onClick={() => setImageZoom(false)}
     />)
   }
+  const handleSetBoxedListUser = () =>{
+    if(listUser.length !== 0)
+    {
+      setBoxedListUser(!boxedListUser)
+    }
+  }
 
   return (
     <div className="chat__component">
@@ -318,7 +305,7 @@ function ChatComponent(props) {
                     <li><img onClick={() => handleClickCameraOn()} src={Icon.chatCameraOnIcon}></img></li> :
                     <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
                 }
-                <li className="chatting-hidden"><img onClick={() => setBoxedListUser(!boxedListUser)} src={Icon.chatTalkOffIcon}></img>
+                <li className="chatting-hidden"><img onClick={() => handleSetBoxedListUser()} src={Icon.chatTalkOffIcon}></img>
                   {
                     boxedListUser &&
                     <div className="list-user-chat">
@@ -343,7 +330,7 @@ function ChatComponent(props) {
                 </li>
               </> :
               <>
-                <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
+                <li><img disabled={disableChatInput} onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
               </>
           }
         </ul>
@@ -360,8 +347,8 @@ function ChatComponent(props) {
             value={message}
             readOnly={disableChatInput}
             style={disableChatInput ? {background : "#D7CEDC"  } : {}}
-             />
-          <button>전송</button>
+            />
+          <button disabled={disableChatInput}>전송</button>
         </form>
       </div>
     </div>
