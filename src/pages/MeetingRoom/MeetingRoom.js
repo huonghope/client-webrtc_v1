@@ -26,6 +26,9 @@ import styled from 'styled-components'
 import { isMobile } from 'react-device-detect';
 import adapter from 'webrtc-adapter'
 import FFmpeg from "@ffmpeg/ffmpeg"
+import Loading from '../../components/Loading/WrapperLoading'
+import userAction from '../../features/UserFeature/actions'
+import userSelect from '../../features/UserFeature/selector'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
 
@@ -82,6 +85,9 @@ class MeetingRoom extends Component {
   // //로컬의 Stream는 출력함
   // //!기계를 체크할 필요함
   getLocalStream = () => {
+    this.setState({
+      isMainRoom: this.props.currentUser.user_tp === 'T'
+    })
     const constraints = {
       audio: true,
       video: true,
@@ -89,12 +95,20 @@ class MeetingRoom extends Component {
     //!refactory해야함
     const handleSuccess = stream => {
       const videoTracks = stream.getVideoTracks()
-      console.log(`Using video device: ${videoTracks[0].label}`)
       this.props.dispatch(meetingRoomAction.whoIsOnline())
-      this.setState({
-        loading: false,
-        localStream: stream,
-      })
+      console.log("asdasda",this.props.localStream )
+      if(this.props.localStream){
+        this.setState({
+          loading: false,
+          localStream: this.props.localStream,
+        })
+      }else{
+        this.setState({
+          loading: false,
+          localStream: stream,
+          isMainRoom: this.props.currentUser.user_tp === 'T'
+        })
+      }
     }
 
     const handleError = error => {
@@ -282,6 +296,10 @@ class MeetingRoom extends Component {
   }
 
   componentDidMount() {
+    // this.props.dispatch(userAction.getCurrent())
+
+    getSocket().emit("join-room")
+
     getSocket().on("user-role", data => {
       const { userRole } = data
       console.log("i am ", userRole)
@@ -626,7 +644,8 @@ class MeetingRoom extends Component {
     //   )
     // }
     const windowSize = !fullScream ? "85%" : "100%"
-    console.log(this.props)
+
+    console.log(isMainRoom)
     return (
       <div className="meeting-room">
         <button onClick={() => {
@@ -637,8 +656,8 @@ class MeetingRoom extends Component {
         <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
           <div className="heading-controller">
             {
-              !loading &&
-              isHostUser ?
+              !loading ?
+              isMainRoom ?
                 <HeadingController
                   handleOutRoom={this.handleOutRoom}
                   handleWindowSize={this.handleWindowSize}
@@ -650,6 +669,7 @@ class MeetingRoom extends Component {
                   handleOutRoom={this.handleOutRoom}
                   handleWindowSize={this.handleWindowSize}
                 />
+              : <Loading />
             }
           </div>
           <div className="remote-stream">
@@ -699,7 +719,9 @@ const WrapperLoading = styled.div`
 `
 
 const mapStateToProps = state => ({
-  isHostUser: meetingRoomSelect.selectIsHostUser(state)
+  isHostUser: meetingRoomSelect.selectIsHostUser(state),
+  localStream: meetingRoomSelect.getLocalStream(state),
+  currentUser: userSelect.selectCurrentUser(state)
 })
 
 

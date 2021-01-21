@@ -8,12 +8,6 @@ let socket = null;
 
 const onConnected = () => {
   console.log("socket: connected - Welcome to page")
-  getSocket().on("user-role", data => {
-    const { userRole } = data
-    getStore().dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole}));
-    // dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }))
-    console.log("i am ", userRole)
-  })
 }
 
 const onDisconnect = () => {
@@ -45,6 +39,5 @@ export const socketDisconnect = () => {
 }
 
 export default function getSocket() {
-  console.log("get socket", socket)
   return socket
 }

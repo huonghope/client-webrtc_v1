@@ -1,22 +1,33 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { configStore } from '../../store/config';
-
+import Loading from '../../components/Loading/WrapperLoading'
+import './style.scss'
+import adapter from 'webrtc-adapter'
+import getSocket from '../rootSocket'
+import meetingRoomAction from '../MeetingRoom/MeetingRoom.Action'
+import { useDispatch } from 'react-redux';
 function Landing(props) {
 
   const [audioInput, setAudioInput] = useState(null);
+  const [isAudioInput, setIsAudioInput] = useState(false);
+
   const [audioOutput, setAudioOutput] = useState(null);
-  const [videoInput, setVideoInput] = useState(null);
+  const [isAudioOutput, setIsAudioOutput] = useState(false)
+
+  const [videoInput, setVideoInput] = useState({ value: '', text: '' });
+  const [isVideo, setIsVideo] = useState(false)
 
   const [localStream, setLocalStream] = useState(null);
-
+  const [loading, setLoading] = useState(true);
 
   const [listAudioInput, setListAudioInput] = useState([]);
   const [listAudioOutput, setListAudioOutput] = useState([]);
   const [listVideoInput, setListVideoInput] = useState([]);
 
+
+  const dispatch = useDispatch()
   function gotDevices(deviceInfos) {
-    console.log(deviceInfos.length)
     for (let i = 0; i !== deviceInfos.length; ++i) {
       const deviceInfo = deviceInfos[i];
       if (deviceInfo.kind === 'audioinput') {
@@ -24,6 +35,7 @@ function Landing(props) {
           value: deviceInfo.deviceId,
           text: deviceInfo.label || `microphone`
         }
+        setAudioInput(true)
         setListAudioInput(listAudioInput => [...listAudioInput, option])
         setAudioInput(option)
       } else if (deviceInfo.kind === 'audiooutput') {
@@ -31,37 +43,20 @@ function Landing(props) {
           value: deviceInfo.deviceId,
           text: deviceInfo.label || `speaker`
         }
+        setIsAudioOutput(true)
+        setAudioOutput(true)
         setListAudioOutput(listAudioOutput => [...listAudioOutput, option])
       } else if (deviceInfo.kind === 'videoinput') {
         const option = {
           value: deviceInfo.deviceId,
           text: deviceInfo.label || `camera`
         }
+        setIsVideo(true)
         setListVideoInput(listVideoInput => [...listVideoInput, option])
-        !videoInput && setVideoInput(option) 
+        setVideoInput(option)
       } else {
         console.log('Some other kind of source/device: ', deviceInfo);
       }
-    }
-  }
-  // Attach audio output device to video element using device/sink ID.
-  function attachSinkId(element, sinkId) {
-    if (typeof element.sinkId !== 'undefined') {
-      element.setSinkId(sinkId)
-        .then(() => {
-          console.log(`Success, audio output device attached: ${sinkId}`);
-        })
-        .catch(error => {
-          let errorMessage = error;
-          if (error.name === 'SecurityError') {
-            errorMessage = `You need to use HTTPS for selecting audio output device: ${error}`;
-          }
-          console.error(errorMessage);
-          // Jump back to first output device in the list as it's the default.
-          // audioOutputSelect.selectedIndex = 0;
-        });
-    } else {
-      console.warn('Browser does not support output device selection.');
     }
   }
 
@@ -69,20 +64,28 @@ function Landing(props) {
     console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
   }
 
-  async function getStream() {
+  async function getStream(deviceId = null) {
     if (window.stream) {
       window.stream.getTracks().forEach(track => {
         track.stop();
       });
     }
-    const constraints = {
-      // audio: { deviceId: audioInput ? { exact: audioInput.value } : undefined },
-      video: { deviceId: videoInput ? { exact: videoInput.value } : undefined }
-    };
+    let constraints;
+    if (deviceId) {
+      constraints = {
+        video: { deviceId: { exact: deviceId } }
+      };
+    } else {
+      constraints = {
+        video: { deviceId: videoInput.value ? { exact: videoInput.value } : undefined }
+      };
+    }
     const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
-    console.log(stream)
+    dispatch(meetingRoomAction.doCreateLocalStream(stream))
     setLocalStream(stream)
+    setLoading(false)
   }
+
   function init() {
     if (window.stream) {
       window.stream.getTracks().forEach(track => {
@@ -91,65 +94,92 @@ function Landing(props) {
     }
     navigator.mediaDevices.enumerateDevices().then(gotDevices).then(getStream).catch(handleError);
   }
-  const handleChangeVideo = (device) => 
-  { 
-    const deviceTemp = listVideoInput.find(device => device.value.includes(device.value))
-    console.log(device)
+
+  const handleChangeVideo = (deviceId) => {
+    setLoading(true)
+    const deviceTemp = listVideoInput.filter(dev => dev.value === deviceId)[0]
     setVideoInput(deviceTemp)
-    getStream()
+    getStream(deviceTemp.value)
   }
+
+  const handleJoin = () => {
+    if(!isVideo){
+      alert('카메라 허락하지 않음 또는 찾지 못합니다')
+      return;
+    }else{
+        let roomInfo = JSON.parse(localStorage.getItem("roomInfo"))
+        let asauth = JSON.parse(localStorage.getItem("asauth")).userInfoToken
+        props.history.push(`/meeting/open?room=${roomInfo.roomName}&user=${asauth.userId}`);
+    } 
+  }
+
+  
+
   useEffect(() => {
     init()
+    // dispatch(meetingRoomAction.whoIsOnline())  
+    getSocket().on("user-role", data => {
+      const { userRole } = data
+      dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole}));
+    })
   }, [])
+
   return (
-    <div>
-      <p>Get available audio, video sources and audio output devices from <code>mediaDevices.enumerateDevices()</code>
-        then set the source for <code>getUserMedia()</code> using a <code>deviceId</code> constraint.</p>
+    <div className="landing-page">
+      <div>
+        <div class="select">
+          <label for="audioSource">Audio input source: </label>
+          <select id="audioSource" onChange={(e) => setAudioInput(e.target.value)}>
+            {
+              listAudioInput.map((audio) => (
+                <option value={audio.value}>{audio.text}</option>
+              ))
+            }
+          </select>
+        </div>
 
-      <div class="select">
-        <label for="audioSource">Audio input source: </label>
-        <select id="audioSource" onChange={(e) => setAudioInput(e.target.value)}>
-          {
-            listAudioInput.map((audio) => (
-              <option value={audio.value}>{audio.text}</option>
-            ))
-          }
-        </select>
-      </div>
+        <div class="select">
+          <label for="audioOutput">Audio output destination: </label>
+          <select id="audioOutput" onChange={(e) => setAudioOutput(e.target.value)}>
+            {
+              listAudioOutput.map((audio) => (
+                <option value={audio.value}>{audio.text}</option>
+              ))
+            }
+          </select>
+        </div>
 
-      <div class="select">
-        <label for="audioOutput">Audio output destination: </label>
-        <select id="audioOutput" onChange={(e) => setAudioOutput(e.target.value)}>
+        <div class="select">
+          <label for="videoSource">Video source: </label>
+          <select id="videoSource" value={videoInput.value} onChange={(e) => handleChangeVideo(e.target.value)}>
+            {
+              listVideoInput.map((audio) => (
+                <option value={audio.value}>{audio.text}</option>
+              ))
+            }
+          </select>
+        </div>
+        <div className="local-video">
           {
-            listAudioOutput.map((audio) => (
-              <option value={audio.value}>{audio.text}</option>
-            ))
+            loading ?
+              <Loading className="loading" color={"black"} style={{ background: 'black' }} /> :
+              <Video stream={localStream} />
           }
-        </select>
+        </div>
       </div>
-
-      <div class="select">
-        <label for="videoSource">Video source: </label>
-        <select id="videoSource" value={videoInput} onChange={(e) => handleChangeVideo(e.target.value)}>
-          {
-            listVideoInput.map((audio) => (
-              <option value={audio}>{audio.text}</option>
-            ))
-          }
-        </select>
+      <div className="landing-page__join">
+          <button onClick={() => handleJoin()}>참여</button>
+          <button onClick={()=> window.close()} >취소</button>
       </div>
-      <Video stream={localStream} />
     </div>
   )
 }
 
 const Video = ({ stream }) => {
   const localVideo = React.createRef();
-  console.log(stream)
   useEffect(() => {
-    if (localVideo.current) localVideo.current.srcObject = stream;
+    localVideo.current.srcObject = stream;
   }, [stream, localVideo]);
-
   return (
     <video style={{ height: 500, width: 500 }} ref={localVideo} autoPlay />
   );

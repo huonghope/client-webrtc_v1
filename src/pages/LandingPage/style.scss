@@ -1,0 +1,35 @@
+.landing-page{
+  background: #ccc;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  > div{
+    text-align: center;
+    flex: 1;
+  }
+  > div:nth-child(2){
+    text-align: left;
+  }
+  
+  .local-video{
+    height: 500px;
+    > div{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+  &__join{
+    button{
+      padding: 10px 30px;
+      font-size: 20px;
+      border: none;
+      background: blue;
+      margin: 10px;
+      color: white;
+      cursor: pointer;
+    }
+  }
+}
