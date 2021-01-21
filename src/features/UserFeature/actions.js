@@ -14,7 +14,6 @@ const actions = {
         type: constants.USER_GET_CURRENT_START
       })
       let response = await services.getCurrent()
-      console.log("hello user info", response)
       dispatch({
         type: constants.USER_GET_CURRENT_SUCCESS,
         payload: response.data

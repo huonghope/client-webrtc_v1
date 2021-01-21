@@ -33,8 +33,6 @@ const actions = {
   },
   whoIsOnline: () => async(dispatch) => {
     try {
-      console.log("aasasdasd")
-        // dispatch({type: constants.WHO_IS_ONLINE_START})
         meetingRoomSocket.sendToPeer("onlinePeers", null, { local: getSocket().id});
     } catch (error) {
       console.log(error)

@@ -322,7 +322,7 @@
     }
     
     input {
-      font-size: 9px;
+      font-size: 15px;
       flex-grow: 2;
       border: none;
       height: 100%;
@@ -332,6 +332,19 @@
         outline: none;
       }
       
+    }
+
+    ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+      font-size: 14px;
+    }
+    ::-moz-placeholder { /* Firefox 19+ */
+      font-size: 14px;
+    }
+    :-ms-input-placeholder { /* IE 10+ */
+      font-size: 14px;
+    }
+    :-moz-placeholder { /* Firefox 18- */
+      font-size: 14px;
     }
 
     button {

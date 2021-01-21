@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import Icon from "../../../../../constants/icons"
 import { useDispatch, useSelector } from 'react-redux';
 import './style.scss'
+import '../style.scss'
 import headingControllerSocket from '../HeadingController.Socket'
 import getSocket from "../../../../rootSocket";
 import headingControllerAction from '../HeadingController.Action'
@@ -158,8 +159,8 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       </div>
       <div className="heading-col">
         <ul>
-          <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li>
-          <li><p>{lectureInfo ? lectureInfo.lecture_nm : ""}</p></li>
+          {/* <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li> */}
+          <li><p className="course-name">{lectureInfo ? lectureInfo.lecture_nm : ""}</p></li>
         </ul>
       </div>
     </div>

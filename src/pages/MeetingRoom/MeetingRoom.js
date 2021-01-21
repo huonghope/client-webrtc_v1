@@ -26,9 +26,10 @@ import styled from 'styled-components'
 import { isMobile } from 'react-device-detect';
 import adapter from 'webrtc-adapter'
 import FFmpeg from "@ffmpeg/ffmpeg"
-import Loading from '../../components/Loading/WrapperLoading'
+import WrapperLoading from '../../components/Loading/WrapperLoading'
 import userAction from '../../features/UserFeature/actions'
 import userSelect from '../../features/UserFeature/selector'
+import services from '../../features/UserFeature/service'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
 
@@ -85,9 +86,6 @@ class MeetingRoom extends Component {
   // //로컬의 Stream는 출력함
   // //!기계를 체크할 필요함
   getLocalStream = () => {
-    this.setState({
-      isMainRoom: this.props.currentUser.user_tp === 'T'
-    })
     const constraints = {
       audio: true,
       video: true,
@@ -96,7 +94,6 @@ class MeetingRoom extends Component {
     const handleSuccess = stream => {
       const videoTracks = stream.getVideoTracks()
       this.props.dispatch(meetingRoomAction.whoIsOnline())
-      console.log("asdasda",this.props.localStream )
       if(this.props.localStream){
         this.setState({
           loading: false,
@@ -106,7 +103,6 @@ class MeetingRoom extends Component {
         this.setState({
           loading: false,
           localStream: stream,
-          isMainRoom: this.props.currentUser.user_tp === 'T'
         })
       }
     }
@@ -138,11 +134,11 @@ class MeetingRoom extends Component {
           for (let i = 0; i !== deviceInfos.length; ++i) {
             const deviceInfo = deviceInfos[i];
             if (deviceInfo.kind === "audioinput") {
-              console.log(deviceInfo.label)
+              // console.log(deviceInfo.label)
             } else if (deviceInfo.kind === "videoinput") {
-              console.log(deviceInfo.label)
+              console.log("video input", deviceInfo.label)
             } else {
-              console.log("Found another kind of device: ", deviceInfo);
+              // console.log("Found another kind of device: ", deviceInfo);
             }
           }
         }
@@ -164,54 +160,6 @@ class MeetingRoom extends Component {
     init()
   }
 
-  // getLocalStream = () => {
-  //   const constraints = {
-  //     audio: true,
-  //     video: true,
-  //     options: {
-  //       mirror: true,
-  //     }
-  //   };
-  //   const handleSuccess = async (stream) => {
-  //     // const video = document.querySelector("video");
-  //     const videoTracks = stream.getVideoTracks();
-  //     // console.log("Got stream with constraints:", constraints);
-  //     console.log(`Using video device: ${videoTracks[0].label}`);
-
-  //     this.setState({
-  //       localStream: stream,
-  //     });
-  //     this.props.dispatch(meetingRoomAction.whoIsOnline())
-  //     // window.stream = stream; // make variable available to browser console
-  //     // video.srcObject = stream;
-  //     // await this.sleep(500)
-  //   };
-
-  //   const handleError = (error) => {
-  //     if (error.name === "ConstraintNotSatisfiedError") {
-  //       const v = constraints.video;
-  //       console.log(
-  //         `The resolution ${v.width.exact}x${v.height.exact} px is not supported by your device.`
-  //       );
-  //     } else if (error.name === "PermissionDeniedError") {
-  //       console.log(
-  //         "Permissions have not been granted to use your camera and " +
-  //         "microphone, you need to allow the page access to your devices in " +
-  //         "order for the demo to work."
-  //       );
-  //     }
-  //     console.log(`getUserMedia error: ${error.name}`, error);
-  //   };
-
-  //   async function init(e) {
-  //     try {
-  //       await navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
-  //     } catch (e) {
-  //       handleError(e);
-  //     }
-  //   }
-  //   init();
-  // };
   sleep = async (ms) => {
     return new Promise((r) => setTimeout(() => r(), ms));
   }
@@ -296,13 +244,20 @@ class MeetingRoom extends Component {
   }
 
   componentDidMount() {
-    // this.props.dispatch(userAction.getCurrent())
+    this.props.dispatch(userAction.getCurrent())
+    let fetchCurrentUser = async () => {
+      const response = await services.getCurrent()
+      const { data } = response
+      this.setState({
+        isMainRoom: data.user_tp === 'T' || data.user_tp === 'I' 
+      })
+    }
 
+    fetchCurrentUser()
+    
     getSocket().emit("join-room")
-
     getSocket().on("user-role", data => {
       const { userRole } = data
-      console.log("i am ", userRole)
       this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }))
       this.setState({
         isMainRoom: userRole,
@@ -644,18 +599,17 @@ class MeetingRoom extends Component {
     //   )
     // }
     const windowSize = !fullScream ? "85%" : "100%"
-
-    console.log(isMainRoom)
     return (
       <div className="meeting-room">
-        <button onClick={() => {
+        {/* <button onClick={() => {
           const { localStream } = this.state
           let videoTrack = localStream.getVideoTracks()[0]
           videoTrack.stop();
-        }}>Hello</button>
+        }}>Hello</button> */}
         <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
-          <div className="heading-controller">
+          <div className="heading-controller" style={{background: 'black'}}>
             {
+              
               !loading ?
               isMainRoom ?
                 <HeadingController
@@ -669,7 +623,7 @@ class MeetingRoom extends Component {
                   handleOutRoom={this.handleOutRoom}
                   handleWindowSize={this.handleWindowSize}
                 />
-              : <Loading />
+              : <WrapperLoading type={"bars"} color={"black"} />
             }
           </div>
           <div className="remote-stream">
@@ -711,12 +665,6 @@ class MeetingRoom extends Component {
     )
   }
 }
-const WrapperLoading = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-`
 
 const mapStateToProps = state => ({
   isHostUser: meetingRoomSelect.selectIsHostUser(state),

@@ -7,6 +7,8 @@ import adapter from 'webrtc-adapter'
 import getSocket from '../rootSocket'
 import meetingRoomAction from '../MeetingRoom/MeetingRoom.Action'
 import { useDispatch } from 'react-redux';
+import { Button } from '../../components/Button';
+import Icon from '../../constants/icons';
 function Landing(props) {
 
   const [audioInput, setAudioInput] = useState(null);
@@ -103,31 +105,37 @@ function Landing(props) {
   }
 
   const handleJoin = () => {
-    if(!isVideo){
+    if (!isVideo) {
       alert('카메라 허락하지 않음 또는 찾지 못합니다')
       return;
-    }else{
-        let roomInfo = JSON.parse(localStorage.getItem("roomInfo"))
-        let asauth = JSON.parse(localStorage.getItem("asauth")).userInfoToken
-        props.history.push(`/meeting/open?room=${roomInfo.roomName}&user=${asauth.userId}`);
-    } 
+    } else {
+      let roomInfo = JSON.parse(localStorage.getItem("roomInfo"))
+      let asauth = JSON.parse(localStorage.getItem("asauth")).userInfoToken
+      props.history.push(`/meeting/open?room=${roomInfo.roomName}&user=${asauth.userId}`);
+    }
   }
 
-  
+
 
   useEffect(() => {
     init()
     // dispatch(meetingRoomAction.whoIsOnline())  
     getSocket().on("user-role", data => {
       const { userRole } = data
-      dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole}));
+      dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }));
     })
   }, [])
 
   return (
     <div className="landing-page">
-      <div>
-        <div class="select">
+      <nav className="landing-page__logo">
+        <ul>
+          <li><img src={Icon.IconLogo} /></li>
+        </ul>
+      </nav>
+      <div className="landing-page__content">
+        <div>
+          {/* <div class="select">
           <label for="audioSource">Audio input source: </label>
           <select id="audioSource" onChange={(e) => setAudioInput(e.target.value)}>
             {
@@ -158,18 +166,29 @@ function Landing(props) {
               ))
             }
           </select>
+        </div> */}
+          <div class="select">
+            {/* <label for="videoSource">Video source: </label> */}
+            <select id="videoSource" value={videoInput.value} onChange={(e) => handleChangeVideo(e.target.value)}>
+              {
+                listVideoInput.map((audio) => (
+                  <option value={audio.value}>{audio.text}</option>
+                ))
+              }
+            </select>
+          </div> <br />
+          <div className="local-video">
+            {
+              loading ?
+                <Loading className="loading" color={"black"} style={{ background: 'black' }} /> :
+                <Video stream={localStream} />
+            }
+          </div>
         </div>
-        <div className="local-video">
-          {
-            loading ?
-              <Loading className="loading" color={"black"} style={{ background: 'black' }} /> :
-              <Video stream={localStream} />
-          }
+        <div className="landing-page__join">
+          <Button buttonStyle="btn--primary" buttonSize="btn--medium" onClick={() => handleJoin()}>참여</Button>
+          <Button buttonStyle="btn--secondary" buttonSize="btn--medium" onClick={() => window.close()}>취소</Button>
         </div>
-      </div>
-      <div className="landing-page__join">
-          <button onClick={() => handleJoin()}>참여</button>
-          <button onClick={()=> window.close()} >취소</button>
       </div>
     </div>
   )
@@ -181,7 +200,7 @@ const Video = ({ stream }) => {
     localVideo.current.srcObject = stream;
   }, [stream, localVideo]);
   return (
-    <video style={{ height: 500, width: 500 }} ref={localVideo} autoPlay />
+    <video ref={localVideo} autoPlay />
   );
 };
 Landing.propTypes = {

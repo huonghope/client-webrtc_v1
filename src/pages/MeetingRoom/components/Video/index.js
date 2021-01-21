@@ -7,6 +7,7 @@ import roomSelector from '../../MeetingRoom.Selector'
 import Icon from "../../../../constants/icons"
 import getSocket from "../../../rootSocket"
 import authReducer from "../../../../features/AuthFeature/reducer"
+import WrapperLoading from "../../../../components/Loading/WrapperLoading"
 class Video extends Component {
   constructor(props) {
     super(props)
@@ -16,7 +17,8 @@ class Video extends Component {
       // currentStream: new MediaStream(),
       // videoTrack: false,
       videoVisible: true,
-      chat: true
+      chat: true,
+      loading: true
     }
   }
 
@@ -26,7 +28,6 @@ class Video extends Component {
     if (this.props.videoStream) {
       this.video.srcObject = this.props.videoStream
     }
-
     getSocket().on("alert-user-mute-mic-all", data => {
       if (!this.props.isHostUser && this.props.videoStream) {
         console.log("모든 학생 음성", data.data)

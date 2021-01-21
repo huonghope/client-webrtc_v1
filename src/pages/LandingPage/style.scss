@@ -1,35 +1,102 @@
 .landing-page{
-  background: #ccc;
   width: 100vw;
   height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  > div{
-    text-align: center;
-    flex: 1;
-  }
-  > div:nth-child(2){
-    text-align: left;
-  }
-  
-  .local-video{
-    height: 500px;
-    > div{
+  &__logo{
+    height: 70px;
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.03);
+    ul{
+      height: 100%;
       display: flex;
       align-items: center;
-      justify-content: center;
+      padding: 0 50px;
+    }
+  }
+  &__content{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20vh;
+    select{
+      cursor: pointer;
+      padding: 5px;
+      position: a;
+    }
+    .local-video{
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto;
+      flex: 1;
+      //static
+      width: 695px;
+      height: 391px;
+      border-radius: 20px;
+      -webkit-box-shadow: 0px 0px 35px -6px rgba(0,0,0,0.61);
+      -moz-box-shadow: 0px 0px 35px -6px rgba(0,0,0,0.61);
+      box-shadow: 0px 0px 35px -6px rgba(0,0,0,0.61);
+  
+      video {
+        height: calc(100% + 2px);
+        left: -1px;
+        pointer-events: none;
+        position: absolute;
+        top: -1px;
+        object-fit: cover;
+        width: 100%;
+      }
+      
+      > div{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
+  
     }
   }
   &__join{
     button{
-      padding: 10px 30px;
-      font-size: 20px;
-      border: none;
-      background: blue;
-      margin: 10px;
-      color: white;
-      cursor: pointer;
+      margin: 0 10px;
     }
   }
 }
+@media only screen and (max-width: 900px) {
+  .landing-page{
+    &__content{
+      flex-direction: column;
+      margin-top: 50px;
+    }
+    &__join{
+      margin-top: 10px;
+    }
+  }
+} 
+@media only screen and (max-width: 710px) {
+  .landing-page{
+    .local-video{
+      width: 550px;
+      height: 400px;
+    }
+  }
+} 
+@media only screen and (max-width: 600px) {
+  .landing-page{
+    .local-video{
+      width: 450px;
+      height: 300px;
+    }
+  }
+} 
+@media only screen and (max-width: 400px) {
+  .landing-page{
+    .local-video{
+      width: 240px;
+      height: 190px;;
+    }
+    &__join{
+      button{
+        padding: 10px 30px;
+        font-size: 15px;
+      }
+    }
+  }
+} 

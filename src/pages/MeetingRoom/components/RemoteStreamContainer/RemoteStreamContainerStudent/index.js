@@ -212,17 +212,6 @@ const VideoItem = ({ videoStream, time, req_question_status, req_lecOut_status, 
     headingControllerSocket.emitUserCancelRequestLecOut(payload)
     setLecOutStatus(!reqLecOutStatus)
   }
-
-  const videoMuted = (rVideo) => {
-    const muteTrack = rVideo.getVideoTracks()[0]
-    const isSelectedVideo = rVideo.id === this.state.selectedVideo.stream.id
-    console.log("aaa")
-    if (isSelectedVideo) {
-      this.setState({
-        videoVisible: !muteTrack.muted
-      })
-    }
-  }
   return (
     <>
       <Video
