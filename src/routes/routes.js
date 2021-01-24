@@ -1,7 +1,7 @@
 const privateRoutes = [
   {
     path: "/meeting/open",
-    exact: true,
+    exact: false,
     loader: () => import("../pages/MeetingRoom/MeetingRoom"),
     menu: false,
     label: "강좌 미팅",
@@ -10,8 +10,12 @@ const privateRoutes = [
   },
   {
     path: "/meeting",
-    exact: true,
-    loader: () => import("../pages/LandingPage")
+    exact: false,
+    loader: () => import("../pages/LandingPage"),
+    menu: false,
+    label: "강좌 미팅",
+    permissionRequired: null,
+    icon: "home"
   }
 ]
 

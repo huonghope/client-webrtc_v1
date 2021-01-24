@@ -62,7 +62,7 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
       handleScreenMode()
     } else{
       //화이트보드 OFF
-         setPaintScream(!paintScream)
+        setPaintScream(!paintScream)
         handleWhiteBoard()
       }
   }

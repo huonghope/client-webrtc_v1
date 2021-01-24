@@ -9,6 +9,7 @@ import meetingRoomAction from '../MeetingRoom/MeetingRoom.Action'
 import { useDispatch } from 'react-redux';
 import { Button } from '../../components/Button';
 import Icon from '../../constants/icons';
+import services from '../../features/UserFeature/service';
 function Landing(props) {
 
   const [audioInput, setAudioInput] = useState(null);
@@ -21,12 +22,15 @@ function Landing(props) {
   const [isVideo, setIsVideo] = useState(false)
 
   const [localStream, setLocalStream] = useState(null);
+
   const [loading, setLoading] = useState(true);
+  const [loadingPage, setLoadingPage] = useState(true);
 
   const [listAudioInput, setListAudioInput] = useState([]);
   const [listAudioOutput, setListAudioOutput] = useState([]);
   const [listVideoInput, setListVideoInput] = useState([]);
 
+  const [userInfo, setUserInfo] = useState({});
 
   const dispatch = useDispatch()
   function gotDevices(deviceInfos) {
@@ -124,6 +128,16 @@ function Landing(props) {
       const { userRole } = data
       dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }));
     })
+
+    let fetchCurrentUser = async () => {
+      const response = await services.getCurrent()
+      const { data } = response
+      setUserInfo(data);
+      setLoadingPage(false)
+    }
+
+    fetchCurrentUser()
+
   }, [])
 
   return (
@@ -135,40 +149,30 @@ function Landing(props) {
       </nav>
       <div className="landing-page__content">
         <div>
-          {/* <div class="select">
-          <label for="audioSource">Audio input source: </label>
-          <select id="audioSource" onChange={(e) => setAudioInput(e.target.value)}>
-            {
-              listAudioInput.map((audio) => (
-                <option value={audio.value}>{audio.text}</option>
-              ))
-            }
-          </select>
-        </div>
-
-        <div class="select">
-          <label for="audioOutput">Audio output destination: </label>
-          <select id="audioOutput" onChange={(e) => setAudioOutput(e.target.value)}>
-            {
-              listAudioOutput.map((audio) => (
-                <option value={audio.value}>{audio.text}</option>
-              ))
-            }
-          </select>
-        </div>
-
-        <div class="select">
-          <label for="videoSource">Video source: </label>
-          <select id="videoSource" value={videoInput.value} onChange={(e) => handleChangeVideo(e.target.value)}>
-            {
-              listVideoInput.map((audio) => (
-                <option value={audio.value}>{audio.text}</option>
-              ))
-            }
-          </select>
-        </div> */}
           <div class="select">
-            {/* <label for="videoSource">Video source: </label> */}
+            <label for="audioSource">Audio input source: </label>
+            <select id="audioSource" onChange={(e) => setAudioInput(e.target.value)}>
+              {
+                listAudioInput.map((audio) => (
+                  <option value={audio.value}>{audio.text}</option>
+                ))
+              }
+            </select>
+          </div>
+
+          <div class="select">
+            <label for="audioOutput">Audio output destination: </label>
+            <select id="audioOutput" onChange={(e) => setAudioOutput(e.target.value)}>
+              {
+                listAudioOutput.map((audio) => (
+                  <option value={audio.value}>{audio.text}</option>
+                ))
+              }
+            </select>
+          </div>
+
+          <div class="select">
+            <label for="videoSource">Video source: </label>
             <select id="videoSource" value={videoInput.value} onChange={(e) => handleChangeVideo(e.target.value)}>
               {
                 listVideoInput.map((audio) => (
@@ -186,6 +190,12 @@ function Landing(props) {
           </div>
         </div>
         <div className="landing-page__join">
+          {
+          !loadingPage && 
+          <div className="landing-page__user">
+            <p><>{userInfo.user_tp === 'T' || userInfo.user_tp === 'I' ? "강사" : "학생"}</>: {userInfo.user_name}</p>
+          </div>
+          }
           <Button buttonStyle="btn--primary" buttonSize="btn--medium" onClick={() => handleJoin()}>참여</Button>
           <Button buttonStyle="btn--secondary" buttonSize="btn--medium" onClick={() => window.close()}>취소</Button>
         </div>

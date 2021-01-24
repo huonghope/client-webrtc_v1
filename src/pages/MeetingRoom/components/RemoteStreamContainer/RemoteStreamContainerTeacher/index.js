@@ -16,6 +16,7 @@ import './style.scss'
 import { connect, useDispatch, useSelector } from 'react-redux'
 import CountTime from '../../../../../components/CountTime'
 import Alert from "../../../../../components/Alert"
+import { Button } from '../../../../../components/Button'
 
 let intervalTime = "";
 class RemoteStreamContainer extends Component {
@@ -741,8 +742,8 @@ const WrapperUserRequest = ({ type, userInfo, handleClickAccept, handleClickReje
       <p className="wrapper-request__name">{userInfo.user_name}</p>
       <p className="wrapper-request__type"><span>{convertType}</span> 요청</p>
       <div className="wrapper-request__btn">
-        <button className="wrapper-request__btn--reject" onClick={() => handleClickReject()}>거절</button>
-        <button className="wrapper-request__btn--accept" onClick={() => tryCatchHandleClickAccept()}>수락</button>
+        <Button  buttonStyle="btn--click btn--request" buttonSize="btn--medium" onClick={() => handleClickReject()}>거절</Button>{"  "}
+        <Button  buttonStyle="btn--click btn--request" buttonSize="btn--medium" onClick={() => tryCatchHandleClickAccept()}>수락</Button>
       </div>
     </div>
   )
@@ -772,12 +773,12 @@ const WrapperTaskVideo = ({ userInfo, socketId }) => {
     <div>
       <h1>{userInfo.user_name}</h1>
       <div className="btn-list">
-        <button onClick={() => handleClickWarning()}>
+        <Button buttonStyle="btn--click" buttonSize="btn--medium" onClick={() => handleClickWarning()}>
           경고
-        </button>
-        <button onClick={() => handleDisableChatting()}>
+        </Button>{"  "}
+        <Button buttonStyle="btn--click" buttonSize="btn--medium"  onClick={() => handleDisableChatting()}>
           채팅금지
-        </button>
+        </Button>
       </div>
     </div>
   )

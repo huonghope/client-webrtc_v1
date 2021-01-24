@@ -130,8 +130,7 @@ class RemoteStreamContainerStudent extends Component {
         <WrapperLoading className="loading" style={{background: 'black'}}>
           <div style={{transform: `translateY(${-50}%)`}}>
             <img src={Icon.TimeImage} style={{width: "140px", height: "140px"}} />
-            <p style={{textAlign: 'center', color: 'white'}}>학생의 입장을<br/> 
-            기다리고 있습니다.</p>
+            <p style={{textAlign: 'center', color: 'white'}}>환경에 따라<br/>다소 시간이 걸릴 수 있습니다.</p>
           </div>
         </WrapperLoading>
       )

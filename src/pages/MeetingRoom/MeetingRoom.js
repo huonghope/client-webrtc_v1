@@ -280,6 +280,7 @@ class MeetingRoom extends Component {
         localMicMute: this.state.isMainRoom ? false : true,
         loading: false,
       })
+      // window.location.reload();
     })
     getSocket().on("peer-disconnected", data => {
       try {
@@ -288,7 +289,10 @@ class MeetingRoom extends Component {
           const rVideo = this.state.remoteStreams.filter(
             stream => stream.id === data.socketID
           )
-          rVideo && this.stopTracks(rVideo[0].stream)
+          // rVideo && this.stopTracks(rVideo[0].stream)
+          if(rVideo){
+            this.stopTracks(rVideo[0].stream)
+          }
           const remoteStreams = this.state.remoteStreams.filter(
             stream => stream.id !== data.socketID
           )
@@ -298,6 +302,8 @@ class MeetingRoom extends Component {
               loading: false,
             }
           })
+          console.log("hello reload");
+          window.location.reload();
         }
       } catch (error) {
         console.log(error)

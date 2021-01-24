@@ -34,51 +34,16 @@
                     color: rgb(204, 90, 90);
                 }
             }
-            &__btn {
-                display: flex;
-                justify-content: center;
-                width: 150px;
-                margin: auto;
 
-                button {
-                    border: none;
-                    padding: 8px 20px;
-                    border-radius: 20px;
-                    font-weight: bold;
-                    margin: 10px 2px;
-                    cursor: pointer;
-                    outline: none;
-
-                    background: white;
-                    color: black;
-                }
-
-                button:hover {
-                    background: rgb(204, 90, 90);
-                    color: white;
-                }
-
-                &--reject {
-                    // background: white;
-                    // color: black;
-
-                }
-
-                &--accept {
-                    // background: rgb(204, 90, 90);
-                    // color: white;
-                }
-            }
-
-            .btn-cancel{
-                margin: 15px 0;
-                color: white;
-                padding: 10px 40px;
-                border-radius: 4px;
-                background-color: #5199ff;
-                cursor: pointer;
-                border: none;
-            }
+            // .btn-cancel{
+            //     margin: 15px 0;
+            //     color: white;
+            //     padding: 10px 40px;
+            //     border-radius: 4px;
+            //     background-color: #5199ff;
+            //     cursor: pointer;
+            //     border: none;
+            // }
         }
 
         video {
@@ -325,16 +290,6 @@
                     align-items: center;
                     display: flex;
                     flex-direction: column;
-
-                    button {
-                        cursor: pointer;
-                        margin: 0 2px;
-                        width: 90px;
-                        height: 30px;
-                        border-radius: 10px;
-                        border: none;
-                        outline: none;
-                    }
                 }
             }
 
