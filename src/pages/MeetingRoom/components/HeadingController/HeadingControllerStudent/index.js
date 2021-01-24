@@ -8,6 +8,7 @@ import getSocket from "../../../../rootSocket";
 import headingControllerAction from '../HeadingController.Action'
 import roomSelector from '../../../MeetingRoom.Selector';
 import remoteStreamContainerSelector from '../../RemoteStreamContainer/RemoteStreamContainer.Selector'
+import { Button } from "../../../../../components/Button";
 
 function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   
@@ -103,7 +104,7 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
     //아직 요청하지 않고 하고 있는 상태가 아님
     if(!requestLecOutSended && !requestLecOutDoing){
       const payload = {
-        status : true,
+        status : 'waiting',
         userRoomId: UserRoomId()
       }
       setRequestLecOutSended(true)
@@ -131,6 +132,8 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   const TextButtonRequestLecOut = requestLecOutSended ? "자리비움 요청중/취소..." : requestLecOutDoing ? "자리비움 취소" : "자리비움 요청"
 
   //!버튼 상태를 확인할 필요함
+
+  console.log(StyleButtonRequestQuestion)
   return <div className="heading-stream__controller">
     <div className="heading-container__small">
       <div className="heading-col">
@@ -146,20 +149,20 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       <div className="heading-col">
         <ul>
           <li className="request-task">
-            <button onClick={() => handleRequestQuestion()} style={StyleButtonRequestQuestion} disabled={isBtnRequestQuestion}  >
+            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestQuestion()} style={StyleButtonRequestQuestion} disabled={isBtnRequestQuestion}  >
               {TextButtonRequestQuestion}
-            </button>
+            </Button>
           </li>
           <li className="request-task">
-            <button onClick={() => handleRequestLecOut()} style={StyleButtonRequestLecOut} disabled={isBtnRequestLecOut}>
+            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestLecOut()} style={StyleButtonRequestLecOut} disabled={isBtnRequestLecOut}>
               {TextButtonRequestLecOut}
-            </button>
+            </Button>
           </li>
         </ul>
       </div>
       <div className="heading-col">
         <ul>
-          {/* <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li> */}
+          <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li>
           <li><p className="course-name">{lectureInfo ? lectureInfo.lecture_nm : ""}</p></li>
         </ul>
       </div>

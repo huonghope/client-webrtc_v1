@@ -27,12 +27,7 @@ export const Button = ({
       ? buttonStyle
       : STYLES[0] //default
   }
-
-  console.log(checkButtonStyle)
-  console.log(buttonSize)
   const checkButtonSize = SIZES.includes(buttonSize) ? buttonSize : SIZES[0]
-  console.log(checkButtonSize)
-
   return (  
       <button
         className={`btn ${checkButtonStyle} ${checkButtonSize} `}
