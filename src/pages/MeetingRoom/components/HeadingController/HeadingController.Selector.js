@@ -10,6 +10,11 @@ const getLocalStreamMicState = createSelector(
     [selectRaw],
     (stream) => stream.micState
 );
+
+const getLocalMuteAllStudent = createSelector(
+    [selectRaw],
+    (stream) => stream.muteAllStudent
+)
 const getLocalStreamCamState = createSelector(
     [selectRaw],
     (stream) => stream.camState
@@ -18,7 +23,8 @@ const getLocalStreamCamState = createSelector(
 const selectors = {
     getLocalStreamSoundState,
     getLocalStreamMicState,
-    getLocalStreamCamState
+    getLocalStreamCamState,
+    getLocalMuteAllStudent
 };
 
 export default selectors;

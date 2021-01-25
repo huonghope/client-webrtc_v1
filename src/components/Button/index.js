@@ -11,7 +11,8 @@ export const Button = ({
   type,
   onClick,
   buttonStyle,
-  buttonSize
+  buttonSize,
+  disabled
 }) => {
   var styleArray = buttonStyle.split(" ");
   let checkButtonStyle = "";
@@ -33,6 +34,7 @@ export const Button = ({
         className={`btn ${checkButtonStyle} ${checkButtonSize} `}
         onClick={onClick}
         type={type}
+        disabled={disabled}
       >
         {children}
       </button>

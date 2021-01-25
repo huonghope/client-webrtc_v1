@@ -12,6 +12,16 @@ const actions = {
         Errors.handle(error);
     }
   },
+  disableChatUser: (data) => (dispatch) => {
+    try {
+      dispatch({
+          type: constants.DISABLE_CHAT_USER,
+          payload:  data
+      });
+    } catch (error) {
+        Errors.handle(error);
+    }
+  },
   disableAllChatting: (data) => async(dispatch) => {
     try {
       dispatch({

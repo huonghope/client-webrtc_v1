@@ -6,16 +6,14 @@ import chatComponentSelector from '../ChatComponent/ChatComponent.Selector'
 import roomSelector from '../../MeetingRoom.Selector'
 import Icon from "../../../../constants/icons"
 import getSocket from "../../../rootSocket"
-import authReducer from "../../../../features/AuthFeature/reducer"
-import WrapperLoading from "../../../../components/Loading/WrapperLoading"
+import remoteStreamSelector from "../RemoteStreamContainer/RemoteStreamContainer.Selector"
+
 class Video extends Component {
   constructor(props) {
     super(props)
     this.state = {
       mic: true,
       camera: true,
-      // currentStream: new MediaStream(),
-      // videoTrack: false,
       videoVisible: true,
       chat: true,
       loading: true
@@ -30,12 +28,16 @@ class Video extends Component {
     }
     getSocket().on("alert-user-mute-mic-all", data => {
       if (!this.props.isHostUser && this.props.videoStream) {
-        console.log("모든 학생 음성", data.data)
         this.mutemic(data.data)
-        // this.video.srcObject = this.props.videoStream
-        // this.video.srcObject = this.props.videoStream
       }
     })
+    
+    //학생화면 
+    if(this.props.offMic){
+      this.setState({
+        mic: false
+      })
+    }
   }
 
   //보인 Stream를 먼저 Render - Stream를 전달함 하지만 this.props.videoStream 아직 값이 없음
@@ -61,8 +63,43 @@ class Video extends Component {
       console.log("카메로상태 변화", nextProps.camState)
       this.mutecamera(nextProps.camState)
     }
-  }
 
+    if(!this.props.localStream  && this.props.disableChatUser !== nextProps.disableChatUser){
+      const { disableChatUser } = nextProps
+      let filter = disableChatUser.find(item => item.userId === this.props.userInfo.user_idx)
+      if(filter){
+        const { status } = filter;
+        this.setState({
+          chat: status
+        })
+      }
+    }    
+    if(!this.props.localStream && this.props.muteAllStudent !== nextProps.muteAllStudent){
+      this.setState({
+        mic: nextProps.muteAllStudent
+      })
+    }
+
+    if(!this.props.localStream && this.props.disableAllChat !== nextProps.disableAllChat){
+      this.setState({
+        chat: !nextProps.disableAllChat
+      })
+    }
+
+    if(!this.props.localStream && this.props.listUserRequest !== nextProps.listUserRequest){
+      const { listUserRequest } = nextProps
+      let filter = listUserRequest.find(item => (item.type === 'request_question') && (item.userId === this.props.userInfo.user_idx) && (item.status === true))
+      if(!filter){
+        this.setState({
+          mic: false
+        })
+      }else{
+        this.setState({
+          mic: true
+        })
+      }
+    }
+  }
   //음성 끄기
   mutemic = (e = null) => {
     try {
@@ -104,36 +141,7 @@ class Video extends Component {
 
   
   render() {
-    const muteControls =  this.props.micStateChange !== undefined ?
-    <div className="stream-info">
-      <ul>
-        <li>
-          <img src={Icon.lecCamOnIcon} />
-        </li>
-        <li>
-          <img src={this.props.micStateChange ? Icon.lecMicOffIcon : Icon.lecMicOnIcon} />
-        </li>
-        <li>
-          <img src={this.props.disableAllChat ? Icon.chatTalkOffIcon : Icon.chatTalkOnIcon} />
-        </li>
-      </ul>
-    </div>
-    :
-    this.props.viewStateMicAndCam && (
-        <div className="stream-info">
-          <ul>
-            <li>
-              <img src={Icon.lecCamOnIcon} />
-            </li>
-            <li>
-              <img src={this.props.req_question_status ? Icon.lecMicOnIcon : Icon.lecMicOffIcon} />
-            </li>
-            <li>
-              <img src={this.props.disableAllChat ? Icon.chatWTalkOffIcon : Icon.chatWTalkOnIcon} />
-            </li>
-          </ul>
-        </div>
-      )
+    const { mic, camera, chat } = this.state;
     return (
       <>
         <video
@@ -148,7 +156,22 @@ class Video extends Component {
             this.video = ref
           }}
         ></video>
-        {muteControls}
+        {
+          this.props.videoType === 'remoteVideo' &&
+          <div className="stream-info">
+            <ul>
+              <li>
+                <img src={camera && Icon.lecCamOnIcon} />
+              </li>
+              <li>
+                <img src={mic ? Icon.lecMicOnIcon : Icon.lecMicOffIcon} />
+              </li>
+              <li>
+                <img src={chat ? Icon.chatWTalkOnIcon : Icon.chatWTalkOffIcon} />
+              </li>
+            </ul>
+          </div>
+        }
       </>
     )
   }
@@ -156,14 +179,19 @@ class Video extends Component {
 
 const mapStateToProps = state => ({
   //local stream 상태를 제어한변수
+  muteAllStudent: headingControllerSelector.getLocalMuteAllStudent(state),
   micState: headingControllerSelector.getLocalStreamMicState(state),
   camState: headingControllerSelector.getLocalStreamCamState(state),
 
   //Host인지 구분한 변수
   isHostUser: roomSelector.selectIsHostUser(state),
 
+  //요청유저 리스트
+  listUserRequest: remoteStreamSelector.getListUserRequest(state),
+
   //채팅상태를 구분한 변수
-  disableAllChat: chatComponentSelector.selectDisableAllChat(state)
+  disableAllChat: chatComponentSelector.selectDisableAllChat(state),
+  disableChatUser: chatComponentSelector.selectDisableChatUser(state),
 })
 
 

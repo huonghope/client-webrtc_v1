@@ -29,6 +29,7 @@ const actions = {
   },
   saveListUserRequest: (data) => (dispatch) => {
     try {
+      console.log("data")
       dispatch({
         type: constants.SET_LIST_USER_REQUEST,
         payload: {listUserRequest: data}

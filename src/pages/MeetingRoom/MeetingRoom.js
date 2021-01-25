@@ -666,6 +666,7 @@ class MeetingRoom extends Component {
               <div className="chat-component">
                 <ChatComponent
                   remoteStreams={remoteStreams}
+                  isMainRoom={isMainRoom}
                 />
               </div>
             </div>

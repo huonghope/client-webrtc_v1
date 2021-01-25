@@ -60,10 +60,15 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
     }
     handleWindowSize()
   }
-
   //Cancel 이벤트를 처리해야함
   //state에서 따라서 처리필요함
   const handleRequestQuestion = () => {
+
+    if(requestLecOutSended || requestLecOutDoing){
+      alert("자리비움 요청하고 있습니다!!!");
+      return;
+    }
+
     setIsBtnRequestQuestion(true)
     setTimeout(() => setIsBtnRequestQuestion(false), 1000);
     //!처음에
@@ -92,14 +97,20 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       setRequestQuestionSended(!requestQuestionSended)
       headingControllerSocket.emitUserCancelRequestQuestion(payload);
     }
+
   }
 
 
   //Cancel 이벤트를 처리해야함
   const handleRequestLecOut = () => {
+
+    if(requestQuestionSended || requestQuestionDoing){
+      alert("음성 질문 요청하고 있습니다!!!");
+      return;
+    }
+
     setIsBtnRequestLecOut(true)
     setTimeout(() => setIsBtnRequestLecOut(false), 1000);
-    
      //!처음에
     //아직 요청하지 않고 하고 있는 상태가 아님
     if(!requestLecOutSended && !requestLecOutDoing){
@@ -126,14 +137,13 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       headingControllerSocket.emitUserCancelRequestLecOut(payload);
     }
   }
-  const StyleButtonRequestQuestion = requestQuestionSended ? {backgroundColor: "white", color: "black"} : requestQuestionDoing ? {backgroundColor: "yellow", color: "black"} : {}
+  // const StyleButtonRequestQuestion = requestQuestionSended ? {backgroundColor: "white", color: "black"} : requestQuestionDoing ? {backgroundColor: "yellow", color: "black"} : {}
   const TextButtonRequestQuestion = requestQuestionSended ? "음성질문 요청중/취소..." : requestQuestionDoing ? "음성질문 끝내기" : "음성질문 요청"
-  const StyleButtonRequestLecOut = requestLecOutSended ? {backgroundColor: "white", color: "black"} : requestLecOutDoing ? {backgroundColor: "yellow", color: "black"} : {}
+  // const StyleButtonRequestLecOut = requestLecOutSended ? {backgroundColor: "white", color: "black"} : requestLecOutDoing ? {backgroundColor: "yellow", color: "black"} : {}
   const TextButtonRequestLecOut = requestLecOutSended ? "자리비움 요청중/취소..." : requestLecOutDoing ? "자리비움 취소" : "자리비움 요청"
 
   //!버튼 상태를 확인할 필요함
 
-  console.log(StyleButtonRequestQuestion)
   return <div className="heading-stream__controller">
     <div className="heading-container__small">
       <div className="heading-col">
@@ -149,12 +159,12 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
       <div className="heading-col">
         <ul>
           <li className="request-task">
-            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestQuestion()} style={StyleButtonRequestQuestion} disabled={isBtnRequestQuestion}  >
+            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestQuestion()}  disabled={isBtnRequestQuestion}  >
               {TextButtonRequestQuestion}
             </Button>
           </li>
           <li className="request-task">
-            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestLecOut()} style={StyleButtonRequestLecOut} disabled={isBtnRequestLecOut}>
+            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestLecOut()} disabled={isBtnRequestLecOut}>
               {TextButtonRequestLecOut}
             </Button>
           </li>

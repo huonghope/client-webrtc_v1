@@ -6,6 +6,7 @@ import moment from "moment"
 import qs from "query-string"
 import chatComponentSocket from './ChatComponent.Socket'
 import chatComponentService from './ChatComponent.Service'
+import chatSelector from './ChatComponent.Selector'
 import getSocket from '../../../rootSocket'
 
 import roomSelector from '../../MeetingRoom.Selector'
@@ -29,6 +30,7 @@ function ChatComponent(props) {
 
   const isHostUser = useSelector(roomSelector.selectIsHostUser)
   const listUser = useSelector(remoteStreamContainerSelector.getListUser)
+  const listDisableChatUser = useSelector(chatSelector.selectDisableChatUser)
 
   const [disableChatUser, setDisableChatUser] = useState([])
   const [allDisable, setAllDisable] = useState(false)
@@ -56,6 +58,14 @@ function ChatComponent(props) {
     }
     fetchData()
   }, [])
+
+  // useEffect(() => {
+  //   console.log(listDisableChatUser)
+  //   const filter = listDisableChatUser.filter(item => item.status === false)
+  //   filter.map(item => setDisableChatUser([...disableChatUser, {user_idx : item.userId}]))
+  //   console.log(filter)
+
+  // },[listDisableChatUser])
 
   useEffect(() => {
     scrollToBottom()
@@ -86,6 +96,7 @@ function ChatComponent(props) {
       })
       getSocket().on("res-sent-message", data => {
         let newMessage = data
+        console.log(data)
         setMessages(prevState => [...prevState, newMessage])
         scrollToBottom()
       })
@@ -220,7 +231,7 @@ function ChatComponent(props) {
   }
 
   //유저별로 채팅금지
-  const handleOffChatForUser = (user_idx, socketId) => {
+  const handleOffChatForUser = (user_idx, socketId, status) => {
     const tempDisableChatUser = disableChatUser
     //있는지 없는지 확인하여 추가함
     let filter = tempDisableChatUser.find((e) => e.user_idx === user_idx)
@@ -233,9 +244,11 @@ function ChatComponent(props) {
 
     setBoxedListUser(!boxedListUser)
     let payload = {
+      status: status,
       remoteSocketId: socketId,
       userId: user_idx
     }
+    dispatch(chatAction.disableChatUser(payload))
     chatComponentSocket.emitDisableUserChat(payload)
   }
 
@@ -298,7 +311,7 @@ function ChatComponent(props) {
       <div className="chat-tasks">
         <ul>
           {
-            isHostUser ?
+            props.isMainRoom ?
               <>
                 {
                   isMobile ?
@@ -315,7 +328,10 @@ function ChatComponent(props) {
                             {  allDisable && <span>X</span> }
                           </li>
                           {listUser.map((user, idx) => (
-                            <li onClick={() => handleOffChatForUser(user.user_idx, user.socket_id)} key={idx}>
+                            <li onClick={() => handleOffChatForUser(
+                              user.user_idx, 
+                              user.socket_id, 
+                              disableChatUser.find(e => e.user_idx === user.user_idx) ? true : false)} key={idx}>
                               {idx + 2}. {user.user_name}
                               {
                                 disableChatUser.find(e => e.user_idx === user.user_idx) &&
