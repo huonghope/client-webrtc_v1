@@ -97,17 +97,17 @@ class MeetingRoom extends Component {
     const handleSuccess = stream => {
       const videoTracks = stream.getVideoTracks()
       this.props.dispatch(meetingRoomAction.whoIsOnline())
-      if(this.props.localStream){
-        this.setState({
-          loading: false,
-          localStream: this.props.localStream,
-        })
-      }else{
+      // if(this.props.localStream){
+      //   this.setState({
+      //     loading: false,
+      //     localStream: this.props.localStream,
+      //   })
+      // }else{
         this.setState({
           loading: false,
           localStream: stream,
         })
-      }
+      // }
     }
 
     const handleError = error => {
