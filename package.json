@@ -11,6 +11,7 @@
     "connected-react-router": "^6.8.0",
     "eslint-plugin-prettier": "^3.2.0",
     "ffmpeg": "0.0.4",
+    "fix-webm-duration": "^1.0.0",
     "fs-extra": "^9.0.1",
     "html2canvas": "^1.0.0-rc.7",
     "html2svg": "^1.0.1",

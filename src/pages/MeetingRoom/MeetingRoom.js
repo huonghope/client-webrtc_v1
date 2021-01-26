@@ -30,6 +30,7 @@ import WrapperLoading from '../../components/Loading/WrapperLoading'
 import userAction from '../../features/UserFeature/actions'
 import userSelect from '../../features/UserFeature/selector'
 import services from '../../features/UserFeature/service'
+import ysFixWebmDuration from 'fix-webm-duration'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
 
@@ -43,6 +44,7 @@ class MeetingRoom extends Component {
       localStream: null,
 
       remoteStreams: [],
+      remoteStreamsTemp: [],
       peerConnections: {},
 
       mediaRecorder: null,
@@ -77,7 +79,8 @@ class MeetingRoom extends Component {
       enableRecord: false,
       windowSize: false,
       loading: true,
-      shareScream: null
+      shareScream: null,
+      startTime: null,
     }
 
     this.recordVideo = null;
@@ -302,8 +305,7 @@ class MeetingRoom extends Component {
               loading: false,
             }
           })
-          console.log("hello reload");
-          window.location.reload();
+          // window.location.reload();
         }
       } catch (error) {
         console.log(error)
@@ -448,7 +450,9 @@ class MeetingRoom extends Component {
         .then(stream => {
           this.setState({
             localStreamTemp: this.state.localStream,
+            remoteStreamsTemp: this.state.remoteStreams,
             localStream: stream,
+            remoteStreams: [],
           })
 
           const { peerConnections, shareScream } = this.state
@@ -476,6 +480,7 @@ class MeetingRoom extends Component {
             })
             this.setState({
               localStream: localStreamTemp,
+              remoteStreams: this.state.remoteStreamsTemp,
               shareScream: false
             })
           }
@@ -499,16 +504,12 @@ class MeetingRoom extends Component {
   // }
   handleDataAvailable = event => {
     if (event.data && event.data.size > 0) {
-      this.setState({
-        recordedBlobs: [event.data]
-      })
+      this.setState(prevState => ({
+        recordedBlobs: [...prevState.recordedBlobs , event.data]
+      }))
     }
   }
   handleScreamRecording = () => {
-    // const { createFFmpeg, fetchFile } = FFmpeg
-    // const ffmpeg = createFFmpeg({ log: true })
-    const localRecord = document.getElementById("local")
-    const chunks = []
 
     const { enableRecord } = this.state
     if (!enableRecord) {
@@ -536,26 +537,37 @@ class MeetingRoom extends Component {
 
       mediaRecorder.ondataavailable = this.handleDataAvailable
       mediaRecorder.onstop = () => {
-        const { recordedBlobs } = this.state
-        const blob = new Blob(recordedBlobs, { type: "video/webm" })
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.style.display = "none"
-        a.href = url
+        const { recordedBlobs, startTime } = this.state
+        var duration = Date.now() - startTime;
+        var buggyBlob = new Blob(recordedBlobs, { type: 'video/webm' });
+        
+        ysFixWebmDuration(buggyBlob, duration, function(fixedBlob) {
 
-        let currentDay = moment().format('l').replace("/", "_") +"_"+ moment().format('LTS').replace(":", "_").replace("PM", "");
-        a.download = `${currentDay}.webm`
-        document.body.appendChild(a)
-        a.click()
-        setTimeout(() => {
-          document.body.removeChild(a)
-          window.URL.revokeObjectURL(url)
-        }, 100)
+            // displayResult(fixedBlob);
+            // const blob = new Blob(fixedBlob, { type: "video/webm" })
+            const url = window.URL.createObjectURL(fixedBlob)
+            const a = document.createElement("a")
+            a.style.display = "none"
+            a.href = url
+    
+            let currentDay = moment().format('l').replace("/", "_") +"_"+ moment().format('LTS').replace(":", "_").replace("PM", "");
+            a.download = `${currentDay}.webm`
+            document.body.appendChild(a)
+            a.click()
+            setTimeout(() => {
+              document.body.removeChild(a)
+              window.URL.revokeObjectURL(url)
+            }, 100)
+        
+        });
+
+
       }
       mediaRecorder.start()
       console.log("MediaRecorder started", mediaRecorder)
 
       this.setState({
+        startTime: Date.now(),
         mediaRecorder,
         enableRecord: !this.state.enableRecord
       })
@@ -595,7 +607,6 @@ class MeetingRoom extends Component {
         window.close();
       } catch (error) {
         window.close();
-        console.log(error)
       }
     }
     // console.log(isMobile)

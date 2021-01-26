@@ -271,7 +271,7 @@ class RemoteStreamContainer extends Component {
           number: rand
         }
         remoteStreamContainer.emitTestConcentration(payload)
-      }, 1000 * 60 * 1);
+      }, 1000 * 60 * Number(test_gap_time));
     }
     fetchData()
     if (this.props.remoteStreams.length !== 0) {

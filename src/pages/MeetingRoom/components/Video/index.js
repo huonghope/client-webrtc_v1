@@ -28,6 +28,7 @@ class Video extends Component {
     }
     getSocket().on("alert-user-mute-mic-all", data => {
       if (!this.props.isHostUser && this.props.videoStream) {
+        console.log("전제 음성",data.data);
         this.mutemic(data.data)
       }
     })
