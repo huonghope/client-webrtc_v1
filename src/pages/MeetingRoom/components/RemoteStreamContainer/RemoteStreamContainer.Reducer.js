@@ -18,7 +18,7 @@ export const remoteReducer =(state = initialState, { type, payload })  =>
         draft.lectureInfo = payload.lecture
         break;
       case constants.SET_LIST_USER_REQUEST:
-        console.log(payload.listUserRequest)
+        console.log("payload", payload.listUserRequest)
         draft.listUserRequest = payload.listUserRequest
         break;
       case constants.SET_USER_REQUEST:

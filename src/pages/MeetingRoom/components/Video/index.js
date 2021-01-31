@@ -89,7 +89,6 @@ class Video extends Component {
     }
 
     if(!this.props.localStream && this.props.listUserRequest !== nextProps.listUserRequest){
-      console.log(this.props.listUserRequest)
       const { listUserRequest } = nextProps
       let filter = listUserRequest.find(item => (item.type === 'request_question') && (item.userId === this.props.userInfo.user_idx) && (item.status === true))
       if(!filter){
@@ -145,6 +144,7 @@ class Video extends Component {
   
   render() {
     const { mic, camera, chat } = this.state;
+    console.log(this.props.listUserRequest)
     return (
       <>
         <video

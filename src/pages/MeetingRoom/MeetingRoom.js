@@ -325,6 +325,9 @@ class MeetingRoom extends Component {
         // 2. Create Offer
         if (pc) {
           pc.createOffer(this.state.sdpConstraints).then(sdp => {
+            //************************************************ */
+            sdp.sdp = sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
+            //************************************************ */
             pc.setLocalDescription(sdp)
             meetingRoomSocket.sendToPeer("offer", sdp, {
               local: getSocket().id,
@@ -348,12 +351,13 @@ class MeetingRoom extends Component {
             } catch (error) {
               console.log("Add Stream Error", error)
             }
-
+            //************************************************ */
+            data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
+            //************************************************ */
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
                 pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
                   pc.setLocalDescription(sdp);
-    
                   meetingRoomSocket.sendToPeer("answer", sdp, {
                     local: getSocket().id,
                     remote: data.socketID,
@@ -386,6 +390,9 @@ class MeetingRoom extends Component {
 
     //! pc1 setRemote
     getSocket().on("answer", data => {
+            //************************************************ */
+            data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
+            //************************************************ */
       const pc = this.state.peerConnections[data.socketID];
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)

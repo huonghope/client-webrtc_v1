@@ -182,12 +182,23 @@ class RemoteStreamContainer extends Component {
           reqInfo: reqInfo
         }
 
+         //! 확인할 필요함
         let filter = listUserRequest.map(e => e.userId === reqInfo.user_idx ? valueRequest : e)
-        this.setState({
-          rVideos: _rVideos,
-          listUserRequest: filter
-        })
-        this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
+        if(filter.length !== 0)
+        {
+          this.setState({
+            rVideos: _rVideos,
+            listUserRequest: filter
+          })
+          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
+        }else{
+          this.setState({
+            rVideos: _rVideos,
+            listUserRequest: [...this.state.listUserRequest, valueRequest]
+          })
+          console.log([valueRequest])
+          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
+        }
 
       }else{
         //거절하는 경우에는 유저요청을 리스트 삭제함
@@ -220,12 +231,22 @@ class RemoteStreamContainer extends Component {
         }
 
         //요청 정보를 store 및 state 집어넣음
+        //! 확인할 필요함
         let filter = listUserRequest.map(e => e.userId === reqInfo.user_idx ? valueRequest : e)
-        this.setState({
-          rVideos: _rVideos,
-          listUserRequest: filter
-        })
-        this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
+        if(filter.length !== 0){
+          this.setState({
+            rVideos: _rVideos,
+            listUserRequest: filter
+          })
+          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
+        }else{
+          this.setState({
+            rVideos: _rVideos,
+            listUserRequest: [...this.state.listUserRequest, valueRequest]
+          })
+          console.log([valueRequest])
+          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
+        }
 
       }else{
         let filter = listUserRequest.map(item => item.userId !== reqInfo.user_idx)
