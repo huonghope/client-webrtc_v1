@@ -3,7 +3,6 @@ import Icon from '../../../../constants/icons'
 import './style.scss'
 // import './style2.scss'
 import moment from "moment"
-import qs from "query-string"
 import chatComponentSocket from './ChatComponent.Socket'
 import chatComponentService from './ChatComponent.Service'
 import chatSelector from './ChatComponent.Selector'
@@ -24,13 +23,13 @@ function ChatComponent(props) {
   const [disableChatInput, setDisableChatInput] = useState(false)
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState([])
-  const [user, setUser] = useState({ uid: 0 })
+  // const [user, setUser] = useState({ uid: 0 })
   const [boxedListUser, setBoxedListUser] = useState(false)
   // const [listUser, setListUser] = useState([])
 
   const isHostUser = useSelector(roomSelector.selectIsHostUser)
   const listUser = useSelector(remoteStreamContainerSelector.getListUser)
-  const listDisableChatUser = useSelector(chatSelector.selectDisableChatUser)
+  // const listDisableChatUser = useSelector(chatSelector.selectDisableChatUser)
 
   const [disableChatUser, setDisableChatUser] = useState([])
   const [allDisable, setAllDisable] = useState(false)
@@ -44,7 +43,8 @@ function ChatComponent(props) {
 
   const scrollToBottom = () => {
     const chat = document.getElementById("chatList")
-    chat.scrollTop = chat.scrollHeight
+    if(chat)
+      chat.scrollTop = chat.scrollHeight
   }
 
   useEffect(() => {
@@ -110,16 +110,18 @@ function ChatComponent(props) {
   }, [])
 
   useEffect(() => {
-    getSocket().on("action_user_disable_chat", data => {
-      setDisableChatInput(!disableChatInput)
-      dispatch(chatAction.chattingStateChange(disableChatInput))
-    })
+    if(getSocket() != null){
+      getSocket().on("action_user_disable_chat", data => {
+        setDisableChatInput(!disableChatInput)
+        dispatch(chatAction.chattingStateChange(disableChatInput))
+      })
+    }
   })
 
-  const sendMessage = msg => {
-    props.sendMessage(msg)
-    scrollToBottom()
-  }
+  // const sendMessage = msg => {
+  //   props.sendMessage(msg)
+  //   scrollToBottom()
+  // }
 
   const getToken = () => {
     const { userInfoToken } = JSON.parse(window.localStorage.getItem("asauth"))
@@ -282,6 +284,7 @@ function ChatComponent(props) {
         padding: 20,
         borderRadius: 20,
       }}
+      alt="up-img"
       onClick={() => setImageZoom(false)}
     />)
   }
@@ -315,10 +318,10 @@ function ChatComponent(props) {
               <>
                 {
                   isMobile ?
-                    <li><img onClick={() => handleClickCameraOn()} src={Icon.chatCameraOnIcon}></img></li> :
-                    <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
+                    <li><img onClick={() => handleClickCameraOn()} src={Icon.chatCameraOnIcon} alt="click-camera"/></li> :
+                    <li><img onClick={() => handleClickUpFile()} src={Icon.chatFileIcon} alt="click-up" /></li>
                 }
-                <li className="chatting-hidden"><img onClick={() => handleSetBoxedListUser()} src={Icon.chatTalkOffIcon}></img>
+                <li className="chatting-hidden"><img onClick={() => handleSetBoxedListUser()} src={Icon.chatTalkOffIcon} alt="list-user"/>
                   {
                     boxedListUser &&
                     <div className="list-user-chat">
@@ -346,7 +349,7 @@ function ChatComponent(props) {
                 </li>
               </> :
               <>
-                <li><img disabled={disableChatInput} onClick={() => handleClickUpFile()} src={Icon.chatFileIcon}></img></li>
+                <li><img disabled={disableChatInput} onClick={() => handleClickUpFile()} src={Icon.chatFileIcon} alt="up-file" /></li>
               </>
           }
         </ul>
@@ -512,7 +515,6 @@ const WarningMessComponent = (type, resData) => {
       footerText = "채팅 금지/허용 되었습니다."
       break;
     case "user-warning":
-      console.log("warning")
       footerText = "경고 받았습니다."
       break;
     default:

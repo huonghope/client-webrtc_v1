@@ -1,6 +1,5 @@
 
 import getSocket from "../../../rootSocket"
-import getStore from "../../../../store/config"
 
 const headingControllerSocket = {
   sendToPeer : (messageType, payload, socketID) => {

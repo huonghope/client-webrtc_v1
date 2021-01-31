@@ -1,9 +1,7 @@
 import * as constants from "./constants"
-import Message from "../../components/Message"
 import Errors from "../../components/Error/error"
 import services from "./service"
 
-const messageUpdateSuccess = "Update successfully"
 // const messageCreateSuccess = "Create successfully";
 // const messageDeleteSuccess = "Delete successfully";
 

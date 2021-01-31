@@ -16,10 +16,16 @@ const getListUserRequest = createSelector(
   [selectRaw],
   (remoteStream) => remoteStream.listUserRequest
 );
+
+const getUserRequest = createSelector(
+  [selectRaw],
+  (remoteStream) => remoteStream.userRequest
+)
 const selectors = {
   getListUser,
   getLectureInfo,
-  getListUserRequest
+  getListUserRequest,
+  getUserRequest
 };
 
 export default selectors;

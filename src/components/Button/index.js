@@ -1,6 +1,5 @@
 import React from "react"
 import "./Button.scss"
-import { Link } from "react-router-dom"
 
 const STYLES = ["btn--primary", "btn-outline", "btn--secondary", "btn--click", "btn--request"]
 
@@ -17,11 +16,12 @@ export const Button = ({
   var styleArray = buttonStyle.split(" ");
   let checkButtonStyle = "";
   if(styleArray.length !== 1){
-    styleArray.map(style => {
+    styleArray.map((style,i) => {
       checkButtonStyle += STYLES.includes(style)
       ? style
       : STYLES[0]//default 
       checkButtonStyle += " ";
+      return style
     })
   }else{
     checkButtonStyle = STYLES.includes(buttonStyle)

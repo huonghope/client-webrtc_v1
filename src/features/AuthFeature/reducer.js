@@ -2,8 +2,8 @@ import * as constants from "./constants";
 import produce from 'immer';
 const initialState = {
   initLoading: true,
-  signinLoading: false,
-  signinError: null,
+  signInLoading: false,
+  signInError: null,
   roomInfo: null,
 };
 
@@ -15,20 +15,20 @@ const authReducer = (state = initialState, { type, payload }) =>
         break;
       case constants.SIGNIN_START:
         draft.roomInfo = payload;
-        draft.signinLoading = true;
-        draft.signinError = null;
+        draft.signInLoading = true;
+        draft.signInError = null;
         break;
       case constants.SIGNIN_SUCCESS:
-        draft.signinLoading = false;
-        draft.signinError = null;
+        draft.signInLoading = false;
+        draft.signInError = null;
         break;
       case constants.SIGNIN_ERROR:
-        draft.signinLoading = false;
-        draft.signinError = payload || null;
+        draft.signInLoading = false;
+        draft.signInError = payload || null;
         break;
       case constants.JOINROOM_SUCCESS:
-        console.log(payload)
         draft.roomInfo  = payload
+        break;
       default:
         break;
     }

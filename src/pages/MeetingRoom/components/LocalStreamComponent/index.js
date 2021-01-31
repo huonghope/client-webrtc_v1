@@ -1,18 +1,19 @@
-import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
+
+import React from 'react'
+import { useSelector } from 'react-redux';
 import Video from '../Video'
 import './style.scss'
 
 import meetingRoomSelectors from '../../MeetingRoom.Selector'
 
-import headingController from '../HeadingController/HeadingController.Selector'
+// import headingController from '../HeadingController/HeadingController.Selector'
 
 function LocalStreamComponent({localStream}) {
-  const dispatch = useDispatch();
-  const localStreamState = useSelector(meetingRoomSelectors.getLocalStream);
-  const localStreamSoundState = useSelector(headingController.getLocalStreamSoundState)
-  const localStreamMicState = useSelector(headingController.getLocalStreamMicState)
-  const localStreamCamState = useSelector(headingController.getLocalStreamCamState)
+  // const dispatch = useDispatch();
+  // const localStreamState = useSelector(meetingRoomSelectors.getLocalStream);
+  // const localStreamSoundState = useSelector(headingController.getLocalStreamSoundState)
+  // const localStreamMicState = useSelector(headingController.getLocalStreamMicState)
+  // const localStreamCamState = useSelector(headingController.getLocalStreamCamState)
   const isHostUser = useSelector(meetingRoomSelectors.selectIsHostUser)
 
   // useEffect(() => {

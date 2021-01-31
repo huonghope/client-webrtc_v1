@@ -1,6 +1,4 @@
-import React from "react"
 // import { notification, message } from 'antd';
-
 export default class Message {
   static success(arg) {
     console.log(arg)

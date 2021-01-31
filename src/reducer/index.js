@@ -10,7 +10,7 @@ import chat from '../pages/MeetingRoom/components/ChatComponent/ChatComponent.Re
 // import roomReducer from './roomReducer'
 //add all redux
 export default history =>
-  combineReducers({
+    combineReducers({
     router: connectRouter(history),
     auth,
     user,

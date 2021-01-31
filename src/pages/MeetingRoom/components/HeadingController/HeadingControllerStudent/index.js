@@ -20,6 +20,7 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
 
   const isHostUser = useSelector(roomSelector.selectIsHostUser)
   const lectureInfo = useSelector(remoteStreamContainerSelector.getLectureInfo)
+  const request = useSelector(remoteStreamContainerSelector.getUserRequest)
   const dispatch = useDispatch();
 
 
@@ -31,8 +32,48 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
     if(!isHostUser){
       dispatch(headingControllerAction.handleChangeMicState())
     }
-  },[isHostUser])
 
+  },[isHostUser])
+  
+  //!limit re-render ???
+  /**
+   * @request : store에 다가 저장하는 요청의 정보를 받아서 HeadingController 버튼의 상태를 변경
+   * @status : 
+   * - 'waiting'를 요청을 보내고 있음
+   * - 1 && end_time === null: 해당하는 요청을 끝남
+   * 
+   */
+  useEffect(() => {
+    //요청을 상태를 확인하기
+    if(request && request.status !== "0"){
+      const { type, status, reqInfo } = request
+      if(type === 'request_question'){
+        if(status ===  'waiting'){ //요청을 기다리고 있음
+          const payload = {
+            status : "waiting",
+            userRoomId: UserRoomId()
+          }
+          setRequestQuestionSended(true)
+          headingControllerSocket.emitUserRequestQuestion(payload);
+        }else if(status === '1' && reqInfo.end_time === null){ //요청을 진행하고 있는데, 끝나지 않음
+          setRequestQuestionSended(false)
+          setRequestQuestionDoing(true)
+        }
+      }else if(type === 'request_lecOut'){
+        if(status ===  'waiting'){ //요청을 기다리고 있음
+          const payload = {
+            status : 'waiting',
+            userRoomId: UserRoomId()
+          }
+          setRequestLecOutSended(true)
+          headingControllerSocket.emitUserRequestLecOut(payload);
+        }else if(status === '1' && reqInfo.end_time === null){ //요청을 진행하고 있는데, 끝나지 않음
+          setRequestLecOutSended(false)
+          setRequestLecOutDoing(true)
+        }
+      }
+    }
+  }, [request])
 
   //상태 확인 할 필요함
   useEffect(() => {
@@ -75,7 +116,7 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
     //아직 요청하지 않고 하고 있는 상태가 아님
     if(!requestQuestionSended && !requestQuestionDoing){
       const payload = {
-        status : true,
+        status : "waiting",
         userRoomId: UserRoomId()
       }
       setRequestQuestionSended(true)
@@ -148,10 +189,10 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
     <div className="heading-container__small">
       <div className="heading-col">
         <ul>
-          <li><img onClick={() => handleOutRoom()}  src={Icon.lecOutIcon} />
+          <li><img onClick={() => handleOutRoom()}  src={Icon.lecOutIcon} alt="lec-out" />
             <span>나가기</span>
           </li>
-          <li><img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} /> 
+          <li><img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} alt="window-size"/> 
             <span>{ windowSize ? "창모드" : "전체화면"}</span>
           </li>
         </ul>

@@ -1,6 +1,5 @@
 import React, { useEffect } from "react"
 import ErrorWrapper from "./style"
-import { Link } from "react-router-dom"
 
 const Error404Page = () => {
   useEffect(() => {

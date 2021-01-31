@@ -3,7 +3,7 @@ import constants from './HeadingController.Constants'
 
 //default true
 const initialState = {
-  muteAllStudent: true,
+  muteAllStudent: false,
   micState: true,
   camState: true,
   requestQuestionStatus: false,

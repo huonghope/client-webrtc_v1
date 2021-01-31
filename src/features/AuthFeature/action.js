@@ -1,7 +1,7 @@
 import * as constants from "./constants";
 import { getHistory } from "../../store/config";
 import {
-  fetchSignin,
+  fetchSignIn,
   fetJoinRoom
 } from "./service";
 import Errors from "../../components/Error/error";
@@ -64,12 +64,12 @@ const actions = {
   },
 
   //create room
-  doSignin: (userInfo) => async (dispatch) => {
+  doSignIn: (userInfo) => async (dispatch) => {
     try {
       dispatch({ type: constants.SIGNIN_START });
 
       // call api: signin
-      let response = await fetchSignin(userInfo);
+      let response = await fetchSignIn(userInfo);
       const { result } = response;
       if(result) {
         window.localStorage.setItem(

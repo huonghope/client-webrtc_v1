@@ -31,25 +31,24 @@ import ToolStore, {
   RESET,
   RESET_CANCEL,
   DEL,
-  DEL_ALL,
-  DEL_MY,
-  DEL_OTHER,
+  // DEL_ALL,
+  // DEL_MY,
+  // DEL_OTHER,
   //have level
-  CHECK,
-  CHECK_ARROW,
-  CHECK_CHECK,
-  CHECK_X,
-  CHECK_START,
-  CHECK_HEART,
-  CHECK_QUESTION,
-  TAG,
+  // CHECK,
+  // CHECK_ARROW,
+  // CHECK_CHECK,
+  // CHECK_X,
+  // CHECK_START,
+  // CHECK_HEART,
+  // CHECK_QUESTION,
+  // TAG,
   SAVE,
   BOARD_HIDDEN
 } from "../constants/ToolStore"
 import { saveSvgAsPng } from "save-svg-as-png"
 import Icon from "../../../../../constants/icons"
-import ColorPicker from "./ColorPicker"
-import moment from "moment"
+// import ColorPicker from "./ColorPicker"
 import "./tools.scss"
 
 export default function Tools() {
@@ -215,8 +214,8 @@ export default function Tools() {
   useEffect(() => {
     localStorage.setItem('history', 0)
     ToolStore.subscribe(() => {
-      const _tools = tools.map(tool => ({ ...tool, selected: ToolStore.tool === tool.id }))
-      setTools(_tools)
+      const _toolsTemp = tools.map(tool => ({ ...tool, selected: ToolStore.tool === tool.id }))
+      setTools(_toolsTemp)
     })
   }, [])
   const handleSaveAs = () => {
@@ -240,7 +239,7 @@ export default function Tools() {
 
   useEffect(() => {
     prevConunt.current = Number(localStorage.getItem('history'));
-  },[localStorage.getItem('history')]-1)
+  },[localStorage.getItem('history')] - 1)
 
   const handleClickTool = (type, index, key) => {
     //Save Event
@@ -310,7 +309,7 @@ export default function Tools() {
           hidden ?
           <div>
             <button className={'tool-parent'} onClick={() =>  setHidden(!hidden)}>
-              <img src={Icon.boardDisplay} />
+              <img src={Icon.boardDisplay} alt="view"/>
               <p>보기</p>
             </button>
           </div> :
@@ -351,7 +350,7 @@ const ToolWrapperCom = ({ tool, handleClickTool, index, current, activeClass,che
   return (
     <div className="tool">
       <button className={tool.selected ? 'tool-parent selected' : 'tool-parent'} onClick={() => handleOnClick()}>
-        <img src={tool.label} />
+        <img src={tool.label} alt="tool"/>
         <p>{tool.text}</p>
       </button>
       {
@@ -383,7 +382,7 @@ const ToolWrapperCom = ({ tool, handleClickTool, index, current, activeClass,che
                     handleClickTool(tool.id, idx)
                     setDisplay(!display)
                   }} >
-                    <img src={child.label} />
+                    <img src={child.label} alt="tool" />
                   </button>
                 ))
           }

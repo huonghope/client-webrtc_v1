@@ -1,8 +1,5 @@
-import { useDispatch } from "react-redux"
 import io from "socket.io-client"
 import { isAuthenticated } from "../routes/permissionChecker"
-import getStore from "../store/config"
-import meetingRoomAction from "./MeetingRoom/MeetingRoom.Action"
 const endpoint = process.env.REACT_APP_SERVER_SOCKET
 let socket = null;
 

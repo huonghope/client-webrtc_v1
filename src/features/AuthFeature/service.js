@@ -1,6 +1,6 @@
 import axios from "../../apis/axios";
 
-export const fetchSignin = async (userInfo) => {
+export const fetchSignIn = async (userInfo) => {
   const response = await axios.get("/user", { params : userInfo });
   return response;
 };

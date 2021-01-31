@@ -5,7 +5,6 @@ import { ConnectedRouter } from "connected-react-router"
 import "./index.scss"
 
 import Loading from "./components/Loading"
-import Alert from "./components/Alert"
 import RoutesComponent from "./routes/RoutesComponent"
 
 const store = configStore()

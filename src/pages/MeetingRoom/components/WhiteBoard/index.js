@@ -3,7 +3,6 @@ import "./style.scss"
 
 import Tools from "./components/Tools"
 import WhiteBoard from "./components/WhiteBoard"
-import History from "./components/History"
 
 function WhiteBoardContainer(props) {
   return (

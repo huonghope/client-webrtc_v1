@@ -1,5 +1,5 @@
 import { isAuthenticated } from "./permissionChecker"
-import React, { Component, useEffect } from "react"
+import React, { useEffect } from "react"
 import { Redirect, Route } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import userAction from "../features/UserFeature/actions"

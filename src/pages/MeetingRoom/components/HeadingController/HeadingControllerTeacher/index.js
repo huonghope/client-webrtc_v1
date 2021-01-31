@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react"
+import React, {useState } from "react"
 import Icon from "../../../../../constants/icons"
 import './style.scss'
 import '../style.scss'
-import { useDispatch, useSelector } from 'react-redux';
-import meetingRoomSelectors from '../../../MeetingRoom.Selector'
+import { useDispatch } from 'react-redux';
+// import meetingRoomSelectors from '../../../MeetingRoom.Selector'
 import CountTime from "../../../../../components/CountTime";
 
 import headingControllerAction from '../HeadingController.Action'
@@ -12,7 +12,6 @@ import headingControllerSocket from '../HeadingController.Socket'
 function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, handleWhiteBoard, handleScreamRecording}) {
 
   const dispatch = useDispatch();
-  const localStreamState = useSelector(meetingRoomSelectors.getLocalStream);
 
   const [stateMicAllStudent, setStateMicAllStudent] = useState(false)
   const [micState, setMicState] = useState(false)
@@ -73,11 +72,11 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
       <div className="heading-col">
         <ul>
           <li>
-            <img onClick={() => handleOutRoom()}  src={Icon.lecOutIcon} />
+            <img onClick={() => handleOutRoom()}  src={Icon.lecOutIcon} alt="out" />
             <span>나가기</span>
           </li>
           <li>
-            <img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} /> 
+            <img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} alt="change-win-size"/> 
             <span>{windowSize ? "창모드" : "전체화면"}</span>  
           </li>
         </ul>
@@ -85,19 +84,19 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
       <div className="heading-col">
         <ul>
           <li>
-            <img onClick={() => handleStateMicAllStudent()} src={stateMicAllStudent ? Icon.lecStudentSoundOnIcon : Icon.lecStudentSoundOffIcon} />
+            <img onClick={() => handleStateMicAllStudent()} src={stateMicAllStudent ? Icon.lecStudentSoundOnIcon : Icon.lecStudentSoundOffIcon} alt="all-mic-student" />
             <span>전체 학생 마이크</span>
           </li>
           <li>
-            <img onClick={() => handleMicState()} src={micState ? Icon.lecMicOffIcon : Icon.lecMicOnIcon}  />
+            <img onClick={() => handleMicState()} src={micState ? Icon.lecMicOffIcon : Icon.lecMicOnIcon}  alt="my-mic" />
             <span>내마이크</span>
           </li>
           <li>
-            <img onClick={() => handleCamState()} src={camState ? Icon.lecCamOffIcon : Icon.lecCamOnIcon} />
+            <img onClick={() => handleCamState()} src={camState ? Icon.lecCamOffIcon : Icon.lecCamOnIcon} alt="mycam"/>
             <span>내 웹캡</span>
           </li>
           <li>
-            <img onClick={() => handleRecording()} src={recording ? Icon.lecPauseIcon : Icon.lecRecodingIcon } />
+            <img onClick={() => handleRecording()} src={recording ? Icon.lecPauseIcon : Icon.lecRecodingIcon } alt="record"/>
             <span>{recording ? "녹화중" : "녹화"}</span>
           </li>
           {
@@ -110,10 +109,10 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
       <div className="heading-col">
         <ul>
           <li>
-            <img onClick={() => handleWhiteBoardClick()} src={Icon.lecScreenWhiteBoard} />
+            <img onClick={() => handleWhiteBoardClick()} src={Icon.lecScreenWhiteBoard} alt="board" />
             <span>화이트보드</span>
           </li>
-          <li><img onClick={() => handleScreenMode()} src={Icon.lecScreenShare} />
+          <li><img onClick={() => handleScreenMode()} src={Icon.lecScreenShare}  alt="share-scream" />
           <span>화면공유</span>
           </li>
         </ul>

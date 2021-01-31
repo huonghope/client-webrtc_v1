@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import { configStore } from '../../store/config';
 import Loading from '../../components/Loading/WrapperLoading'
 import './style.scss'
-import adapter from 'webrtc-adapter'
 import getSocket from '../rootSocket'
 import meetingRoomAction from '../MeetingRoom/MeetingRoom.Action'
 import { useDispatch } from 'react-redux';
@@ -142,53 +140,28 @@ function Landing(props) {
 
   return (
     <div className="landing-page">
-      <nav className="landing-page__logo">
-        <ul>
-          <li><img src={Icon.IconLogo} /></li>
-        </ul>
-      </nav>
       <div className="landing-page__content">
-        <div>
-          <div class="select">
-            <label for="audioSource">Audio input source: </label>
-            <select id="audioSource" onChange={(e) => setAudioInput(e.target.value)}>
-              {
-                listAudioInput.map((audio) => (
-                  <option value={audio.value}>{audio.text}</option>
-                ))
-              }
-            </select>
-          </div>
+        <p className="landing-page__title">카메라 설정</p>
 
-          <div class="select">
-            <label for="audioOutput">Audio output destination: </label>
-            <select id="audioOutput" onChange={(e) => setAudioOutput(e.target.value)}>
-              {
-                listAudioOutput.map((audio) => (
-                  <option value={audio.value}>{audio.text}</option>
-                ))
-              }
-            </select>
-          </div>
+        <div className="landing-page__select">
+          <select id="videoSource" value={videoInput.value} onChange={(e) => handleChangeVideo(e.target.value)}>
+                {
+                  listVideoInput.map((audio) => (
+                    <option value={audio.value}>{audio.text}</option>
+                  ))
+                }
+          </select>
+        </div>
 
-          <div class="select">
-            <label for="videoSource">Video source: </label>
-            <select id="videoSource" value={videoInput.value} onChange={(e) => handleChangeVideo(e.target.value)}>
-              {
-                listVideoInput.map((audio) => (
-                  <option value={audio.value}>{audio.text}</option>
-                ))
-              }
-            </select>
-          </div> <br />
-          <div className="local-video">
+        <div className="landing-page__local-video">
             {
               loading ?
                 <Loading className="loading" color={"black"} style={{ background: 'black' }} /> :
                 <Video stream={localStream} />
             }
-          </div>
         </div>
+
+        <h2 className="landing-page__text">참여할 준비가 되셨나요?</h2>
         <div className="landing-page__join">
           {
           !loadingPage && 
@@ -196,9 +169,10 @@ function Landing(props) {
             <p><>{userInfo.user_tp === 'T' || userInfo.user_tp === 'I' ? "강사" : "학생"}</>: {userInfo.user_name}</p>
           </div>
           }
-          <Button buttonStyle="btn--primary" buttonSize="btn--medium" onClick={() => handleJoin()}>참여</Button>
-          <Button buttonStyle="btn--secondary" buttonSize="btn--medium" onClick={() => window.close()}>취소</Button>
+          <Button buttonStyle="btn--secondary" buttonSize="btn--medium" onClick={() => window.close()}>참여 취소</Button>
+          <Button buttonStyle="btn--primary" buttonSize="btn--medium" onClick={() => handleJoin()}>참여 요청</Button>
         </div>
+
       </div>
     </div>
   )
@@ -212,9 +186,6 @@ const Video = ({ stream }) => {
   return (
     <video ref={localVideo} autoPlay />
   );
-};
-Landing.propTypes = {
-
 }
 
 export default Landing

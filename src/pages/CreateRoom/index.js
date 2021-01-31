@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect } from "react"
 import "./style.scss"
-import axios from "axios"
 import { useDispatch, useSelector } from "react-redux"
 import Loading from '../../components/Loading'
 
@@ -13,8 +12,8 @@ import qs from 'query-string'
 function CreateRoom(props) {
 
   const dispatch = useDispatch();
-  const signLoading = useSelector(selectors.selectSigninLoading)
-  const error = useSelector(selectors.selectSigninError)
+  const signLoading = useSelector(selectors.selectSignInLoading)
+  const error = useSelector(selectors.selectSignInError)
 
   useEffect(() => {
     const query = qs.parse(window.location.search.slice(1));
@@ -26,7 +25,7 @@ function CreateRoom(props) {
         user_idx,
       }
       
-      dispatch(actions.doSignin(userInfo))
+      dispatch(actions.doSignIn(userInfo))
       //인증성공
       if(!signLoading && !error){
         let params = {
@@ -35,7 +34,7 @@ function CreateRoom(props) {
           isMobile
         }
         setTimeout(() => {
-          const usr_id = window.localStorage.getItem("usr_id")
+          // const usr_id = window.localStorage.getItem("usr_id")
           dispatch(actions.createRoom(params))
         }, 1000 * 1);
       }else{

@@ -76,6 +76,7 @@ class Video extends Component {
       }
     }    
     if(!this.props.localStream && this.props.muteAllStudent !== nextProps.muteAllStudent){
+      console.log("전체 학생 음성 수정")
       this.setState({
         mic: nextProps.muteAllStudent
       })
@@ -88,6 +89,7 @@ class Video extends Component {
     }
 
     if(!this.props.localStream && this.props.listUserRequest !== nextProps.listUserRequest){
+      console.log(this.props.listUserRequest)
       const { listUserRequest } = nextProps
       let filter = listUserRequest.find(item => (item.type === 'request_question') && (item.userId === this.props.userInfo.user_idx) && (item.status === true))
       if(!filter){
@@ -162,13 +164,13 @@ class Video extends Component {
           <div className="stream-info">
             <ul>
               <li>
-                <img src={camera && Icon.lecCamOnIcon} />
+                <img src={camera && Icon.lecCamOnIcon} alt="camera"/>
               </li>
               <li>
-                <img src={mic ? Icon.lecMicOnIcon : Icon.lecMicOffIcon} />
+                <img src={mic ? Icon.lecMicOnIcon : Icon.lecMicOffIcon} alt="mic"/>
               </li>
               <li>
-                <img src={chat ? Icon.chatWTalkOnIcon : Icon.chatWTalkOffIcon} />
+                <img src={chat ? Icon.chatWTalkOnIcon : Icon.chatWTalkOffIcon} alt="chat-status"/>
               </li>
             </ul>
           </div>

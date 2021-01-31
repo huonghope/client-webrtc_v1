@@ -8,7 +8,6 @@ import Alert from "../../components/Alert"
 import getSocket from "../rootSocket"
 import meetingRoomSocket from './MeetingRoom.Socket'
 import meetingRoomAction from "./MeetingRoom.Action"
-import ReactLoading from 'react-loading'
 //import component
 import HeadingController from './components/HeadingController/HeadingControllerTeacher'
 import RemoteStreamContainer from './components/RemoteStreamContainer/RemoteStreamContainerTeacher'
@@ -21,11 +20,13 @@ import moment from 'moment'
 import meetingRoomSelect from './MeetingRoom.Selector'
 import HeadingControllerStudent from './components/HeadingController/HeadingControllerStudent/index'
 
-import RecordRTCPromisesHandler from 'recordrtc'
-import styled from 'styled-components'
-import { isMobile } from 'react-device-detect';
+// import RecordRTCPromisesHandler from 'recordrtc'
+// import styled from 'styled-components'
+// import { isMobile } from 'react-device-detect';
+// import FFmpeg from "@ffmpeg/ffmpeg"
+
+
 import adapter from 'webrtc-adapter'
-import FFmpeg from "@ffmpeg/ffmpeg"
 import WrapperLoading from '../../components/Loading/WrapperLoading'
 import userAction from '../../features/UserFeature/actions'
 import userSelect from '../../features/UserFeature/selector'
@@ -251,6 +252,7 @@ class MeetingRoom extends Component {
     let fetchCurrentUser = async () => {
       const response = await services.getCurrent()
       const { data } = response
+      this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: data.user_tp === 'T' || data.user_tp === 'I'  }))
       this.setState({
         isMainRoom: data.user_tp === 'T' || data.user_tp === 'I' 
       })
@@ -267,8 +269,6 @@ class MeetingRoom extends Component {
       })
     })
     
-
-    // console.log("adapete", adapter.browserDetails.browser)
     window.onunload = window.onbeforeunload = function () {
       getSocket.close()
     }
@@ -305,7 +305,13 @@ class MeetingRoom extends Component {
               loading: false,
             }
           })
-          // window.location.reload();
+          const { isMainRoom } = this.state
+          if(!isMainRoom){
+            //2500s 후에 새로고침
+            setTimeout(() => {
+              window.location.reload();
+            }, 2500);
+          }
         }
       } catch (error) {
         console.log(error)
@@ -391,6 +397,7 @@ class MeetingRoom extends Component {
       if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate));
     })
   }
+  //!다른 학생도 나가는 건가?
   handleOutRoom = () => {
     const { remoteStreams, isMainRoom } = this.state
     if (isMainRoom) {
@@ -438,6 +445,7 @@ class MeetingRoom extends Component {
       fullScream: !this.state.fullScream
     })
   }
+  //화면공유 했을떄 
   handleScreenMode = () => {
     try {
       navigator.mediaDevices
@@ -478,6 +486,7 @@ class MeetingRoom extends Component {
               this.sleep(1000)
               sender.replaceTrack(videoTrack)
             })
+            console.log(this.state.remoteStreamsTemp)
             this.setState({
               localStream: localStreamTemp,
               remoteStreams: this.state.remoteStreamsTemp,
@@ -590,7 +599,6 @@ class MeetingRoom extends Component {
       paintScream,
       loading,
     } = this.state
-    const { isHostUser } = this.props
     if (disconnected) {
       try {
         // disconnect socket
@@ -609,16 +617,6 @@ class MeetingRoom extends Component {
         window.close();
       }
     }
-    // console.log(isMobile)
-    // if (isMobile) {
-    //   return (
-    //     <div className="chat-component-mobile">
-    //       <ChatComponent
-    //         remoteStreams={remoteStreams}
-    //       />
-    //     </div>
-    //   )
-    // }
     const windowSize = !fullScream ? "85%" : "100%"
     return (
       <div className="meeting-room">
@@ -649,6 +647,7 @@ class MeetingRoom extends Component {
           </div>
           <div className="remote-stream">
             {
+              !loading ?
               paintScream ? (
                 <WhiteBoard />
               ) :
@@ -663,6 +662,7 @@ class MeetingRoom extends Component {
                       remoteStreams={remoteStreams}
                     />
                 )
+              : <WrapperLoading type={"bars"} color={"black"} />
             }
           </div>
         </div>

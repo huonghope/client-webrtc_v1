@@ -1,5 +1,4 @@
 import api from "../../apis/axios"
-import asmediaapi from "../../apis/asmediaapi"
 
 const services = {
   getCurrent: async () => {

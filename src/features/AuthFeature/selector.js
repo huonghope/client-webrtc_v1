@@ -8,20 +8,20 @@ const selectInitLoading = createSelector(
     auth => auth.initLoading
 );
 
-const selectSigninLoading = createSelector(
+const selectSignInLoading = createSelector(
     [selectRaw],
     auth => auth.signinLoading
 );
 
 // select errors
-const selectSigninError = createSelector([selectRaw], 
-    auth => auth.signinError
+const selectSignInError = createSelector([selectRaw], 
+    auth => auth.signInError
 );
 
 const selectors = {
     selectInitLoading,
-    selectSigninLoading,
-    selectSigninError,
+    selectSignInLoading,
+    selectSignInError,
 };
 
 export default selectors;
