@@ -307,7 +307,7 @@ class RemoteStreamContainer extends Component {
         //!체크함
         console.log(listRequestTemp)
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(listRequestTemp))
-      }, 3000);
+      }, 1000);
       
 
 
@@ -527,11 +527,11 @@ const SetVideos =  (remoteStreams, props) => {
          * @end_time : 끝나는 시간
          */
         const { listUserRequest } = props
-        let isExistsRequest = listUserRequest.find(e => e.remoteId.includes(rVideo.name) 
+        let isExistsRequest = listUserRequest.find(e => e.userId === rVideo.userInfo.user_idx
         && e.status !== "0"
         && e.reqInfo.end_time === null) //요청이 없는 사람
         let video = null
-        
+
         //해당하는 학생이 요청하고 있고 끝나지 않는 경우에는
         if (isExistsRequest) { 
           const { type } = isExistsRequest
@@ -551,8 +551,7 @@ const SetVideos =  (remoteStreams, props) => {
             //요청을 진행하고 있음
             req_question_status = type === 'request_question' ? status : false
             req_lecOut_status = type === 'request_lecOut' ? status : false
-            
-            if(type === 'request_lecOut'){
+            if(type.includes('request_lecOut')){
               startTime = moment(isExistsRequest.reqInfo.start_time).format('DD/MM/YYYYHH:mm:ss')
             }else{
               const UserRoomId = () => {
@@ -570,8 +569,6 @@ const SetVideos =  (remoteStreams, props) => {
               }
             }
           }
-
-          
 
           //음성질문이 하고 있는 요청
           video = _videoTrack ? (

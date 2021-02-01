@@ -27,13 +27,13 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   const [isBtnRequestQuestion, setIsBtnRequestQuestion] = useState(false)
   const [isBtnRequestLecOut, setIsBtnRequestLecOut] = useState(false)
   
-  useEffect(() => {
 
-    if(!isHostUser){
-      dispatch(headingControllerAction.handleChangeMicState())
-    }
-
-  },[isHostUser])
+  //!이거 왜?
+  // useEffect(() => {
+  //   if(!isHostUser){
+  //     dispatch(headingControllerAction.handleChangeMicState())
+  //   }
+  // },[isHostUser])
   
   //!limit re-render ???
   /**
