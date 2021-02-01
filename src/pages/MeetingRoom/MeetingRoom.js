@@ -20,12 +20,6 @@ import moment from 'moment'
 import meetingRoomSelect from './MeetingRoom.Selector'
 import HeadingControllerStudent from './components/HeadingController/HeadingControllerStudent/index'
 
-// import RecordRTCPromisesHandler from 'recordrtc'
-// import styled from 'styled-components'
-// import { isMobile } from 'react-device-detect';
-// import FFmpeg from "@ffmpeg/ffmpeg"
-
-
 import adapter from 'webrtc-adapter'
 import WrapperLoading from '../../components/Loading/WrapperLoading'
 import userAction from '../../features/UserFeature/actions'
@@ -48,6 +42,7 @@ class MeetingRoom extends Component {
       peerConnections: {},
 
       mediaRecorder: null,
+      sdpData: null,
 
       pc_config: {
         "iceServers": [
@@ -292,6 +287,20 @@ class MeetingRoom extends Component {
         localMicMute: this.state.isMainRoom ? false : true,
         loading: false,
       })
+      // const { peerCount } = data
+      // if(peerCount >= 3){
+      //   const { sdpData } = this.state;
+      //   if(sdpData != null){
+      //     let tempSdpData = sdpData
+      //     tempSdpData.sdp.sdp = tempSdpData.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:20000\r\n');
+      //     const pc = this.state.peerConnections[data.socketID];
+  
+      //     console.log("change", tempSdpData)
+      //     pc.setRemoteDescription(
+      //       new RTCSessionDescription(tempSdpData.sdp)
+      //     ).then(() => {});
+      //   }
+      // }
       // window.location.reload();
     })
     getSocket().on("peer-disconnected", data => {
@@ -326,12 +335,13 @@ class MeetingRoom extends Component {
         console.log(error)
       }
     })
-    //!Create Local Peer
-    //!pc1
+    /**
+     * 새로 PC가 들어갔으면 처리하는 이벤트
+     * 서버에서 받은 Socket_ID를 연결함
+     * 동시 2PC를 실행함
+     */
     getSocket().on("online-peer", socketID => {
-      // 1. Create new pc
       this.createPeerConnection(socketID, pc => {
-        // 2. Create Offer
         if (pc) {
           pc.createOffer(this.state.sdpConstraints).then(sdp => {
             pc.setLocalDescription(sdp)
@@ -339,14 +349,15 @@ class MeetingRoom extends Component {
               local: getSocket().id,
               remote: socketID
             })
-          }).then(() => {
-
-          }).catch((error) => console.log('Failed to set session description: ' + error.toString()))
+          }).then(() => { })
+            .catch((error) => console.log('Failed to set session description: ' + error.toString()))
         }
       })
     })
 
-    //!pc2
+    /**
+     * B PC부터 보내는 sdp 정보를 A PC에서 받아서 처리하는 이벤트  
+     */
     getSocket().on("offer", data => {
       try {
         this.createPeerConnection(data.socketID, pc => {
@@ -357,10 +368,8 @@ class MeetingRoom extends Component {
             } catch (error) {
               console.log("Add Stream Error", error)
             }
-            //************************************************ */
-            //!반대되어있는 stream를 대폭력 세팅
-            data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '900000000' + '\r\n');
-            //************************************************ */
+            // 강사화면부터 학생화면을 sdp를 얼마나 주고싶으면 설정
+            // data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
                 pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
@@ -394,30 +403,38 @@ class MeetingRoom extends Component {
       }
       return sdp;
     }
-    //! pc1 setRemote
+    // getSocket().on("count-peer", data => {
+    //   console.log(data)
+    //   if(data === 2){
+    //     data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:15\r\n');
+    //     const pc = this.state.peerConnections[data.socketID];
+    //     pc.setRemoteDescription(
+    //       new RTCSessionDescription(data.sdp)
+    //     ).then(() => {});
+    //   }
+    // })
+
+    /**
+     * A부터 받은 answer를 B PC에서 처리하는 이벤트
+     * Audio 및 Video를 B PC에서 원하는 sdp값을 설정해서 A PC를 전달해줌
+     */
     getSocket().on("answer", data => {
-      //************************************************ */
-      // data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
-
-      // removing existing bandwidth lines
-      data.sdp.sdp = data.sdp.sdp.replace( /b=AS([^\r\n]+\r\n)/g , '');
-
-      // setting "outgoing" audio RTP port's bandwidth to "50kbit/s"
-      data.sdp.sdp = data.sdp.sdp.replace( /a=mid:audio\r\n/g , 'a=mid:audio\r\nb=AS:50\r\n');
-
-      // setting "outgoing" video RTP port's bandwidth to "256kbit/s"
-      data.sdp.sdp = data.sdp.sdp.replace( /a=mid:video\r\n/g , 'a=mid:video\r\nb=AS:15\r\n');
-
-      console.log(data)
-      //************************************************ */
-      const pc = this.state.peerConnections[data.socketID];
+      let pc = null
+      // this.setState({ sdpData: data})
+      // data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:10000\r\n');
+      // pc = this.state.peerConnections[data.socketID];
+      
+      this.setState({ sdpData: data})
+      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:100\r\n');
+      pc = this.state.peerConnections[data.socketID];
+      // data.sdp.sdp = data.sdp.sdp.replace(/m=audio (.*)\r\nc=IN (.*)\r\n/, 'm=audio $1\r\nc=IN $2\r\nb=AS:15\r\n');
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
-      ).then(() => { });
+      ).then(() => {});
     })
+
     getSocket().on("candidate", data => {
       const pc = this.state.peerConnections[data.socketID];
-
       if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate));
     })
   }
@@ -470,7 +487,8 @@ class MeetingRoom extends Component {
       fullScream: !this.state.fullScream
     })
   }
-  //화면공유 했을떄 
+  //!들어갈 사람이 만끝 sleep 시간을 더 길어야되지 않을까?
+  //화면공유의 화이브보드
   handleScreenMode = () => {
     try {
       navigator.mediaDevices
@@ -510,10 +528,57 @@ class MeetingRoom extends Component {
               this.sleep(1000)
               sender.replaceTrack(videoTrack)
             })
-            console.log(this.state.remoteStreamsTemp)
             this.setState({
               localStream: localStreamTemp,
               remoteStreams: this.state.remoteStreamsTemp,
+              shareScream: false
+            })
+          }
+        })
+    } catch (err) {
+      console.error("Error: " + err)
+    }
+  }
+  //화면공유 이벤트
+  handleScreenModeMain = () => {
+    try {
+      navigator.mediaDevices
+        .getDisplayMedia({
+          video: {
+            cursor: "always"
+          },
+          audio: true
+        })
+        .then(stream => {
+          this.setState({
+            localStreamTemp: this.state.localStream,
+            localStream: stream,
+          })
+          const { peerConnections, shareScream } = this.state
+          let videoTrack = stream.getVideoTracks()[0]
+          Object.values(peerConnections).forEach(pc => {
+            var sender = pc.getSenders().find(function (s) {
+              return s.track.kind === videoTrack.kind
+            })
+            this.setState({
+              shareScream: !shareScream
+            })
+            this.sleep(1000)
+            sender.replaceTrack(videoTrack)
+          })
+          //화면 공유 중지
+          const { localStreamTemp } = this.state
+          videoTrack.onended = () => {
+            let videoTrack = localStreamTemp.getVideoTracks()[0]
+            Object.values(peerConnections).forEach(pc => {
+              var sender = pc.getSenders().find(function (s) {
+                return s.track.kind === videoTrack.kind
+              })
+              this.sleep(1000)
+              sender.replaceTrack(videoTrack)
+            })
+            this.setState({
+              localStream: localStreamTemp,
               shareScream: false
             })
           }
@@ -663,6 +728,7 @@ class MeetingRoom extends Component {
                     handleScreenMode={this.handleScreenMode}
                     handleWhiteBoard={this.handleWhiteBoard}
                     handleScreamRecording={this.handleScreamRecording}
+                    handleScreenModeMain={this.handleScreenModeMain}
                   /> :
                   <HeadingControllerStudent
                     handleOutRoom={this.handleOutRoom}

@@ -9,7 +9,7 @@ import CountTime from "../../../../../components/CountTime";
 import headingControllerAction from '../HeadingController.Action'
 import headingControllerSocket from '../HeadingController.Socket'
 
-function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, handleWhiteBoard, handleScreamRecording}) {
+function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,handleScreenModeMain, handleWhiteBoard, handleScreamRecording}) {
 
   const dispatch = useDispatch();
 
@@ -112,7 +112,7 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode, h
             <img onClick={() => handleWhiteBoardClick()} src={Icon.lecScreenWhiteBoard} alt="board" />
             <span>화이트보드</span>
           </li>
-          <li><img onClick={() => handleScreenMode()} src={Icon.lecScreenShare}  alt="share-scream" />
+          <li><img onClick={() => handleScreenModeMain()} src={Icon.lecScreenShare}  alt="share-scream" />
           <span>화면공유</span>
           </li>
         </ul>

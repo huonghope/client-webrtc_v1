@@ -39,16 +39,16 @@ function Landing(props) {
           value: deviceInfo.deviceId,
           text: deviceInfo.label || `microphone`
         }
-        setAudioInput(true)
-        setListAudioInput(listAudioInput => [...listAudioInput, option])
+        setIsAudioInput(true)
         setAudioInput(option)
+        setListAudioInput(listAudioInput => [...listAudioInput, option])
       } else if (deviceInfo.kind === 'audiooutput') {
         const option = {
           value: deviceInfo.deviceId,
           text: deviceInfo.label || `speaker`
         }
         setIsAudioOutput(true)
-        setAudioOutput(true)
+        setAudioOutput(option)
         setListAudioOutput(listAudioOutput => [...listAudioOutput, option])
       } else if (deviceInfo.kind === 'videoinput') {
         const option = {
@@ -56,8 +56,8 @@ function Landing(props) {
           text: deviceInfo.label || `camera`
         }
         setIsVideo(true)
-        setListVideoInput(listVideoInput => [...listVideoInput, option])
         setVideoInput(option)
+        setListVideoInput(listVideoInput => [...listVideoInput, option])
       } else {
         console.log('Some other kind of source/device: ', deviceInfo);
       }
@@ -75,13 +75,17 @@ function Landing(props) {
       });
     }
     let constraints;
+
+    //!체크필요함
     if (deviceId) {
       constraints = {
-        video: { deviceId: { exact: deviceId } }
+        video: { deviceId: { exact: deviceId } },
+        audio: { deviceId: audioInput.value ? { exact: audioInput.value } : undefined }
       };
     } else {
       constraints = {
-        video: { deviceId: videoInput.value ? { exact: videoInput.value } : undefined }
+        video: { deviceId: videoInput.value ? { exact: videoInput.value } : undefined },
+        audio: { deviceId: audioInput.value ? { exact: audioInput.value } : undefined }
       };
     }
     const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))

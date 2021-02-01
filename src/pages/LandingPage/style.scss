@@ -30,9 +30,12 @@
 
   &__local-video{
     margin: 16px 0;
+    width: 480px;
+    height: 270px;
+
     video{
-      width: 480px;
-      height: 270px;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
     }
   }
