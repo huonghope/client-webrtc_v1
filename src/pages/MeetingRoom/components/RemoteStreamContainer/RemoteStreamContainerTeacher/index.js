@@ -513,7 +513,6 @@ const SetVideos =  (remoteStreams, props) => {
       props.dispatch(remoteStreamContainerAction.saveListUser(listUser))
       
       let _filterRemote = remoteStreams.filter(rVideo => listUser.find(({ socket_id }) => rVideo.id === socket_id) && rVideo)
-      console.log(_filterRemote)
       let _rVideos = _filterRemote.map((rVideo, index) => {
         const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
         let [infoStreamBySocketId] = listUser.filter(element => element.socket_id === rVideo.name)
@@ -528,7 +527,6 @@ const SetVideos =  (remoteStreams, props) => {
          * @end_time : 끝나는 시간
          */
         const { listUserRequest } = props
-        console.log(listUserRequest)
         let isExistsRequest = listUserRequest.find(e => e.remoteId.includes(rVideo.name) 
         && e.status !== "0"
         && e.reqInfo.end_time === null) //요청이 없는 사람

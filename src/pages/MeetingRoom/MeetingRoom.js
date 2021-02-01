@@ -34,7 +34,6 @@ import services from '../../features/UserFeature/service'
 import ysFixWebmDuration from 'fix-webm-duration'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
-
 class MeetingRoom extends Component {
   constructor(props) {
     super(props)
@@ -53,7 +52,7 @@ class MeetingRoom extends Component {
       pc_config: {
         "iceServers": [
           {
-            urls : 'stun:stun.l.google.com:19302',
+            urls: 'stun:stun.l.google.com:19302',
             username: "webrtc",
           },
         ]
@@ -104,10 +103,10 @@ class MeetingRoom extends Component {
       //     localStream: this.props.localStream,
       //   })
       // }else{
-        this.setState({
-          loading: false,
-          localStream: stream,
-        })
+      this.setState({
+        loading: false,
+        localStream: stream,
+      })
       // }
     }
 
@@ -247,19 +246,29 @@ class MeetingRoom extends Component {
     }
   }
 
+  componentDidUpdate() {
+    // var loadScript = function (src) {
+    //   var tag = document.createElement('script');
+    //   tag.async = false;
+    //   tag.src = src;
+    //   var body = document.getElementsByTagName('body')[0];
+    //   body.appendChild(tag);
+    // }
+    // loadScript("https://webrtc.github.io/adapter/adapter-latest.js");
+  }
   componentDidMount() {
     this.props.dispatch(userAction.getCurrent())
     let fetchCurrentUser = async () => {
       const response = await services.getCurrent()
       const { data } = response
-      this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: data.user_tp === 'T' || data.user_tp === 'I'  }))
+      this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: data.user_tp === 'T' || data.user_tp === 'I' }))
       this.setState({
-        isMainRoom: data.user_tp === 'T' || data.user_tp === 'I' 
+        isMainRoom: data.user_tp === 'T' || data.user_tp === 'I'
       })
     }
 
     fetchCurrentUser()
-    
+
     getSocket().emit("join-room")
     getSocket().on("user-role", data => {
       const { userRole } = data
@@ -268,10 +277,10 @@ class MeetingRoom extends Component {
         isMainRoom: userRole,
       })
     })
-    
-    window.onunload = window.onbeforeunload = function () {
-      getSocket.close()
-    }
+
+    // window.onunload = window.onbeforeunload = function () {
+    //   getSocket.close()
+    // }
     //! Redux 저장할 필요없나?
     /************** Peer connect */
     getSocket().on("connection-success", data => {
@@ -287,13 +296,13 @@ class MeetingRoom extends Component {
     })
     getSocket().on("peer-disconnected", data => {
       try {
-        if(this.state.peerConnections[data.socketID]){
+        if (this.state.peerConnections[data.socketID]) {
           this.state.peerConnections[data.socketID].close()
           const rVideo = this.state.remoteStreams.filter(
             stream => stream.id === data.socketID
           )
           // rVideo && this.stopTracks(rVideo[0].stream)
-          if(rVideo){
+          if (rVideo) {
             this.stopTracks(rVideo[0].stream)
           }
           const remoteStreams = this.state.remoteStreams.filter(
@@ -306,7 +315,7 @@ class MeetingRoom extends Component {
             }
           })
           const { isMainRoom } = this.state
-          if(!isMainRoom){
+          if (!isMainRoom) {
             //2500s 후에 새로고침
             setTimeout(() => {
               window.location.reload();
@@ -325,9 +334,6 @@ class MeetingRoom extends Component {
         // 2. Create Offer
         if (pc) {
           pc.createOffer(this.state.sdpConstraints).then(sdp => {
-            //************************************************ */
-            sdp.sdp = sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
-            //************************************************ */
             pc.setLocalDescription(sdp)
             meetingRoomSocket.sendToPeer("offer", sdp, {
               local: getSocket().id,
@@ -346,13 +352,14 @@ class MeetingRoom extends Component {
         this.createPeerConnection(data.socketID, pc => {
           try {
             try {
-              if(this.state.localStream)              
+              if (this.state.localStream)
                 pc.addStream(this.state.localStream)
             } catch (error) {
               console.log("Add Stream Error", error)
             }
             //************************************************ */
-            data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
+            //!반대되어있는 stream를 대폭력 세팅
+            data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '900000000' + '\r\n');
             //************************************************ */
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
@@ -387,12 +394,22 @@ class MeetingRoom extends Component {
       }
       return sdp;
     }
-
     //! pc1 setRemote
     getSocket().on("answer", data => {
-            //************************************************ */
-            data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
-            //************************************************ */
+      //************************************************ */
+      // data.sdp.sdp = data.sdp.sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + 'AS' + ':' + '15' + '\r\n');
+
+      // removing existing bandwidth lines
+      data.sdp.sdp = data.sdp.sdp.replace( /b=AS([^\r\n]+\r\n)/g , '');
+
+      // setting "outgoing" audio RTP port's bandwidth to "50kbit/s"
+      data.sdp.sdp = data.sdp.sdp.replace( /a=mid:audio\r\n/g , 'a=mid:audio\r\nb=AS:50\r\n');
+
+      // setting "outgoing" video RTP port's bandwidth to "256kbit/s"
+      data.sdp.sdp = data.sdp.sdp.replace( /a=mid:video\r\n/g , 'a=mid:video\r\nb=AS:15\r\n');
+
+      console.log(data)
+      //************************************************ */
       const pc = this.state.peerConnections[data.socketID];
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
@@ -404,6 +421,7 @@ class MeetingRoom extends Component {
       if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate));
     })
   }
+
   //!다른 학생도 나가는 건가?
   handleOutRoom = () => {
     const { remoteStreams, isMainRoom } = this.state
@@ -448,7 +466,7 @@ class MeetingRoom extends Component {
   }
 
   handleWindowSize = () => {
-    this.setState({ 
+    this.setState({
       fullScream: !this.state.fullScream
     })
   }
@@ -469,7 +487,6 @@ class MeetingRoom extends Component {
             localStream: stream,
             remoteStreams: [],
           })
-
           const { peerConnections, shareScream } = this.state
           let videoTrack = stream.getVideoTracks()[0]
           Object.values(peerConnections).forEach(pc => {
@@ -505,12 +522,13 @@ class MeetingRoom extends Component {
       console.error("Error: " + err)
     }
   }
+
   handleWhiteBoard = () => {
     this.setState({
       paintScream: !this.state.paintScream
     })
-    // this.HeadingController.handleWindowSize();
   }
+
   // handleDataAvailable = event => {
   //   if (event.data && event.data.size > 0) {
   //     this.setState({
@@ -521,7 +539,7 @@ class MeetingRoom extends Component {
   handleDataAvailable = event => {
     if (event.data && event.data.size > 0) {
       this.setState(prevState => ({
-        recordedBlobs: [...prevState.recordedBlobs , event.data]
+        recordedBlobs: [...prevState.recordedBlobs, event.data]
       }))
     }
   }
@@ -556,25 +574,25 @@ class MeetingRoom extends Component {
         const { recordedBlobs, startTime } = this.state
         var duration = Date.now() - startTime;
         var buggyBlob = new Blob(recordedBlobs, { type: 'video/webm' });
-        
-        ysFixWebmDuration(buggyBlob, duration, function(fixedBlob) {
 
-            // displayResult(fixedBlob);
-            // const blob = new Blob(fixedBlob, { type: "video/webm" })
-            const url = window.URL.createObjectURL(fixedBlob)
-            const a = document.createElement("a")
-            a.style.display = "none"
-            a.href = url
-    
-            let currentDay = moment().format('l').replace("/", "_") +"_"+ moment().format('LTS').replace(":", "_").replace("PM", "");
-            a.download = `${currentDay}.webm`
-            document.body.appendChild(a)
-            a.click()
-            setTimeout(() => {
-              document.body.removeChild(a)
-              window.URL.revokeObjectURL(url)
-            }, 100)
-        
+        ysFixWebmDuration(buggyBlob, duration, function (fixedBlob) {
+
+          // displayResult(fixedBlob);
+          // const blob = new Blob(fixedBlob, { type: "video/webm" })
+          const url = window.URL.createObjectURL(fixedBlob)
+          const a = document.createElement("a")
+          a.style.display = "none"
+          a.href = url
+
+          let currentDay = moment().format('l').replace("/", "_") + "_" + moment().format('LTS').replace(":", "_").replace("PM", "");
+          a.download = `${currentDay}.webm`
+          document.body.appendChild(a)
+          a.click()
+          setTimeout(() => {
+            document.body.removeChild(a)
+            window.URL.revokeObjectURL(url)
+          }, 100)
+
         });
 
 
@@ -625,6 +643,7 @@ class MeetingRoom extends Component {
       }
     }
     const windowSize = !fullScream ? "85%" : "100%"
+
     return (
       <div className="meeting-room">
         {/* <button onClick={() => {
@@ -633,43 +652,43 @@ class MeetingRoom extends Component {
           videoTrack.stop();
         }}>Hello</button> */}
         <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
-          <div className="heading-controller" style={{background: 'black'}}>
+          <div className="heading-controller" style={{ background: 'black' }}>
             {
-              
+
               !loading ?
-              isMainRoom ?
-                <HeadingController
-                  handleOutRoom={this.handleOutRoom}
-                  handleWindowSize={this.handleWindowSize}
-                  handleScreenMode={this.handleScreenMode}
-                  handleWhiteBoard={this.handleWhiteBoard}
-                  handleScreamRecording={this.handleScreamRecording}
-                /> :
-                <HeadingControllerStudent
-                  handleOutRoom={this.handleOutRoom}
-                  handleWindowSize={this.handleWindowSize}
-                />
-              : <WrapperLoading type={"bars"} color={"black"} />
+                isMainRoom ?
+                  <HeadingController
+                    handleOutRoom={this.handleOutRoom}
+                    handleWindowSize={this.handleWindowSize}
+                    handleScreenMode={this.handleScreenMode}
+                    handleWhiteBoard={this.handleWhiteBoard}
+                    handleScreamRecording={this.handleScreamRecording}
+                  /> :
+                  <HeadingControllerStudent
+                    handleOutRoom={this.handleOutRoom}
+                    handleWindowSize={this.handleWindowSize}
+                  />
+                : <WrapperLoading type={"bars"} color={"black"} />
             }
           </div>
           <div className="remote-stream">
             {
               !loading ?
-              paintScream ? (
-                <WhiteBoard />
-              ) :
-                (
-                  isMainRoom ?
-                    <RemoteStreamContainer
-                      paintScream={!paintScream}
-                      remoteStreams={remoteStreams}
-                    />
-                    :
-                    <RemoteStreamContainerStudent
-                      remoteStreams={remoteStreams}
-                    />
-                )
-              : <WrapperLoading type={"bars"} color={"black"} />
+                paintScream ? (
+                  <WhiteBoard />
+                ) :
+                  (
+                    isMainRoom ?
+                      <RemoteStreamContainer
+                        paintScream={!paintScream}
+                        remoteStreams={remoteStreams}
+                      />
+                      :
+                      <RemoteStreamContainerStudent
+                        remoteStreams={remoteStreams}
+                      />
+                  )
+                : <WrapperLoading type={"bars"} color={"black"} />
             }
           </div>
         </div>

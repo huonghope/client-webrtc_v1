@@ -106,22 +106,12 @@ function ChatComponent(props) {
         setMessages(prevState => [...prevState, newMessage])
         scrollToBottom()
       })
-    }
-  }, [])
-
-  useEffect(() => {
-    if(getSocket() != null){
       getSocket().on("action_user_disable_chat", data => {
-        setDisableChatInput(!disableChatInput)
+        setDisableChatInput(prevState => !prevState)
         dispatch(chatAction.chattingStateChange(disableChatInput))
       })
     }
-  })
-
-  // const sendMessage = msg => {
-  //   props.sendMessage(msg)
-  //   scrollToBottom()
-  // }
+  }, [])
 
   const getToken = () => {
     const { userInfoToken } = JSON.parse(window.localStorage.getItem("asauth"))

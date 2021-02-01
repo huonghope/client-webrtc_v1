@@ -144,7 +144,6 @@ class Video extends Component {
   
   render() {
     const { mic, camera, chat } = this.state;
-    console.log(this.props.listUserRequest)
     return (
       <>
         <video
