@@ -425,9 +425,9 @@ class MeetingRoom extends Component {
       // pc = this.state.peerConnections[data.socketID];
       
       this.setState({ sdpData: data})
-      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:100\r\n');
+      // data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:100\r\n');
+
       pc = this.state.peerConnections[data.socketID];
-      // data.sdp.sdp = data.sdp.sdp.replace(/m=audio (.*)\r\nc=IN (.*)\r\n/, 'm=audio $1\r\nc=IN $2\r\nb=AS:15\r\n');
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
       ).then(() => {});

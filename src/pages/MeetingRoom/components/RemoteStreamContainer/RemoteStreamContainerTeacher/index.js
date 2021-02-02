@@ -71,8 +71,9 @@ class RemoteStreamContainer extends Component {
      * 
      */
     getSocket().on("alert-host-lecOut", data => {
-      const { listDescRemotes, listUserRequest } = this.state;
+      const { listDescRemotes } = this.state;
       const { remoteSocketId, status, reqInfo, type } = data;
+      const { listUserRequest } = this.props
       //요청한 유저의 Video를 수정
       let _rVideos = listDescRemotes.map((rVideo, idx) => {
         let video = RenderVideoForRequest(listUserRequest, rVideo, data);
@@ -94,7 +95,7 @@ class RemoteStreamContainer extends Component {
         listUserRequest.filter(e => e.userId !== reqInfo.user_idx)
         this.setState({
           rVideos: _rVideos,
-          listUserRequest: filter
+          // listUserRequest: filter
         })
         //store에서 저장함
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
@@ -106,7 +107,7 @@ class RemoteStreamContainer extends Component {
         console.log(filter)
         this.setState({
           rVideos: _rVideos,
-          listUserRequest: filter
+          // listUserRequest: filter
         })
         //store에서 저장함
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
@@ -117,10 +118,9 @@ class RemoteStreamContainer extends Component {
      * 자리비룸요청 이벤트 처리함
      */
     getSocket().on("alert-host-question", data => {
-      const { listDescRemotes, listUserRequest } = this.state;
+      const { listDescRemotes } = this.state;
       const { remoteSocketId, status, reqInfo, type } = data;
-      console.log(data)
-      console.log(listUserRequest)
+      const { listUserRequest } = this.props
       //요청한 유저의 Video를 수정
       let _rVideos = listDescRemotes.map((rVideo, idx) => {
         let video = RenderVideoForRequest(listUserRequest, rVideo, data);
@@ -143,7 +143,6 @@ class RemoteStreamContainer extends Component {
         let filter = listUserRequest.map(e => e.userId === reqInfo.user_idx ? valueRequest : e)
         this.setState({
           rVideos: _rVideos,
-          listUserRequest: filter
         })
         //store에서 저장함
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
@@ -154,7 +153,6 @@ class RemoteStreamContainer extends Component {
         let filter = [...this.state.listUserRequest, valueRequest];
         this.setState({
           rVideos: _rVideos,
-          listUserRequest: filter
         })
         //store에서 저장함
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
@@ -163,10 +161,10 @@ class RemoteStreamContainer extends Component {
 
     //강사는 유저의 요청을 처리한 다음에 화면을 어떻게 출력함
     getSocket().on("alert-host-process-req-question", data => {
-      const { listDescRemotes, listUserRequest } = this.state;
+      const { listDescRemotes } = this.state;
       const { remoteSocketId, type, reqInfo, status } = data;
-      console.log(data)
-      console.log(listUserRequest)
+      const { listUserRequest } = this.props
+   
       //수락한 경우에는 강사화면을 re-render
       if (status) {
         let _rVideos = listDescRemotes.map((rVideo, idx) => {
@@ -183,37 +181,38 @@ class RemoteStreamContainer extends Component {
         }
 
          //! 확인할 필요함
+         //! 
         let filter = listUserRequest.map(e => e.userId === reqInfo.user_idx ? valueRequest : e)
         if(filter.length !== 0)
         {
           this.setState({
             rVideos: _rVideos,
-            listUserRequest: filter
+            // listUserRequest: filter
           })
           this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
         }else{
           this.setState({
             rVideos: _rVideos,
-            listUserRequest: [...this.state.listUserRequest, valueRequest]
+            // listUserRequest: [...this.state.listUserRequest, valueRequest]
           })
-          console.log([valueRequest])
           this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
         }
 
       }else{
         //거절하는 경우에는 유저요청을 리스트 삭제함
         let filter = listUserRequest.map(item => item.userId !== reqInfo.user_idx)
-        this.setState({ 
-          listUserRequest :filter
-        })
+        // this.setState({ 
+        //   listUserRequest :filter
+        // })
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }
     })
 
     //강사는 유저의 요청을 처리한 다음에 화면을 어떻게 출력함
     getSocket().on("alert-host-process-req-lecOut", data => {
-      const { listDescRemotes, listUserRequest } = this.state;
+      const { listDescRemotes } = this.state;
       const { remoteSocketId, type, reqInfo, status } = data;
+      const { listUserRequest } = this.props
       //수락한 경우에는
       if (status) {
         //해당하는 요청을 video를 찾아서 수정함
@@ -236,13 +235,13 @@ class RemoteStreamContainer extends Component {
         if(filter.length !== 0){
           this.setState({
             rVideos: _rVideos,
-            listUserRequest: filter
+            // listUserRequest: filter
           })
           this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
         }else{
           this.setState({
             rVideos: _rVideos,
-            listUserRequest: [...this.state.listUserRequest, valueRequest]
+            // listUserRequest: [...this.state.listUserRequest, valueRequest]
           })
           console.log([valueRequest])
           this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
@@ -250,9 +249,9 @@ class RemoteStreamContainer extends Component {
 
       }else{
         let filter = listUserRequest.map(item => item.userId !== reqInfo.user_idx)
-        this.setState({ 
-          listUserRequest :filter
-        })
+        // this.setState({ 
+        //   listUserRequest :filter
+        // })
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }
     })
@@ -530,8 +529,7 @@ const SetVideos =  (remoteStreams, props) => {
         let isExistsRequest = listUserRequest.find(e => e.userId === rVideo.userInfo.user_idx
         && e.status !== "0"
         && e.reqInfo.end_time === null) //요청이 없는 사람
-        let video = null
-
+        let video = null  
         //해당하는 학생이 요청하고 있고 끝나지 않는 경우에는
         if (isExistsRequest) { 
           const { type } = isExistsRequest
@@ -552,8 +550,13 @@ const SetVideos =  (remoteStreams, props) => {
             req_question_status = type === 'request_question' ? status : false
             req_lecOut_status = type === 'request_lecOut' ? status : false
             if(type.includes('request_lecOut')){
+              console.log(req_question_status)
+              console.log(req_lecOut_status)
               startTime = moment(isExistsRequest.reqInfo.start_time).format('DD/MM/YYYYHH:mm:ss')
+              console.log(startTime)
             }else{
+              console.log(req_question_status)
+              console.log(req_lecOut_status)
               const UserRoomId = () => {
                 return JSON.parse(window.localStorage.getItem("usr_id"))
               }
