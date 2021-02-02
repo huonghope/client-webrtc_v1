@@ -29,11 +29,11 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   
 
   //!이거 왜?
-  // useEffect(() => {
-  //   if(!isHostUser){
-  //     dispatch(headingControllerAction.handleChangeMicState())
-  //   }
-  // },[isHostUser])
+  useEffect(() => {
+    if(!isHostUser){
+      dispatch(headingControllerAction.handleChangeMicState())
+    }
+  },[isHostUser])
   
   //!limit re-render ???
   /**
@@ -56,6 +56,7 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
           setRequestQuestionSended(true)
           headingControllerSocket.emitUserRequestQuestion(payload);
         }else if(status === '1' && reqInfo.end_time === null){ //요청을 진행하고 있는데, 끝나지 않음
+          dispatch(headingControllerAction.handleChangeMicState())
           setRequestQuestionSended(false)
           setRequestQuestionDoing(true)
         }

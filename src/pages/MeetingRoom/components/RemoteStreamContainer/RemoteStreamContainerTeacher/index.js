@@ -101,13 +101,9 @@ class RemoteStreamContainer extends Component {
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }else{
         //없는 경우에는 요청 리스트에 집어넣움
-        // let filter = listUserRequest.length !== 0 && 
-        // listUserRequest[0].userId === null ? [valueRequest] : [...this.state.listUserRequest, valueRequest];
-        let filter = [...this.state.listUserRequest, valueRequest];
-        console.log(filter)
+        let filter = [...listUserRequest, valueRequest];
         this.setState({
           rVideos: _rVideos,
-          // listUserRequest: filter
         })
         //store에서 저장함
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
@@ -148,9 +144,7 @@ class RemoteStreamContainer extends Component {
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }else{
         //없는 경우에는 요청 리스트에 집어넣움
-        // let filter = listUserRequest.length !== 0 && 
-        // listUserRequest[0].userId === null ? [valueRequest] : [...this.state.listUserRequest, valueRequest];
-        let filter = [...this.state.listUserRequest, valueRequest];
+        let filter = [...listUserRequest, valueRequest];
         this.setState({
           rVideos: _rVideos,
         })
@@ -164,7 +158,6 @@ class RemoteStreamContainer extends Component {
       const { listDescRemotes } = this.state;
       const { remoteSocketId, type, reqInfo, status } = data;
       const { listUserRequest } = this.props
-   
       //수락한 경우에는 강사화면을 re-render
       if (status) {
         let _rVideos = listDescRemotes.map((rVideo, idx) => {
@@ -179,31 +172,14 @@ class RemoteStreamContainer extends Component {
           status: status,
           reqInfo: reqInfo
         }
-
          //! 확인할 필요함
-         //! 
+        this.setState({
+          rVideos: _rVideos,
+        })
         let filter = listUserRequest.map(e => e.userId === reqInfo.user_idx ? valueRequest : e)
-        if(filter.length !== 0)
-        {
-          this.setState({
-            rVideos: _rVideos,
-            // listUserRequest: filter
-          })
-          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
-        }else{
-          this.setState({
-            rVideos: _rVideos,
-            // listUserRequest: [...this.state.listUserRequest, valueRequest]
-          })
-          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
-        }
-
+        this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }else{
-        //거절하는 경우에는 유저요청을 리스트 삭제함
         let filter = listUserRequest.map(item => item.userId !== reqInfo.user_idx)
-        // this.setState({ 
-        //   listUserRequest :filter
-        // })
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }
     })
@@ -231,27 +207,13 @@ class RemoteStreamContainer extends Component {
 
         //요청 정보를 store 및 state 집어넣음
         //! 확인할 필요함
+        this.setState({
+          rVideos: _rVideos,
+        })
         let filter = listUserRequest.map(e => e.userId === reqInfo.user_idx ? valueRequest : e)
-        if(filter.length !== 0){
-          this.setState({
-            rVideos: _rVideos,
-            // listUserRequest: filter
-          })
-          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
-        }else{
-          this.setState({
-            rVideos: _rVideos,
-            // listUserRequest: [...this.state.listUserRequest, valueRequest]
-          })
-          console.log([valueRequest])
-          this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
-        }
-
+        this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }else{
         let filter = listUserRequest.map(item => item.userId !== reqInfo.user_idx)
-        // this.setState({ 
-        //   listUserRequest :filter
-        // })
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(filter))
       }
     })
@@ -304,7 +266,6 @@ class RemoteStreamContainer extends Component {
           return true
         })
         //!체크함
-        console.log(listRequestTemp)
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(listRequestTemp))
       }, 1000);
       

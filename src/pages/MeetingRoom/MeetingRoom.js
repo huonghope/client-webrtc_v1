@@ -324,6 +324,7 @@ class MeetingRoom extends Component {
             }
           })
           const { isMainRoom } = this.state
+          console.log(isMainRoom)
           if (!isMainRoom) {
             //2500s 후에 새로고침
             setTimeout(() => {
