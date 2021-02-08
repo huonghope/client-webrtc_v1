@@ -6,6 +6,7 @@ const initialState = {
   muteAllStudent: false,
   micState: true,
   camState: true,
+  micStateStudent: false,
   requestQuestionStatus: false,
   requestLecOutStatus: false,
 }
@@ -21,7 +22,11 @@ export const localStreamReducer =(state = initialState, { type, payload })  =>
         draft.muteAllStudent = null
         break;
       case constants.CHANGE_MIC_STATE:
-        draft.micState = !draft.micState
+        if(payload.status === undefined){
+          draft.micState = !draft.micState
+        }else{
+          draft.micState = payload.status
+        }
         break;
       case constants.CHANGE_MIC_STATE_ERROR:
         draft.micState = null

@@ -11,7 +11,7 @@ const actions = {
     try {
       dispatch({
           type: constants.CHANGE_STATE_MIC_ALL_STUDENT,
-          payload: { status : data }
+          payload: { status : data}
       });
     } catch (error) {
         dispatch({
@@ -22,10 +22,11 @@ const actions = {
   },
 
   //MYSELF
-  handleChangeMicState :  () => async(dispatch) => {
+  handleChangeMicState :  (data) => async(dispatch) => {
     try {
       dispatch({
           type: constants.CHANGE_MIC_STATE,
+          payload: { status: data}
       });
     } catch (error) {
         dispatch({

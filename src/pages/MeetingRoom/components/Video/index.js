@@ -48,24 +48,26 @@ class Video extends Component {
     if (nextProps.videoStream && nextProps.videoStream !== this.props.videoStream) {
       this.video.srcObject = nextProps.videoStream
       if (!this.props.isHostUser && nextProps.videoStream) {
-        console.log("일반유저라 음성 끄기")
         this.mutemic(false)
+        const { request } = nextProps
+        if(request && request.status === "1" && request.type.includes("request_question") && request.reqInfo.end_time === null){
+          this.mutemic(true)
+        }
       }
     }
-
     //자기 음성을 끄기
     if (this.props.localStream && nextProps.micState !== this.props.micState && nextProps.videoStream) {
-      console.log("음성상태 변화 props this", nextProps.micState)
+      console.log("음성상태 변화: ", nextProps.micState)
       this.mutemic(nextProps.micState)
     }
 
     //자기 카메라 끄기
     if (this.props.localStream  && nextProps.camState !== this.props.camState && nextProps.videoStream ) {
-      console.log("카메로상태 변화", nextProps.camState)
+      console.log("카메로상태 변화: ", nextProps.camState)
       this.mutecamera(nextProps.camState)
     }
-
-    if(!this.props.localStream  && this.props.disableChatUser !== nextProps.disableChatUser){
+    //
+    if(!this.props.localStream && this.props.disableChatUser !== nextProps.disableChatUser){
       const { disableChatUser } = nextProps
       let filter = disableChatUser.find(item => item.userId === this.props.userInfo.user_idx)
       if(filter){
@@ -75,19 +77,22 @@ class Video extends Component {
         })
       }
     }    
+
+    //전체 mic를 off할떄 아이콘를 수정함
     if(!this.props.localStream && this.props.muteAllStudent !== nextProps.muteAllStudent){
-      console.log("전체 학생 음성 수정")
       this.setState({
         mic: nextProps.muteAllStudent
       })
     }
 
+    //전체학생이 채팅이 disable
     if(!this.props.localStream && this.props.disableAllChat !== nextProps.disableAllChat){
       this.setState({
         chat: !nextProps.disableAllChat
       })
     }
 
+    //강사인 경우에는 요청한 유저으 리스트를 찾아서 해당하는 유저의 아이콘를 수정
     if(!this.props.localStream && this.props.listUserRequest !== nextProps.listUserRequest){
       const { listUserRequest } = nextProps
       let filter = listUserRequest.find(item => (item.type === 'request_question') && (item.userId === this.props.userInfo.user_idx) && (item.status === true))
@@ -108,7 +113,9 @@ class Video extends Component {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "audio")
       if(stream.length !== 0){
         if(this.props.localStream){
+          console.log(this.props.localStream)
           if(e !== null){
+            console.log("mic status", e)
             this.setState(prevState => {
               if (stream) stream[0].enabled = e
               return { mic: e }
@@ -194,6 +201,9 @@ const mapStateToProps = state => ({
   //채팅상태를 구분한 변수
   disableAllChat: chatComponentSelector.selectDisableAllChat(state),
   disableChatUser: chatComponentSelector.selectDisableChatUser(state),
+
+  //user request
+  request: remoteStreamSelector.getUserRequest(state)
 })
 
 

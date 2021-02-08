@@ -10,8 +10,8 @@ import roomSelector from '../../../MeetingRoom.Selector';
 import remoteStreamContainerSelector from '../../RemoteStreamContainer/RemoteStreamContainer.Selector'
 import { Button } from "../../../../../components/Button";
 
-function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
-  
+function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
+
   const [requestQuestionSended, setRequestQuestionSended] = useState(false)
   const [requestQuestionDoing, setRequestQuestionDoing] = useState(false)
   const [requestLecOutSended, setRequestLecOutSended] = useState(false)
@@ -26,15 +26,15 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
 
   const [isBtnRequestQuestion, setIsBtnRequestQuestion] = useState(false)
   const [isBtnRequestLecOut, setIsBtnRequestLecOut] = useState(false)
-  
+
 
   //!이거 왜?
   useEffect(() => {
-    if(!isHostUser){
-      dispatch(headingControllerAction.handleChangeMicState())
+    if (!isHostUser) {
+      dispatch(headingControllerAction.handleChangeMicState(false))
     }
-  },[isHostUser])
-  
+  }, [isHostUser])
+
   //!limit re-render ???
   /**
    * @request : store에 다가 저장하는 요청의 정보를 받아서 HeadingController 버튼의 상태를 변경
@@ -45,30 +45,30 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
    */
   useEffect(() => {
     //요청을 상태를 확인하기
-    if(request && request.status !== "0"){
+    if (request && request.status !== "0") {
       const { type, status, reqInfo } = request
-      if(type === 'request_question'){
-        if(status ===  'waiting'){ //요청을 기다리고 있음
+      if (type === 'request_question') {
+        if (status === 'waiting') { //요청을 기다리고 있음
           const payload = {
-            status : "waiting",
+            status: "waiting",
             userRoomId: UserRoomId()
           }
           setRequestQuestionSended(true)
           headingControllerSocket.emitUserRequestQuestion(payload);
-        }else if(status === '1' && reqInfo.end_time === null){ //요청을 진행하고 있는데, 끝나지 않음
-          dispatch(headingControllerAction.handleChangeMicState())
+        } else if (status === '1' && reqInfo.end_time === null) { //요청을 진행하고 있는데, 끝나지 않음
+          console.log("질문요청 진행하고 있음")
           setRequestQuestionSended(false)
           setRequestQuestionDoing(true)
         }
-      }else if(type === 'request_lecOut'){
-        if(status ===  'waiting'){ //요청을 기다리고 있음
+      } else if (type === 'request_lecOut') {
+        if (status === 'waiting') { //요청을 기다리고 있음
           const payload = {
-            status : 'waiting',
+            status: 'waiting',
             userRoomId: UserRoomId()
           }
           setRequestLecOutSended(true)
           headingControllerSocket.emitUserRequestLecOut(payload);
-        }else if(status === '1' && reqInfo.end_time === null){ //요청을 진행하고 있는데, 끝나지 않음
+        } else if (status === '1' && reqInfo.end_time === null) { //요청을 진행하고 있는데, 끝나지 않음
           setRequestLecOutSended(false)
           setRequestLecOutDoing(true)
         }
@@ -78,11 +78,13 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
 
   //상태 확인 할 필요함
   useEffect(() => {
-    getSocket().on("alert-user-process-req-question", data => {
-        dispatch(headingControllerAction.handleChangeMicState())
-        setRequestQuestionSended(false)
-        setRequestQuestionDoing(data)
+    //여기 확인
+    getSocket().on("alert-user-process-req-question", data => {  
+      dispatch(headingControllerAction.handleChangeMicState(data))
+      setRequestQuestionSended(false)
+      setRequestQuestionDoing(data)
     })
+
     getSocket().on("alert-user-process-req-lecOut", data => {
       setRequestLecOutSended(false)
       setRequestLecOutDoing(data)
@@ -94,18 +96,17 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
 
   const handleChangeWindowSize = () => {
     setWindowSize(!windowSize)
-    if(!windowSize){
+    if (!windowSize) {
       document.documentElement.requestFullscreen();
-    } else{
-      if(document.fullscreenElement !== null)
-          document.exitFullscreen();
+    } else {
+      if (document.fullscreenElement !== null)
+        document.exitFullscreen();
     }
     handleWindowSize()
   }
   //Cancel 이벤트를 처리해야함
   //state에서 따라서 처리필요함
   const handleRequestQuestion = () => {
-
     if(requestLecOutSended || requestLecOutDoing){
       alert("자리비움 요청하고 있습니다!!!");
       return;
@@ -115,23 +116,23 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
     setTimeout(() => setIsBtnRequestQuestion(false), 1000);
     //!처음에
     //아직 요청하지 않고 하고 있는 상태가 아님
-    if(!requestQuestionSended && !requestQuestionDoing){
+    if(!requestQuestionSended && !requestQuestionDoing){ //요청을 보냈음
       const payload = {
-        status : "waiting",
+        status : true,
         userRoomId: UserRoomId()
       }
       setRequestQuestionSended(true)
       headingControllerSocket.emitUserRequestQuestion(payload);
-    }else if(requestQuestionDoing){ //!sending -2전체를 클릭하면 취소
+    }else if(requestQuestionDoing){ // 하다가 최소함
         const payload = {
           status : false,
-          userRoomId: UserRoomId()
+          userRoomId: UserRoomId(),
         }
         setRequestQuestionSended(false)
         setRequestQuestionDoing(false)
         headingControllerSocket.emitUserCancelRequestQuestion(payload);
-        dispatch(headingControllerAction.handleChangeMicState())
-    }else if(requestQuestionSended){
+        dispatch(headingControllerAction.handleChangeMicState(false))
+    }else if(requestQuestionSended){ //요청하다가 죄송함
       const payload = {
         status : false,
         userRoomId: UserRoomId()
@@ -146,33 +147,33 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
   //Cancel 이벤트를 처리해야함
   const handleRequestLecOut = () => {
 
-    if(requestQuestionSended || requestQuestionDoing){
+    if (requestQuestionSended || requestQuestionDoing) {
       alert("음성 질문 요청하고 있습니다!!!");
       return;
     }
 
     setIsBtnRequestLecOut(true)
     setTimeout(() => setIsBtnRequestLecOut(false), 1000);
-     //!처음에
+    //!처음에
     //아직 요청하지 않고 하고 있는 상태가 아님
-    if(!requestLecOutSended && !requestLecOutDoing){
+    if (!requestLecOutSended && !requestLecOutDoing) {
       const payload = {
-        status : 'waiting',
+        status: 'waiting',
         userRoomId: UserRoomId()
       }
       setRequestLecOutSended(true)
       headingControllerSocket.emitUserRequestLecOut(payload);
-    }else if(requestLecOutDoing){ //!sending -2전체를 클릭하면 취소
-        const payload = {
-          status : false,
-          userRoomId: UserRoomId()
-        }
-        setRequestLecOutSended(false)
-        setRequestLecOutDoing(false)
-        headingControllerSocket.emitUserCancelRequestLecOut(payload);
-    }else if(requestLecOutSended){
+    } else if (requestLecOutDoing) { //!sending -2전체를 클릭하면 취소
       const payload = {
-        status : false,
+        status: false,
+        userRoomId: UserRoomId()
+      }
+      setRequestLecOutSended(false)
+      setRequestLecOutDoing(false)
+      headingControllerSocket.emitUserCancelRequestLecOut(payload);
+    } else if (requestLecOutSended) {
+      const payload = {
+        status: false,
         userRoomId: UserRoomId()
       }
       setRequestLecOutSended(!requestLecOutSended)
@@ -190,18 +191,18 @@ function HeadingControllerStudent({handleOutRoom, handleWindowSize}) {
     <div className="heading-container__small">
       <div className="heading-col">
         <ul>
-          <li><img onClick={() => handleOutRoom()}  src={Icon.lecOutIcon} alt="lec-out" />
+          <li><img onClick={() => handleOutRoom()} src={Icon.lecOutIcon} alt="lec-out" />
             <span>나가기</span>
           </li>
-          <li><img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} alt="window-size"/> 
-            <span>{ windowSize ? "창모드" : "전체화면"}</span>
+          <li><img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} alt="window-size" />
+            <span>{windowSize ? "창모드" : "전체화면"}</span>
           </li>
         </ul>
       </div>
       <div className="heading-col">
         <ul>
           <li className="request-task">
-            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestQuestion()}  disabled={isBtnRequestQuestion}  >
+            <Button buttonSize="btn--medium" buttonStyle="btn--click btn--primary" onClick={() => handleRequestQuestion()} disabled={isBtnRequestQuestion}  >
               {TextButtonRequestQuestion}
             </Button>
           </li>

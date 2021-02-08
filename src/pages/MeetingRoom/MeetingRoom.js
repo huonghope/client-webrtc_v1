@@ -16,7 +16,7 @@ import LocalStreamComponent from './components/LocalStreamComponent'
 import ChatComponent from './components/ChatComponent'
 import WhiteBoard from './components/WhiteBoard'
 
-import moment from 'moment'
+import moment, { relativeTimeThreshold } from 'moment'
 import meetingRoomSelect from './MeetingRoom.Selector'
 import HeadingControllerStudent from './components/HeadingController/HeadingControllerStudent/index'
 
@@ -76,6 +76,7 @@ class MeetingRoom extends Component {
       loading: true,
       shareScream: null,
       startTime: null,
+      errorDevice: false,
     }
 
     this.recordVideo = null;
@@ -90,7 +91,7 @@ class MeetingRoom extends Component {
     }
     //!refactory해야함
     const handleSuccess = stream => {
-      const videoTracks = stream.getVideoTracks()
+      // const videoTracks = stream.getVideoTracks()
       this.props.dispatch(meetingRoomAction.whoIsOnline())
       // if(this.props.localStream){
       //   this.setState({
@@ -108,6 +109,9 @@ class MeetingRoom extends Component {
     const handleError = error => {
       if (error) {
         console.log("카메라를 찾을 수 없습니다.")
+        this.setState({
+          errorDevice: true
+        })
         // window.location.reload();
       }
       if (error.name === "ConstraintNotSatisfiedError") {
@@ -490,44 +494,49 @@ class MeetingRoom extends Component {
   }
   //!들어갈 사람이 만끝 sleep 시간을 더 길어야되지 않을까?
   //화면공유의 화이브보드
-  handleScreenMode = () => {
+  handleScreenMode = async () => {
     try {
       navigator.mediaDevices
         .getDisplayMedia({
           video: {
-            cursor: "always"
+            cursor: "always",
           },
-          audio: true
+          audio: true,
         })
         .then(stream => {
-          this.setState({
-            localStreamTemp: this.state.localStream,
-            remoteStreamsTemp: this.state.remoteStreams,
-            localStream: stream,
-            remoteStreams: [],
-          })
+          
           const { peerConnections, shareScream } = this.state
           let videoTrack = stream.getVideoTracks()[0]
-          Object.values(peerConnections).forEach(pc => {
+          Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
             })
             this.setState({
               shareScream: !shareScream
             })
-            this.sleep(1000)
             sender.replaceTrack(videoTrack)
+            //!들어가는사람개수만큼 시간이 조절할 필요함
+            await this.sleep(1000)
           })
+
+          this.setState({
+            localStreamTemp: this.state.localStream,
+            remoteStreamsTemp: this.state.remoteStreams,
+            localStream: stream,
+            remoteStreams: [],
+          })
+
           //화면 공유 중지
           const { localStreamTemp } = this.state
           videoTrack.onended = () => {
             let videoTrack = localStreamTemp.getVideoTracks()[0]
-            Object.values(peerConnections).forEach(pc => {
+            Object.values(peerConnections).forEach(async pc => {
               var sender = pc.getSenders().find(function (s) {
                 return s.track.kind === videoTrack.kind
               })
-              this.sleep(1000)
               sender.replaceTrack(videoTrack)
+              //!들어가는사람개수만큼 시간이 조절할 필요함
+               await this.sleep(1000)
             })
             this.setState({
               localStream: localStreamTemp,
@@ -541,42 +550,48 @@ class MeetingRoom extends Component {
     }
   }
   //화면공유 이벤트
-  handleScreenModeMain = () => {
+  handleScreenModeMain = async () => {
     try {
       navigator.mediaDevices
         .getDisplayMedia({
           video: {
-            cursor: "always"
+            cursor: "always",
           },
-          audio: true
+          audio: true,
         })
         .then(stream => {
-          this.setState({
-            localStreamTemp: this.state.localStream,
-            localStream: stream,
-          })
+
           const { peerConnections, shareScream } = this.state
           let videoTrack = stream.getVideoTracks()[0]
-          Object.values(peerConnections).forEach(pc => {
+          Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
             })
             this.setState({
               shareScream: !shareScream
             })
-            this.sleep(1000)
             sender.replaceTrack(videoTrack)
+            //!들어가는사람개수만큼 시간이 조절할 필요함
+            await this.sleep(1000)
           })
+          
+          this.setState({
+            localStreamTemp: this.state.localStream,
+            localStream: stream,
+          })
+
           //화면 공유 중지
           const { localStreamTemp } = this.state
           videoTrack.onended = () => {
             let videoTrack = localStreamTemp.getVideoTracks()[0]
-            Object.values(peerConnections).forEach(pc => {
-              var sender = pc.getSenders().find(function (s) {
-                return s.track.kind === videoTrack.kind
-              })
-              this.sleep(1000)
-              sender.replaceTrack(videoTrack)
+            Object.values(peerConnections).forEach(async pc => {
+                var sender = pc.getSenders().find(function (s) {
+                  return s.track.kind === videoTrack.kind
+                  }
+                )
+                sender.replaceTrack(videoTrack)
+                //!들어가는사람개수만큼 시간이 조절할 필요함
+               await this.sleep(1000)
             })
             this.setState({
               localStream: localStreamTemp,
@@ -609,7 +624,18 @@ class MeetingRoom extends Component {
       }))
     }
   }
+  handleDataAvailable = event => {
+    if (event.data && event.data.size > 0) {
+      this.setState({
+        recordedBlobs: [event.data]
+      })
+    }
+  }
   handleScreamRecording = () => {
+    // const { createFFmpeg, fetchFile } = FFmpeg
+    // const ffmpeg = createFFmpeg({ log: true })
+    const localRecord = document.getElementById("local")
+    const chunks = []
 
     const { enableRecord } = this.state
     if (!enableRecord) {
@@ -637,37 +663,26 @@ class MeetingRoom extends Component {
 
       mediaRecorder.ondataavailable = this.handleDataAvailable
       mediaRecorder.onstop = () => {
-        const { recordedBlobs, startTime } = this.state
-        var duration = Date.now() - startTime;
-        var buggyBlob = new Blob(recordedBlobs, { type: 'video/webm' });
+        const { recordedBlobs } = this.state
+        const blob = new Blob(recordedBlobs, { type: "video/webm" })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.style.display = "none"
+        a.href = url
 
-        ysFixWebmDuration(buggyBlob, duration, function (fixedBlob) {
-
-          // displayResult(fixedBlob);
-          // const blob = new Blob(fixedBlob, { type: "video/webm" })
-          const url = window.URL.createObjectURL(fixedBlob)
-          const a = document.createElement("a")
-          a.style.display = "none"
-          a.href = url
-
-          let currentDay = moment().format('l').replace("/", "_") + "_" + moment().format('LTS').replace(":", "_").replace("PM", "");
-          a.download = `${currentDay}.webm`
-          document.body.appendChild(a)
-          a.click()
-          setTimeout(() => {
-            document.body.removeChild(a)
-            window.URL.revokeObjectURL(url)
-          }, 100)
-
-        });
-
-
+        let currentDay = moment().format('l').replace("/", "_") +"_"+ moment().format('LTS').replace(":", "_").replace("PM", "").replace("AM", "");
+        a.download = `${currentDay}.webm`
+        document.body.appendChild(a)
+        a.click()
+        setTimeout(() => {
+          document.body.removeChild(a)
+          window.URL.revokeObjectURL(url)
+        }, 100)
       }
       mediaRecorder.start()
       console.log("MediaRecorder started", mediaRecorder)
 
       this.setState({
-        startTime: Date.now(),
         mediaRecorder,
         enableRecord: !this.state.enableRecord
       })
@@ -677,6 +692,13 @@ class MeetingRoom extends Component {
       this.setState({
         enableRecord: !this.state.enableRecord
       })
+    }
+  }
+  handleDataAvailable = event => {
+    if (event.data && event.data.size > 0) {
+      this.setState(prevState => ({
+        recordedBlobs: [...prevState.recordedBlobs , event.data]
+      }))
     }
   }
   render() {
@@ -689,7 +711,14 @@ class MeetingRoom extends Component {
       fullScream,
       paintScream,
       loading,
+      errorDevice
     } = this.state
+    
+    if(errorDevice){
+      console.log("카메라를 찾지 못합니다. 새로고침을 한번 하세요.")
+      // return;
+    }
+
     if (disconnected) {
       try {
         // disconnect socket

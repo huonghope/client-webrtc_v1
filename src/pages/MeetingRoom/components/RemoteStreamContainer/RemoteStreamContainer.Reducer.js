@@ -5,7 +5,7 @@ const initialState = {
   listUser: [],
   lectureInfo: null,
   listUserRequest: [],
-  userRequest: {}
+  userRequest: null
 }
 
 export const remoteReducer =(state = initialState, { type, payload })  =>

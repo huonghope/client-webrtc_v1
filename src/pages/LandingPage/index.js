@@ -80,12 +80,12 @@ function Landing(props) {
     if (deviceId) {
       constraints = {
         video: { deviceId: { exact: deviceId } },
-        audio: { deviceId: audioInput.value ? { exact: audioInput.value } : undefined }
+        audio: true
       };
     } else {
       constraints = {
         video: { deviceId: videoInput.value ? { exact: videoInput.value } : undefined },
-        audio: { deviceId: audioInput.value ? { exact: audioInput.value } : undefined }
+        audio: true
       };
     }
     const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))

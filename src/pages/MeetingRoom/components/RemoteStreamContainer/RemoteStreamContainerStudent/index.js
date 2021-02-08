@@ -292,9 +292,7 @@ const VideoItem = ({ videoStream, time, req_question_status, req_lecOut_status, 
           <div>
             <h3>자리비움 중</h3>
             <CountTime startTime = {startTime}  />
-            <button onClick={() => handleCancelLecOut()}>
-              복귀하기
-              </button>
+            <button onClick={() => handleCancelLecOut()}>복귀하기</button>
           </div>
         </div>
       }

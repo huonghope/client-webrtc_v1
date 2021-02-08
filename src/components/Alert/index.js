@@ -12,26 +12,29 @@ function Alert({ title, content, handleClickAccept, handleClickReject, btnAccept
         </i>
         <h3 className="container-alert__title">{title}</h3>
         <p className="container-alert__content">{content}</p>
-        <div className="container-alert__btn">
-          <button
-            className="container-alert__btn--cancel"
-            onClick={() => {
-              handleClickReject()
-              closeEvent()
-            }}
-          >
-            {btnReject}
-          </button>
-          <button
-            className="container-alert__btn--accept"
-            onClick={() => {
-              handleClickAccept()
-              closeEvent()
-            }}
-          >
-            {btnAccept}
-          </button>
-        </div>
+        {
+          !(handleClickAccept === undefined) &&
+          <div className="container-alert__btn">
+            <button
+              className="container-alert__btn--cancel"
+              onClick={() => {
+                handleClickReject()
+                closeEvent()
+              }}
+            >
+              {btnReject}
+            </button>
+            <button
+              className="container-alert__btn--accept"
+              onClick={() => {
+                handleClickAccept()
+                closeEvent()
+              }}
+            >
+              {btnAccept}
+            </button>
+          </div>
+        }
       </div>
     </WrapperAlert>
   )
