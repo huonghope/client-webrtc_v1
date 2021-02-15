@@ -147,6 +147,10 @@ function ChatComponent(props) {
   const renderMessage = (userType, data) => {
     const { type } = data
     let msgDiv
+    if(type === 'test_Concentration'){
+      return;
+    }
+
     switch (type) {
       case "text":
         msgDiv = MessageComponent(userType, data)

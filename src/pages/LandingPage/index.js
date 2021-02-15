@@ -188,7 +188,7 @@ const Video = ({ stream }) => {
     localVideo.current.srcObject = stream;
   }, [stream, localVideo]);
   return (
-    <video ref={localVideo} autoPlay />
+    <video ref={localVideo} autoPlay muted />
   );
 }
 

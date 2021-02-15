@@ -148,6 +148,7 @@ class Video extends Component {
     }
   }
 
+
   
   render() {
     const { mic, camera, chat } = this.state;

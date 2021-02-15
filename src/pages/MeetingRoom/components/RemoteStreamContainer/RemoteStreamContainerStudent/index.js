@@ -165,6 +165,8 @@ class RemoteStreamContainerStudent extends Component {
   }
   render() {
     const { loading, rVideos } = this.state
+    console.log(this.props.remoteStreams)
+    console.log(rVideos)
     if (loading) {
       return (
         <WrapperLoading className="loading" style={{ background: 'black' }}>

@@ -16,7 +16,7 @@ import LocalStreamComponent from './components/LocalStreamComponent'
 import ChatComponent from './components/ChatComponent'
 import WhiteBoard from './components/WhiteBoard'
 
-import moment, { relativeTimeThreshold } from 'moment'
+import moment from 'moment'
 import meetingRoomSelect from './MeetingRoom.Selector'
 import HeadingControllerStudent from './components/HeadingController/HeadingControllerStudent/index'
 
@@ -46,10 +46,44 @@ class MeetingRoom extends Component {
 
       pc_config: {
         "iceServers": [
+          // {
+          //   urls: 'stun:stun.l.google.com:19302',
+          //   username: "webrtc",
+          // },
+          {url:'stun:stun01.sipphone.com'},
+          {url:'stun:stun.ekiga.net'},
+          {url:'stun:stun.fwdnet.net'},
+          {url:'stun:stun.ideasip.com'},
+          {url:'stun:stun.iptel.org'},
+          {url:'stun:stun.rixtelecom.se'},
+          {url:'stun:stun.schlund.de'},
+          {url:'stun:stun.l.google.com:19302'},
+          {url:'stun:stun1.l.google.com:19302'},
+          {url:'stun:stun2.l.google.com:19302'},
+          {url:'stun:stun3.l.google.com:19302'},
+          {url:'stun:stun4.l.google.com:19302'},
+          {url:'stun:stunserver.org'},
+          {url:'stun:stun.softjoys.com'},
+          {url:'stun:stun.voiparound.com'},
+          {url:'stun:stun.voipbuster.com'},
+          {url:'stun:stun.voipstunt.com'},
+          {url:'stun:stun.voxgratia.org'},
+          {url:'stun:stun.xten.com'},
           {
-            urls: 'stun:stun.l.google.com:19302',
-            username: "webrtc",
+            url: 'turn:numb.viagenie.ca',
+            credential: 'muazkh',
+            username: 'webrtc@live.com'
           },
+          {
+            url: 'turn:192.158.29.39:3478?transport=udp',
+            credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+            username: '28224511:1379330808'
+          },
+          {
+            url: 'turn:192.158.29.39:3478?transport=tcp',
+            credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+            username: '28224511:1379330808'
+          }
         ]
       },
 
@@ -59,22 +93,20 @@ class MeetingRoom extends Component {
           OfferToReceiveVideo: true
         }
       },
-      // sdpConstraints: {
-      //   offerToReceiveAudio: 0,
-      //   offerToReceiveVideo: 1
-      // },
 
       isMainRoom: false,
 
       recordedBlobs: [],
+      shareScream: null,
+      shareScreamForWhiteBoard: false,
       disconnected: false,
 
       fullScream: false,
       paintScream: false,
       enableRecord: false,
       windowSize: false,
+
       loading: true,
-      shareScream: null,
       startTime: null,
       errorDevice: false,
     }
@@ -328,12 +360,14 @@ class MeetingRoom extends Component {
             }
           })
           const { isMainRoom } = this.state
-          console.log(isMainRoom)
+          const randInt = (min, max) => Math.floor(min + Math.random() * (max - min + 1));
+          const timeLoad = randInt(3,7)
+          console.log(timeLoad)
           if (!isMainRoom) {
             //2500s 후에 새로고침
             setTimeout(() => {
-              window.location.reload();
-            }, 2500);
+              window.location.href = window.location.href
+            }, 1000 * timeLoad);
           }
         }
       } catch (error) {
@@ -430,7 +464,7 @@ class MeetingRoom extends Component {
       // pc = this.state.peerConnections[data.socketID];
       
       this.setState({ sdpData: data})
-      // data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:100\r\n');
+      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:15\r\n');
 
       pc = this.state.peerConnections[data.socketID];
       pc.setRemoteDescription(
@@ -493,7 +527,11 @@ class MeetingRoom extends Component {
     })
   }
   //!들어갈 사람이 만끝 sleep 시간을 더 길어야되지 않을까?
+  //!여기 remoteStream는 null 하면 안됨
   //화면공유의 화이브보드
+  /**
+   *  화면공유할때 연결되어 있는 stream를 숨김 
+   */
   handleScreenMode = async () => {
     try {
       navigator.mediaDevices
@@ -504,26 +542,23 @@ class MeetingRoom extends Component {
           audio: true,
         })
         .then(stream => {
-          
-          const { peerConnections, shareScream } = this.state
+          const { peerConnections, shareScreamForWhiteBoard } = this.state
           let videoTrack = stream.getVideoTracks()[0]
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
             })
-            this.setState({
-              shareScream: !shareScream
-            })
             sender.replaceTrack(videoTrack)
             //!들어가는사람개수만큼 시간이 조절할 필요함
-            await this.sleep(1000)
+            await this.sleep(1500)
           })
 
           this.setState({
             localStreamTemp: this.state.localStream,
-            remoteStreamsTemp: this.state.remoteStreams,
+            // remoteStreamsTemp: this.state.remoteStreams,
             localStream: stream,
-            remoteStreams: [],
+            // remoteStreams: [],
+            shareScreamForWhiteBoard: !shareScreamForWhiteBoard
           })
 
           //화면 공유 중지
@@ -536,12 +571,12 @@ class MeetingRoom extends Component {
               })
               sender.replaceTrack(videoTrack)
               //!들어가는사람개수만큼 시간이 조절할 필요함
-               await this.sleep(1000)
+               await this.sleep(1500)
             })
             this.setState({
+              // remoteStreams: this.state.remoteStreamsTemp,
               localStream: localStreamTemp,
-              remoteStreams: this.state.remoteStreamsTemp,
-              shareScream: false
+              shareScreamForWhiteBoard: !shareScreamForWhiteBoard
             })
           }
         })
@@ -567,17 +602,15 @@ class MeetingRoom extends Component {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
             })
-            this.setState({
-              shareScream: !shareScream
-            })
             sender.replaceTrack(videoTrack)
             //!들어가는사람개수만큼 시간이 조절할 필요함
-            await this.sleep(1000)
+            await this.sleep(1500)
           })
           
           this.setState({
             localStreamTemp: this.state.localStream,
             localStream: stream,
+            shareScream: !shareScream
           })
 
           //화면 공유 중지
@@ -591,11 +624,11 @@ class MeetingRoom extends Component {
                 )
                 sender.replaceTrack(videoTrack)
                 //!들어가는사람개수만큼 시간이 조절할 필요함
-               await this.sleep(1000)
+               await this.sleep(1500)
             })
             this.setState({
               localStream: localStreamTemp,
-              shareScream: false
+              shareScream: !shareScream
             })
           }
         })
@@ -711,7 +744,8 @@ class MeetingRoom extends Component {
       fullScream,
       paintScream,
       loading,
-      errorDevice
+      errorDevice,
+      shareScreamForWhiteBoard
     } = this.state
     
     if(errorDevice){
@@ -770,20 +804,18 @@ class MeetingRoom extends Component {
           <div className="remote-stream">
             {
               !loading ?
-                paintScream ? (
-                  <WhiteBoard />
-                ) :
-                  (
-                    isMainRoom ?
-                      <RemoteStreamContainer
-                        paintScream={!paintScream}
-                        remoteStreams={remoteStreams}
-                      />
-                      :
-                      <RemoteStreamContainerStudent
-                        remoteStreams={remoteStreams}
-                      />
-                  )
+                paintScream ?  
+                <WhiteBoard />
+                 :
+                isMainRoom ?
+                  <RemoteStreamContainer
+                    paintScream={!paintScream}
+                    remoteStreams={remoteStreams}
+                  />
+                  :
+                  <RemoteStreamContainerStudent
+                    remoteStreams={remoteStreams}
+                  />
                 : <WrapperLoading type={"bars"} color={"black"} />
             }
           </div>
