@@ -24,7 +24,7 @@ function CreateRoom(props) {
         sl_idx,
         user_idx,
       }
-      
+      localStorage.clear();
       dispatch(actions.doSignIn(userInfo))
       //인증성공
       if(!signLoading && !error){

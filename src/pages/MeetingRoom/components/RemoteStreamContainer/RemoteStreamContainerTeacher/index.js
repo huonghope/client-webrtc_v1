@@ -315,8 +315,7 @@ class RemoteStreamContainer extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (
-      this.props.remoteStreams !== nextProps.remoteStreams ||
-      this.props.paintScream !== nextProps.paintScream
+      this.props.remoteStreams !== nextProps.remoteStreams
     ) {
       //!요청한 학생 체크할 필요한가?
       const fetchVideos = async () => {
@@ -336,6 +335,7 @@ class RemoteStreamContainer extends Component {
 
   render() {
     const { loading } = this.state
+    const { paintScream } = this.props
     if (loading) {
       return (
         <WrapperLoading className="loading" style={{background: 'black'}}>
@@ -348,7 +348,7 @@ class RemoteStreamContainer extends Component {
       )
     }
     return (
-      <div className="remote-stream__container">
+      <div className="remote-stream__container" style={paintScream ? {display: "none"} : {}}>
         <div className="list-videos">
           <div className={`video-${this.state.rVideos.length}`}>
             {this.state.rVideos}
@@ -484,7 +484,6 @@ const SetVideos =  (remoteStreams, props) => {
       })
 
       props.dispatch(remoteStreamContainerAction.saveListUser(listUser))
-      
       let _filterRemote = remoteStreams.filter(rVideo => listUser.find(({ socket_id }) => rVideo.id === socket_id) && rVideo)
       let _rVideos = _filterRemote.map((rVideo, index) => {
         const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
@@ -500,7 +499,6 @@ const SetVideos =  (remoteStreams, props) => {
          * @end_time : 끝나는 시간
          */
         const { listUserRequest } = props
-        console.log(listUserRequest)
         let isExistsRequest = listUserRequest.find(e => e.userId === rVideo.userInfo.user_idx
         && e.status !== "0"
         && e.reqInfo.end_time === null) //요청이 없는 사람
@@ -508,8 +506,6 @@ const SetVideos =  (remoteStreams, props) => {
 
         //해당하는 학생이 요청하고 있고 끝나지 않는 경우에는
         if (isExistsRequest) { 
-          console.log(isExistsRequest)
-          console.log(rVideo)
           const { type } = isExistsRequest
           const {  status } = isExistsRequest
           let requestValue = false
@@ -528,13 +524,8 @@ const SetVideos =  (remoteStreams, props) => {
             req_question_status = type === 'request_question' ? status : false
             req_lecOut_status = type === 'request_lecOut' ? status : false
             if(type.includes('request_lecOut')){
-              console.log(req_question_status)
-              console.log(req_lecOut_status)
               startTime = moment(isExistsRequest.reqInfo.start_time).format('DD/MM/YYYYHH:mm:ss')
-              console.log(startTime)
             }else{
-              console.log(req_question_status)
-              console.log(req_lecOut_status)
               const UserRoomId = () => {
                 return JSON.parse(window.localStorage.getItem("usr_id"))
               }

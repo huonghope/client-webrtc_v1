@@ -165,8 +165,6 @@ class RemoteStreamContainerStudent extends Component {
   }
   render() {
     const { loading, rVideos } = this.state
-    console.log(this.props.remoteStreams)
-    console.log(rVideos)
     if (loading) {
       return (
         <WrapperLoading className="loading" style={{ background: 'black' }}>
@@ -200,7 +198,6 @@ class RemoteStreamContainerStudent extends Component {
 const SetVideo = (remoteStream, props) => {
   return new Promise((resolve, rej) => {
     const { userRequest } = props
-    console.log(userRequest)
     let _rVideo
     //요청하고 있음
     if(userRequest){

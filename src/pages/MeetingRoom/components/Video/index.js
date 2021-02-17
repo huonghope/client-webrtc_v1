@@ -28,7 +28,6 @@ class Video extends Component {
     }
     getSocket().on("alert-user-mute-mic-all", data => {
       if (!this.props.isHostUser && this.props.videoStream) {
-        console.log("전제 음성",data.data);
         this.mutemic(data.data)
       }
     })
@@ -57,13 +56,11 @@ class Video extends Component {
     }
     //자기 음성을 끄기
     if (this.props.localStream && nextProps.micState !== this.props.micState && nextProps.videoStream) {
-      console.log("음성상태 변화: ", nextProps.micState)
       this.mutemic(nextProps.micState)
     }
 
     //자기 카메라 끄기
     if (this.props.localStream  && nextProps.camState !== this.props.camState && nextProps.videoStream ) {
-      console.log("카메로상태 변화: ", nextProps.camState)
       this.mutecamera(nextProps.camState)
     }
     //
@@ -113,9 +110,7 @@ class Video extends Component {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "audio")
       if(stream.length !== 0){
         if(this.props.localStream){
-          console.log(this.props.localStream)
           if(e !== null){
-            console.log("mic status", e)
             this.setState(prevState => {
               if (stream) stream[0].enabled = e
               return { mic: e }
@@ -135,7 +130,6 @@ class Video extends Component {
       const stream = this.video.srcObject.getTracks().filter(track => track.kind === "video")
       if(stream.length !== 0){
         if(e !== null){
-          console.log(e)
           this.setState(prevState => {
             if (stream) stream[0].enabled = e
             return { camera: e }
