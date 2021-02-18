@@ -88,20 +88,20 @@ class MeetingRoom extends Component {
             credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
             username: '28224511:1379330808'
           },
-          //My Xirsys
-          {
-            credential: '109ae84a-70fb-11eb-9b70-0242ac140004',
-            urls: [
-              'stun:tk-turn2.xirsys.com',
-              'turn:tk-turn2.xirsys.com:80?transport=udp',
-              'turn:tk-turn2.xirsys.com:3478?transport=udp',
-              'turn:tk-turn2.xirsys.com:80?transport=tcp',
-              'turn:tk-turn2.xirsys.com:3478?transport=tcp',
-              'turns:tk-turn2.xirsys.com:443?transport=tcp',
-              'turns:tk-turn2.xirsys.com:5349?transport=tcp'
-            ],
-            username: 'UY1wRV4cKT7M7z7hJWrqQcSTgW7RhyqodNuA3BFGNwGHIZSZ8vBMTqSJEWAelxxrAAAAAGAs1UZIdW9uZ1JveWFs'
-          },
+          //My Xirsys values sturn & turn
+          // {
+          //   credential: '109ae84a-70fb-11eb-9b70-0242ac140004',
+          //   urls: [
+          //     'stun:tk-turn2.xirsys.com',
+          //     'turn:tk-turn2.xirsys.com:80?transport=udp',
+          //     'turn:tk-turn2.xirsys.com:3478?transport=udp',
+          //     'turn:tk-turn2.xirsys.com:80?transport=tcp',
+          //     'turn:tk-turn2.xirsys.com:3478?transport=tcp',
+          //     'turns:tk-turn2.xirsys.com:443?transport=tcp',
+          //     'turns:tk-turn2.xirsys.com:5349?transport=tcp'
+          //   ],
+          //   username: 'UY1wRV4cKT7M7z7hJWrqQcSTgW7RhyqodNuA3BFGNwGHIZSZ8vBMTqSJEWAelxxrAAAAAGAs1UZIdW9uZ1JveWFs'
+          // },
 
         ]
       },
@@ -132,9 +132,9 @@ class MeetingRoom extends Component {
 
     this.recordVideo = null;
   }
-
   //!기계를 체크할 필요함
   getLocalStream = async () => {
+    const { peerCount } = this.state
     
     //!refactory해야함
     const handleSuccess = stream => {
@@ -186,20 +186,60 @@ class MeetingRoom extends Component {
             }
           }
         }
+       
         const getStream = async () => {
           const response = await services.getCurrent()
           const { data } = response
+          console.log(peerCount)
           let constraints = {
-            audio: true,
-            video: {width: {exact: 320}, height: {exact: 240}}
+            audio: {
+              sampleSize: 8,
+              channelCount: 2,
+              echoCancellation: false
+            },
           }
+          /**
+           * 강사의 화면 해상도: 1280 * 720 (HD)
+           */
           if(data.user_tp === 'T' || data.user_tp === 'I'){
             console.log("강사 화면 해상도")
-            constraints = {
-              audio: true,
-              video: {width: {exact: 1280}, height: {exact: 720}}
+            constraints.video = {
+              frameRate: 15,
+              logicalSurface: true,
+              width:  { exact: 1280 }, 
+              height: { exact: 720 },
+            }
+            setTimeout(() => {
+              getSocket().emit("edit-stream")
+            }, 10 * 1000);
+          /**
+           * 학생: 
+           * 4명 이하: 640 * 480 (VGA)
+           * 15명 이하: 320 * 240 (QVGA)
+           * 15 이상: 160 * 120 (QQVGA)
+           */
+          }else{
+            if(0 <= peerCount && peerCount  <= 5){
+              console.log("4명 들어갔으때", peerCount)
+              constraints.video ={
+                  width: { exact: 640 }, 
+                  height:{ exact: 480 }
+              }
+            }else if(6 <= peerCount && peerCount <= 16){
+              console.log("5명 ~ 15명까지  들어갔으때", peerCount)
+              constraints.video = {
+                  width: { exact: 320 }, 
+                  height:{ exact: 240 }
+              }
+            }else{  
+              console.log("15 이상", peerCount)
+              constraints.video = {
+                  width: { exact: 240 }, 
+                  height:{ exact: 120 }
+              }
             }
           }
+          console.log("constraints", constraints)
           const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
           handleSuccess(stream)
         }
@@ -222,20 +262,20 @@ class MeetingRoom extends Component {
   //!PeerConnection 
   createPeerConnection = (socketID, callback) => {
     try {
-      let xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = function ($evt) {
-          if (xhr.readyState == 4 && xhr.status == 200) {
-              let res = JSON.parse(xhr.responseText);
-              console.log("response: ", res.v.iceServers);
-          }
-      }
-      xhr.open("PUT", "https://global.xirsys.net/_turn/MyFirstApp", true);
-      xhr.setRequestHeader("Authorization","Basic " + btoa(
-          "HuongRoyal:3eee5ab2-106e-11eb-b4ce-0242ac150003"));
-      xhr.setRequestHeader("Content-Type","application/json");
-      xhr.send(JSON.stringify({
-          "format": "urls"
-      }));
+      // let xhr = new XMLHttpRequest();
+      // xhr.onreadystatechange = function ($evt) {
+      //     if (xhr.readyState == 4 && xhr.status == 200) {
+      //         let res = JSON.parse(xhr.responseText);
+      //            console.log("response: ", res.v.iceServers);
+      //     }
+      // }
+      // xhr.open("PUT", "https://global.xirsys.net/_turn/MyFirstApp", true);
+      // xhr.setRequestHeader("Authorization","Basic " + btoa(
+      //     "HuongRoyal:3eee5ab2-106e-11eb-b4ce-0242ac150003"));
+      // xhr.setRequestHeader("Content-Type","application/json");
+      // xhr.send(JSON.stringify({
+      //     "format": "urls"
+      // }));
       
       let pc = new RTCPeerConnection(this.state.pc_config)
 
@@ -306,7 +346,7 @@ class MeetingRoom extends Component {
       if (this.state.localStream)
         this.state.localStream.getTracks().forEach(track => {
           pc.addTrack(track, this.state.localStream)
-        })
+      })
       callback(pc)
     } catch (e) {
       console.log("Something went wrong! pc not created!!", e)
@@ -336,7 +376,6 @@ class MeetingRoom extends Component {
     }
 
     fetchCurrentUser()
-
     getSocket().emit("join-room")
     getSocket().on("user-role", data => {
       const { userRole } = data
@@ -352,13 +391,13 @@ class MeetingRoom extends Component {
     //! Redux 저장할 필요없나?
     /************** Peer connect */
     getSocket().on("connection-success", data => {
-      this.getLocalStream()
       this.setState({
         messages: data.messages,
         localMicMute: this.state.isMainRoom ? false : true,
         loading: false,
         peerCount: data.peerCount
       })
+      this.getLocalStream()
     })
     getSocket().on("peer-disconnected", data => {
       try {
@@ -384,7 +423,6 @@ class MeetingRoom extends Component {
           const randInt = (min, max) => Math.floor(min + Math.random() * (max - min + 1));
           const timeLoad = randInt(3,7)
           if (!isMainRoom) {
-            //2500s 후에 새로고침
             setTimeout(() => {
               window.location.href = window.location.href
             }, 1000 * timeLoad);
@@ -427,8 +465,9 @@ class MeetingRoom extends Component {
             } catch (error) {
               console.log("Add Stream Error", error)
             }
+
             // 강사화면부터 학생화면을 sdp를 얼마나 주고싶으면 설정
-            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:200000\r\n');
+            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
                 pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
@@ -440,44 +479,109 @@ class MeetingRoom extends Component {
                 });
               }
             );
-
           } catch (error) {
-            window.location.reload();
+            // window.location.reload();
           }
         })
       } catch (error) {
         console.log(error)
       }
     })
-    const updateBandwidthRestriction = async (sdp, bandwidth) => {
-      let modifier = 'AS';
-      if (adapter.browserDetails.browser === 'firefox') {
-        bandwidth = (bandwidth >>> 0) * 1000;
-        modifier = 'TIAS';
-      }
-      if (sdp.indexOf('b=' + modifier + ':') === -1) {
-        sdp = sdp.replace(/c=IN (.*)\r\n/, 'c=IN $1\r\nb=' + modifier + ':' + bandwidth + '\r\n');
-      } else {
-        sdp = sdp.replace(new RegExp('b=' + modifier + ':.*\r\n'), 'b=' + modifier + ':' + bandwidth + '\r\n');
-      }
-      return sdp;
-    }
     /**
      * A부터 받은 answer를 B PC에서 처리하는 이벤트
      * Audio 및 Video를 B PC에서 원하는 sdp값을 설정해서 A PC를 전달해줌
+     * 
      */
     getSocket().on("answer", data => {
       let pc = null
       this.setState({ sdpData: data})
-      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:100\r\n');
+      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
       pc = this.state.peerConnections[data.socketID];
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
       ).then(() => {});
-
     })
 
-    getSocket().on("share-scream", async ({shareScream, peerCount}) => {
+    getSocket().on("alert-edit-scream", async ({levelConstraints}) => {
+      const { localStream, peerConnections } = this.state
+      if (localStream) {
+        const constraints = {
+          width: { exact: 240  },
+          height: { exact: 120 },
+        };
+        console.log("change track", constraints)
+        let videoTrack = localStream.getVideoTracks()[0];
+        
+        await videoTrack.applyConstraints({
+          width: 240,
+          height: 120
+        }).then(() => {
+         
+        }).catch(function(reason) {
+          console.log(reason)
+        });
+
+        console.log(constraints == videoTrack.getConstraints()); // true
+        Object.values(peerConnections).forEach(async pc => {
+          var sender = pc.getSenders().find(function (s) {
+            return s.track.kind === videoTrack.kind
+          })
+          console.log("change track", sender)
+          sender.replaceTrack(videoTrack)
+          // await this.sleep(1000 * sleepTime)
+        })
+        // console.log("change localstream", levelConstraints)
+
+        // let constraints = {
+        //     audio: {
+        //       sampleSize: 8,
+        //       channelCount: 2,
+        //       echoCancellation: false
+        //     },
+        // }
+        // if(levelConstraints === "VGA"){ 
+        //   console.log("4명 들어갔으때", levelConstraints)
+        //   constraints.video ={
+        //       width: { exact: 640 }, 
+        //       height:{ exact: 480 }
+        //   }
+        // }else if(levelConstraints === "QVGA"){
+        //   console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
+        //   constraints.video = {
+        //       width: { exact: 320 }, 
+        //       height:{ exact: 240 }
+        //   }
+        // }else if(levelConstraints === "QQVGA"){  
+        //   console.log("15 이상", levelConstraints)
+        //   constraints.video = {
+        //       width: { exact: 240 }, 
+        //       height:{ exact: 120 }
+        //   }
+        // }
+        // if(constraints.video.width.exact === localStream.getVideoTracks()[0].getConstraints().width.exact &&
+        //   constraints.video.height.exact === localStream.getVideoTracks()[0].getConstraints().height.exact){
+        //   return;
+        // }
+        // console.log("change localstream", constraints)
+        // localStream.getTracks().forEach(track => {
+        //   track.stop();
+        // });
+
+        // const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => console.log(e))
+        // this.setState({
+        //   localStream: stream,
+        // })
+  
+        // let videoTrack = stream.getVideoTracks()[0]
+        // Object.values(peerConnections).forEach(async pc => {
+        //   var sender = pc.getSenders().find(function (s) {
+        //     return s.track.kind === videoTrack.kind
+        //   })
+        //   sender.replaceTrack(videoTrack)
+        // })
+     }
+    })
+    getSocket().on("alert-share-scream", async ({shareScream, peerCount}) => {
       const { sdpData, peerConnections } = this.state;
       let pc = null
       let data = sdpData
@@ -485,9 +589,9 @@ class MeetingRoom extends Component {
         //화면 공유했을때
         data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\nb=AS:.*\r\n/, 'm=video $1\r\nc=IN $2\r\n'); //remove
         if(0 <= peerCount <= 10 ){
-          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:800\r\n'); //update
+          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:90\r\n'); //update
         }else if(11 <= peerCount <= 20){
-          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:100\r\n');
+          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:75\r\n');
         }else{
           data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:50\r\n');
         }
@@ -505,7 +609,7 @@ class MeetingRoom extends Component {
         //화면공유 취소
         pc = peerConnections[sdpData.socketID];
         data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\nb=AS:.*\r\n/, 'm=video $1\r\nc=IN $2\r\n'); //remove
-        data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:200000\r\n'); //update
+        data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n'); //update
         console.log("up sdp", data)
         if (pc) {
           pc.createOffer().then(offer => pc.setLocalDescription(offer))
@@ -588,24 +692,31 @@ class MeetingRoom extends Component {
     }
   }
 
-  //!들어갈 사람이 만끝 sleep 시간을 더 길어야되지 않을까?
-  //!여기 remoteStream는 null 하면 안됨
   //화면공유의 화이브보드
   /**
    *  화면공유할때 연결되어 있는 stream를 숨김 
    */
   handleScreenMode = async () => {
     try {
+      let videoConstraints = {
+        video: {
+          cursor: "always",
+          // aspectRatio: 1.33,
+          frameRate: 15,
+          width: 640, 
+          height: 480,
+          logicalSurface: true,
+        },
+        audio: true,
+      };
       navigator.mediaDevices
-        .getDisplayMedia({
-          video: {
-            cursor: "always",
-          },
-          audio: true,
-        })
+        .getDisplayMedia(videoConstraints)
         .then(stream => {
           const { peerConnections, shareScreamForWhiteBoard, peerCount } = this.state
           const sleepTime = this.calSleepTime(Number(peerCount))
+          meetingRoomSocket.sendToPeer("share-scream", true);
+          // getSocket().emit("edit-stream")
+
           let videoTrack = stream.getVideoTracks()[0]
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
@@ -636,6 +747,7 @@ class MeetingRoom extends Component {
               //!들어가는사람개수만큼 시간이 조절할 필요함
                await this.sleep(1000 * sleepTime)
             })
+            meetingRoomSocket.sendToPeer("share-scream", false);
             this.setState({
               // remoteStreams: this.state.remoteStreamsTemp,
               localStream: localStreamTemp,
@@ -648,26 +760,34 @@ class MeetingRoom extends Component {
     }
   }
   //화면공유 이벤트
+  //video parameters: width, height, frameRate, aspecRatio
   handleScreenModeMain = async () => {
     try {
-      navigator.mediaDevices
-        .getDisplayMedia({
-          video: {
-            cursor: "always",
-          },
-          audio: true,
-        })
-        .then(stream => {
-          const { peerConnections, shareScream, peerCount } = this.state
+      //!TODO check paramater
+      let videoConstraints = {
+        video: {
+          cursor: "always",
+          // aspectRatio: 1.33,
+          frameRate: 15,
+          width: 640, 
+          height: 480,
+          logicalSurface: true,
+        },
+        audio: true,
+      };
+      navigator.mediaDevices.getDisplayMedia(videoConstraints)
+        .then(async stream => {
+          const { peerConnections, shareScream, peerCount, localStream } = this.state
           if(shareScream){
-            alert("다른 화면을 공유하고 있습니다. 다른 공유한 화면을 중지하세요.")
+            alert("다른 화면을 공유하고 있습니다. 공유한 화면을 중지하세요.")
             return;
           }
           meetingRoomSocket.sendToPeer("share-scream", true);
+          getSocket().emit("edit-stream")
+
           const sleepTime = this.calSleepTime(Number(peerCount))
           let videoTrack = stream.getVideoTracks()[0]
-
-          console.log("sleep time", sleepTime)
+          
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
@@ -677,28 +797,28 @@ class MeetingRoom extends Component {
           })
           
           this.setState({
-            localStreamTemp: this.state.localStream,
+            localStreamTemp: localStream,
             localStream: stream,
-            shareScream: true
+            shareScream: true,
+            // remoteStreams: [],
           })
-      
+
           //화면 공유 중지
           const { localStreamTemp } = this.state
           videoTrack.onended = () => {
             let videoTrack = localStreamTemp.getVideoTracks()[0]
             Object.values(peerConnections).forEach(async pc => {
                 var sender = pc.getSenders().find(function (s) {
-                  return s.track.kind === videoTrack.kind
+                    return s.track.kind === videoTrack.kind
                   }
                 )
                 sender.replaceTrack(videoTrack)
-                //!들어가는사람개수만큼 시간이 조절할 필요함
                 await this.sleep(1000 * sleepTime)
             })
             meetingRoomSocket.sendToPeer("share-scream", false);
             this.setState({
               localStream: localStreamTemp,
-              shareScream: false
+              shareScream: false,
             })
           }
         })
@@ -772,7 +892,7 @@ class MeetingRoom extends Component {
         const a = document.createElement("a")
         a.style.display = "none"
         a.href = url
-
+        
         let currentDay = moment().format('l').replace("/", "_") +"_"+ moment().format('LTS').replace(":", "_").replace("PM", "").replace("AM", "");
         a.download = `${currentDay}.webm`
         document.body.appendChild(a)

@@ -3,7 +3,14 @@
   height: 100%;
   background: black;
   z-index: -1;
+  position: relative;
   > video {
     object-fit: cover;
+  }
+  div{
+    position: absolute;
+    color: blue;
+    top: 10px;
+    left: 10px;
   }
 }

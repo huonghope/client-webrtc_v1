@@ -19,6 +19,7 @@ function LocalStreamComponent({localStream}) {
   // useEffect(() => {
   //   console.log("change", localStreamSoundState)
   // }, [localStreamSoundState])
+
   return (
     <div className="local-stream__component">
       <Video
@@ -40,6 +41,11 @@ function LocalStreamComponent({localStream}) {
       autoPlay
       muted //local default true
     ></Video>
+    <div>
+      {
+        localStream && `${localStream.getVideoTracks()[0].getConstraints().width.exact} : ${localStream.getVideoTracks()[0].getConstraints().height.exact}`
+      }
+    </div>
     </div>
   )
 }
