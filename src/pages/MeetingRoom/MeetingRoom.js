@@ -211,7 +211,7 @@ class MeetingRoom extends Component {
             }
             setTimeout(() => {
               getSocket().emit("edit-stream")
-            }, 10 * 1000);
+            }, 15 * 1000);
           /**
            * 학생: 
            * 4명 이하: 640 * 480 (VGA)
@@ -467,7 +467,7 @@ class MeetingRoom extends Component {
             }
 
             // 강사화면부터 학생화면을 sdp를 얼마나 주고싶으면 설정
-            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
+            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:2000\r\n');
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
                 pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
@@ -495,7 +495,7 @@ class MeetingRoom extends Component {
     getSocket().on("answer", data => {
       let pc = null
       this.setState({ sdpData: data})
-      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
+      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:2000\r\n');
       pc = this.state.peerConnections[data.socketID];
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
@@ -505,31 +505,51 @@ class MeetingRoom extends Component {
     getSocket().on("alert-edit-scream", async ({levelConstraints}) => {
       const { localStream, peerConnections } = this.state
       if (localStream) {
-        const constraints = {
-          width: { exact: 240  },
-          height: { exact: 120 },
-        };
-        console.log("change track", constraints)
         let videoTrack = localStream.getVideoTracks()[0];
-        
-        await videoTrack.applyConstraints({
-          width: 240,
-          height: 120
-        }).then(() => {
-         
+
+        console.log(constraints == videoTrack.getConstraints()); // true
+
+          if(levelConstraints === "VGA"){ 
+            console.log("4명 들어갔으때", levelConstraints)
+            constraints.video = {
+                width: { exact: 640 }, 
+                height:{ exact: 480 }
+              }
+          }else if(levelConstraints === "QVGA"){
+            console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
+            constraints.video = {
+              width: { exact: 320 }, 
+              height:{ exact: 240 }
+            }
+          }else if(levelConstraints === "QQVGA"){  
+            console.log("15 이상", levelConstraints)
+            constraints.video = {
+              width: { exact: 240 }, 
+              height:{ exact: 120 }
+            }
+          }
+          if(constraints.video.width.exact === videoTrack.getConstraints().width.exact &&
+            constraints.video.height.exact === videoTrack.getConstraints().height.exact){
+            return;
+          }
+          await videoTrack.applyConstraints({
+            width: 240,
+            height: 120
+          }).then(() => {
+            Object.values(peerConnections).forEach(async pc => {
+            var sender = pc.getSenders().find(function (s) {
+              return s.track.kind === videoTrack.kind
+            })
+            console.log("change track", sender)
+            sender.replaceTrack(videoTrack)
+            // await this.sleep(1000 * sleepTime)
+          })
         }).catch(function(reason) {
           console.log(reason)
         });
 
-        console.log(constraints == videoTrack.getConstraints()); // true
-        Object.values(peerConnections).forEach(async pc => {
-          var sender = pc.getSenders().find(function (s) {
-            return s.track.kind === videoTrack.kind
-          })
-          console.log("change track", sender)
-          sender.replaceTrack(videoTrack)
-          // await this.sleep(1000 * sleepTime)
-        })
+
+
         // console.log("change localstream", levelConstraints)
 
         // let constraints = {
@@ -840,6 +860,7 @@ class MeetingRoom extends Component {
   //     })
   //   }
   // }
+
   handleDataAvailable = event => {
     if (event.data && event.data.size > 0) {
       this.setState(prevState => ({
