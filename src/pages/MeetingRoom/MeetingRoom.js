@@ -54,25 +54,25 @@ class MeetingRoom extends Component {
           //   urls: 'stun:stun.l.google.com:19302',
           //   username: "webrtc",
           // },
-          {url:'stun:stun01.sipphone.com'},
-          {url:'stun:stun.ekiga.net'},
-          {url:'stun:stun.fwdnet.net'},
-          {url:'stun:stun.ideasip.com'},
-          {url:'stun:stun.iptel.org'},
-          {url:'stun:stun.rixtelecom.se'},
-          {url:'stun:stun.schlund.de'},
-          {url:'stun:stun.l.google.com:19302'},
-          {url:'stun:stun1.l.google.com:19302'},
-          {url:'stun:stun2.l.google.com:19302'},
-          {url:'stun:stun3.l.google.com:19302'},
-          {url:'stun:stun4.l.google.com:19302'},
-          {url:'stun:stunserver.org'},
-          {url:'stun:stun.softjoys.com'},
-          {url:'stun:stun.voiparound.com'},
-          {url:'stun:stun.voipbuster.com'},
-          {url:'stun:stun.voipstunt.com'},
-          {url:'stun:stun.voxgratia.org'},
-          {url:'stun:stun.xten.com'},
+          { url: 'stun:stun01.sipphone.com' },
+          { url: 'stun:stun.ekiga.net' },
+          { url: 'stun:stun.fwdnet.net' },
+          { url: 'stun:stun.ideasip.com' },
+          { url: 'stun:stun.iptel.org' },
+          { url: 'stun:stun.rixtelecom.se' },
+          { url: 'stun:stun.schlund.de' },
+          { url: 'stun:stun.l.google.com:19302' },
+          { url: 'stun:stun1.l.google.com:19302' },
+          { url: 'stun:stun2.l.google.com:19302' },
+          { url: 'stun:stun3.l.google.com:19302' },
+          { url: 'stun:stun4.l.google.com:19302' },
+          { url: 'stun:stunserver.org' },
+          { url: 'stun:stun.softjoys.com' },
+          { url: 'stun:stun.voiparound.com' },
+          { url: 'stun:stun.voipbuster.com' },
+          { url: 'stun:stun.voipstunt.com' },
+          { url: 'stun:stun.voxgratia.org' },
+          { url: 'stun:stun.xten.com' },
           {
             url: 'turn:numb.viagenie.ca',
             credential: 'muazkh',
@@ -135,7 +135,6 @@ class MeetingRoom extends Component {
   //!기계를 체크할 필요함
   getLocalStream = async () => {
     const { peerCount } = this.state
-    
     //!refactory해야함
     const handleSuccess = stream => {
       // const videoTracks = stream.getVideoTracks()
@@ -186,7 +185,7 @@ class MeetingRoom extends Component {
             }
           }
         }
-       
+
         const getStream = async () => {
           const response = await services.getCurrent()
           const { data } = response
@@ -194,48 +193,48 @@ class MeetingRoom extends Component {
           let constraints = {
             audio: {
               sampleSize: 8,
-              channelCount: 2,
+              // channelCount: 2,
               echoCancellation: false
             },
           }
           /**
            * 강사의 화면 해상도: 1280 * 720 (HD)
            */
-          if(data.user_tp === 'T' || data.user_tp === 'I'){
+          if (data.user_tp === 'T' || data.user_tp === 'I') {
             console.log("강사 화면 해상도")
             constraints.video = {
               frameRate: 15,
               logicalSurface: true,
-              width:  { exact: 1280 }, 
-              height: { exact: 720 },
+              width: { exact: 240 },
+              height: { exact: 120 },
             }
-            setTimeout(() => {
-              getSocket().emit("edit-stream")
-            }, 15 * 1000);
-          /**
-           * 학생: 
-           * 4명 이하: 640 * 480 (VGA)
-           * 15명 이하: 320 * 240 (QVGA)
-           * 15 이상: 160 * 120 (QQVGA)
-           */
-          }else{
-            if(0 <= peerCount && peerCount  <= 5){
+            // setTimeout(() => {
+            //   getSocket().emit("edit-stream")
+            // }, 15 * 1000);
+            /**
+             * 학생: 
+             * 4명 이하: 640 * 480 (VGA)
+             * 15명 이하: 320 * 240 (QVGA)
+             * 15 이상: 160 * 120 (QQVGA)
+             */
+          } else {
+            if (0 <= peerCount && peerCount <= 5) {
               console.log("4명 들어갔으때", peerCount)
-              constraints.video ={
-                  width: { exact: 640 }, 
-                  height:{ exact: 480 }
+              constraints.video = {
+                width: { exact: 640 },
+                height: { exact: 480 }
               }
-            }else if(6 <= peerCount && peerCount <= 16){
+            } else if (6 <= peerCount && peerCount <= 16) {
               console.log("5명 ~ 15명까지  들어갔으때", peerCount)
               constraints.video = {
-                  width: { exact: 320 }, 
-                  height:{ exact: 240 }
+                width: { exact: 320 },
+                height: { exact: 240 }
               }
-            }else{  
+            } else {
               console.log("15 이상", peerCount)
               constraints.video = {
-                  width: { exact: 240 }, 
-                  height:{ exact: 120 }
+                width: { exact: 240 },
+                height: { exact: 120 }
               }
             }
           }
@@ -276,7 +275,7 @@ class MeetingRoom extends Component {
       // xhr.send(JSON.stringify({
       //     "format": "urls"
       // }));
-      
+
       let pc = new RTCPeerConnection(this.state.pc_config)
 
       const peerConnections = {
@@ -343,10 +342,31 @@ class MeetingRoom extends Component {
         console.log("pc closed")
       }
 
-      if (this.state.localStream)
+      if (this.state.localStream){
         this.state.localStream.getTracks().forEach(track => {
-          pc.addTrack(track, this.state.localStream)
-      })
+          const { isMainRoom, localStream } = this.state
+          let localStreamTemp = localStream
+          if(isMainRoom){
+            //강사화면 보내는 track를 해상도 조절함
+            console.log("강사화면 send track")
+            let videoTrack = localStream.getVideoTracks()[0];
+            let constraints = {
+              video : {
+                frameRate: 15,
+                logicalSurface: true,
+                width: { exact: 1280 },
+                height: { exact: 720 }
+              }
+            }
+            videoTrack.applyConstraints(constraints.video).then(() => {
+              localStreamTemp.addTrack(videoTrack)
+              pc.addTrack(track, localStreamTemp)
+            })
+          }else{
+            pc.addTrack(track, localStream)
+          }
+        })
+      }
       callback(pc)
     } catch (e) {
       console.log("Something went wrong! pc not created!!", e)
@@ -421,7 +441,7 @@ class MeetingRoom extends Component {
           })
           const { isMainRoom } = this.state
           const randInt = (min, max) => Math.floor(min + Math.random() * (max - min + 1));
-          const timeLoad = randInt(3,7)
+          const timeLoad = randInt(3, 7)
           if (!isMainRoom) {
             setTimeout(() => {
               window.location.href = window.location.href
@@ -467,7 +487,7 @@ class MeetingRoom extends Component {
             }
 
             // 강사화면부터 학생화면을 sdp를 얼마나 주고싶으면 설정
-            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:2000\r\n');
+            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
                 pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
@@ -494,64 +514,60 @@ class MeetingRoom extends Component {
      */
     getSocket().on("answer", data => {
       let pc = null
-      this.setState({ sdpData: data})
-      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:2000\r\n');
+      this.setState({ sdpData: data })
+      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
       pc = this.state.peerConnections[data.socketID];
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
-      ).then(() => {});
+      ).then(() => { });
     })
 
-    getSocket().on("alert-edit-scream", async ({levelConstraints}) => {
+    //학생화면의 해상도를 조절하는 이벤트
+    getSocket().on("alert-edit-scream", async ({ levelConstraints }) => {
       const { localStream, peerConnections } = this.state
       if (localStream) {
+        let localStreamTemp = localStream
         let videoTrack = localStream.getVideoTracks()[0];
-
-        console.log(constraints == videoTrack.getConstraints()); // true
-
-          if(levelConstraints === "VGA"){ 
-            console.log("4명 들어갔으때", levelConstraints)
-            constraints.video = {
-                width: { exact: 640 }, 
-                height:{ exact: 480 }
-              }
-          }else if(levelConstraints === "QVGA"){
-            console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
-            constraints.video = {
-              width: { exact: 320 }, 
-              height:{ exact: 240 }
-            }
-          }else if(levelConstraints === "QQVGA"){  
-            console.log("15 이상", levelConstraints)
-            constraints.video = {
-              width: { exact: 240 }, 
-              height:{ exact: 120 }
-            }
+        let constraints = {}
+        if (levelConstraints === "VGA") {
+          console.log("4명 들어갔으때", levelConstraints)
+          constraints.video = {
+            width: { exact: 640 },
+            height: { exact: 480 }
           }
-          if(constraints.video.width.exact === videoTrack.getConstraints().width.exact &&
-            constraints.video.height.exact === videoTrack.getConstraints().height.exact){
-            return;
+        } else if (levelConstraints === "QVGA") {
+          console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
+          constraints.video = {
+            width: { exact: 320 },
+            height: { exact: 240 }
           }
-          await videoTrack.applyConstraints({
-            width: 240,
-            height: 120
-          }).then(() => {
-            Object.values(peerConnections).forEach(async pc => {
+        } else if (levelConstraints === "QQVGA") {
+          console.log("15 이상", levelConstraints)
+          constraints.video = {
+            width: { exact: 240 },
+            height: { exact: 120 }
+          }
+        }
+        if (constraints.video.width.exact === videoTrack.getConstraints().width.exact &&
+          constraints.video.height.exact === videoTrack.getConstraints().height.exact) {
+          return;
+        }
+        console.log("after change", constraints)
+        await videoTrack.applyConstraints(constraints.video).then(() => {
+          Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
             })
-            console.log("change track", sender)
+            localStreamTemp.addTrack(videoTrack)
+            this.setState({ localStream: localStreamTemp})
             sender.replaceTrack(videoTrack)
             // await this.sleep(1000 * sleepTime)
           })
-        }).catch(function(reason) {
+        }).catch(function (reason) {
           console.log(reason)
         });
 
-
-
         // console.log("change localstream", levelConstraints)
-
         // let constraints = {
         //     audio: {
         //       sampleSize: 8,
@@ -591,7 +607,7 @@ class MeetingRoom extends Component {
         // this.setState({
         //   localStream: stream,
         // })
-  
+
         // let videoTrack = stream.getVideoTracks()[0]
         // Object.values(peerConnections).forEach(async pc => {
         //   var sender = pc.getSenders().find(function (s) {
@@ -599,33 +615,33 @@ class MeetingRoom extends Component {
         //   })
         //   sender.replaceTrack(videoTrack)
         // })
-     }
+      }
     })
-    getSocket().on("alert-share-scream", async ({shareScream, peerCount}) => {
+    getSocket().on("alert-share-scream", async ({ shareScream, peerCount }) => {
       const { sdpData, peerConnections } = this.state;
       let pc = null
       let data = sdpData
-      if(shareScream && sdpData){
+      if (shareScream && sdpData) {
         //화면 공유했을때
         data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\nb=AS:.*\r\n/, 'm=video $1\r\nc=IN $2\r\n'); //remove
-        if(0 <= peerCount <= 10 ){
+        if (0 <= peerCount <= 10) {
           data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:90\r\n'); //update
-        }else if(11 <= peerCount <= 20){
+        } else if (11 <= peerCount <= 20) {
           data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:75\r\n');
-        }else{
+        } else {
           data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:50\r\n');
         }
         console.log("down sdp", data);
         pc = peerConnections[sdpData.socketID];
         if (pc) {
           pc.createOffer().then(offer => pc.setLocalDescription(offer))
-          .then(() => {
+            .then(() => {
               pc.setRemoteDescription(
                 new RTCSessionDescription(data.sdp)
-              ).then(() => {}).catch(e => console.log(e));
-          })
+              ).then(() => { }).catch(e => console.log(e));
+            })
         }
-      }else{
+      } else {
         //화면공유 취소
         pc = peerConnections[sdpData.socketID];
         data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\nb=AS:.*\r\n/, 'm=video $1\r\nc=IN $2\r\n'); //remove
@@ -633,17 +649,17 @@ class MeetingRoom extends Component {
         console.log("up sdp", data)
         if (pc) {
           pc.createOffer().then(offer => pc.setLocalDescription(offer))
-          .then(() => {
+            .then(() => {
               pc.setRemoteDescription(
                 new RTCSessionDescription(data.sdp)
-              ).then(() => {}).catch(e => console.log(e));
-          })
+              ).then(() => { }).catch(e => console.log(e));
+            })
         }
       }
     })
 
     getSocket().on("candidate", data => {
-      const pc = this.state.peerConnections[data.socketID];                                 
+      const pc = this.state.peerConnections[data.socketID];
       if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate));
     })
   }
@@ -696,15 +712,15 @@ class MeetingRoom extends Component {
       fullScream: !this.state.fullScream
     })
   }
-  
+
   calSleepTime = (peerCount) => {
-    if(0 <= peerCount <= 5){
+    if (0 <= peerCount <= 5) {
       return 1
     }
-    else if(6 <= peerCount <= 10){
+    else if (6 <= peerCount <= 10) {
       return 1.5
     }
-    else if(11 <= peerCount <= 20){
+    else if (11 <= peerCount <= 20) {
       return 2
     }
     else {
@@ -723,7 +739,7 @@ class MeetingRoom extends Component {
           cursor: "always",
           // aspectRatio: 1.33,
           frameRate: 15,
-          width: 640, 
+          width: 640,
           height: 480,
           logicalSurface: true,
         },
@@ -765,7 +781,7 @@ class MeetingRoom extends Component {
               })
               sender.replaceTrack(videoTrack)
               //!들어가는사람개수만큼 시간이 조절할 필요함
-               await this.sleep(1000 * sleepTime)
+              await this.sleep(1000 * sleepTime)
             })
             meetingRoomSocket.sendToPeer("share-scream", false);
             this.setState({
@@ -789,7 +805,7 @@ class MeetingRoom extends Component {
           cursor: "always",
           // aspectRatio: 1.33,
           frameRate: 15,
-          width: 640, 
+          width: 640,
           height: 480,
           logicalSurface: true,
         },
@@ -798,7 +814,7 @@ class MeetingRoom extends Component {
       navigator.mediaDevices.getDisplayMedia(videoConstraints)
         .then(async stream => {
           const { peerConnections, shareScream, peerCount, localStream } = this.state
-          if(shareScream){
+          if (shareScream) {
             alert("다른 화면을 공유하고 있습니다. 공유한 화면을 중지하세요.")
             return;
           }
@@ -807,7 +823,7 @@ class MeetingRoom extends Component {
 
           const sleepTime = this.calSleepTime(Number(peerCount))
           let videoTrack = stream.getVideoTracks()[0]
-          
+
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
@@ -815,7 +831,7 @@ class MeetingRoom extends Component {
             sender.replaceTrack(videoTrack)
             await this.sleep(1000 * sleepTime)
           })
-          
+
           this.setState({
             localStreamTemp: localStream,
             localStream: stream,
@@ -828,12 +844,12 @@ class MeetingRoom extends Component {
           videoTrack.onended = () => {
             let videoTrack = localStreamTemp.getVideoTracks()[0]
             Object.values(peerConnections).forEach(async pc => {
-                var sender = pc.getSenders().find(function (s) {
-                    return s.track.kind === videoTrack.kind
-                  }
-                )
-                sender.replaceTrack(videoTrack)
-                await this.sleep(1000 * sleepTime)
+              var sender = pc.getSenders().find(function (s) {
+                return s.track.kind === videoTrack.kind
+              }
+              )
+              sender.replaceTrack(videoTrack)
+              await this.sleep(1000 * sleepTime)
             })
             meetingRoomSocket.sendToPeer("share-scream", false);
             this.setState({
@@ -913,8 +929,8 @@ class MeetingRoom extends Component {
         const a = document.createElement("a")
         a.style.display = "none"
         a.href = url
-        
-        let currentDay = moment().format('l').replace("/", "_") +"_"+ moment().format('LTS').replace(":", "_").replace("PM", "").replace("AM", "");
+
+        let currentDay = moment().format('l').replace("/", "_") + "_" + moment().format('LTS').replace(":", "_").replace("PM", "").replace("AM", "");
         a.download = `${currentDay}.webm`
         document.body.appendChild(a)
         a.click()
@@ -941,7 +957,7 @@ class MeetingRoom extends Component {
   handleDataAvailable = event => {
     if (event.data && event.data.size > 0) {
       this.setState(prevState => ({
-        recordedBlobs: [...prevState.recordedBlobs , event.data]
+        recordedBlobs: [...prevState.recordedBlobs, event.data]
       }))
     }
   }
@@ -958,8 +974,8 @@ class MeetingRoom extends Component {
       errorDevice,
       shareScreamForWhiteBoard
     } = this.state
-    
-    if(errorDevice){
+
+    if (errorDevice) {
       console.log("카메라를 찾지 못합니다. 새로고침을 한번 하세요.")
       // return;
     }
@@ -1017,7 +1033,7 @@ class MeetingRoom extends Component {
               !loading ?
                 isMainRoom ?
                   paintScream ?
-                    <>  
+                    <>
                       <WhiteBoard />
                       <RemoteStreamContainer
                         paintScream={paintScream}
