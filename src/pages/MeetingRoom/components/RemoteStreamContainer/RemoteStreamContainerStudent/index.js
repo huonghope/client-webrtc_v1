@@ -244,7 +244,6 @@ const VideoItem = ({ videoStream, time, req_question_status, req_lecOut_status, 
   const [reqQuestionStatus, setReqQuestionStatus] = useState(false)
   const [reqLecOutStatus, setLecOutStatus] = useState(false)
   const [testConcentration, setTestConcentration] = useState(false)
-
   useEffect(() => {
     setReqQuestionStatus(req_question_status)
     setLecOutStatus(req_lecOut_status)

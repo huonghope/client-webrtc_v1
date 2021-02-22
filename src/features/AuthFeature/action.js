@@ -36,7 +36,6 @@ const actions = {
           type: constants.JOINROOM_SUCCESS,
           payload: data
         })
-        console.log(data)
         const { room, usr_id } = data
         window.localStorage.setItem(
           "usr_id",
@@ -55,7 +54,7 @@ const actions = {
         alert("해당하는 강죄는 없습니다")
       }
     } catch (error) {
-      console.log(error)
+      // console.log(error)
       dispatch({
         type: constants.JOINROOM_ERROR,
         payload: Errors.selectMessage(error),
@@ -89,7 +88,7 @@ const actions = {
         });
       }
     } catch (error) {
-      console.log(error)
+      // console.log(error)
       dispatch({
         type: constants.SIGNIN_ERROR,
         payload: Errors.selectMessage(error),

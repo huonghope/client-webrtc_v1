@@ -1,7 +1,7 @@
 // import { notification, message } from 'antd';
 export default class Message {
   static success(arg) {
-    console.log(arg)
+    // console.log(arg)
     // notification.success({
     //   message: arg,
     //   description: '',
@@ -9,7 +9,7 @@ export default class Message {
   }
 
   static error(arg) {
-    console.log(arg)
+    // console.log(arg)
     // notification.error({
     //   message: arg,
     //   description: '',
@@ -17,7 +17,7 @@ export default class Message {
   }
 
   static info(arg) {
-    console.log(arg)
+    // console.log(arg)
     // message.open({
     //     content: arg.message,
     //     icon: (

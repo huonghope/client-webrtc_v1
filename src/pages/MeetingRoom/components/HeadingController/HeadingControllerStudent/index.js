@@ -56,7 +56,6 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
           setRequestQuestionSended(true)
           headingControllerSocket.emitUserRequestQuestion(payload);
         } else if (status === '1' && reqInfo.end_time === null) { //요청을 진행하고 있는데, 끝나지 않음
-          console.log("질문요청 진행하고 있음")
           setRequestQuestionSended(false)
           setRequestQuestionDoing(true)
         }
@@ -215,7 +214,7 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
       </div>
       <div className="heading-col">
         <ul>
-          <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li>
+          {/* <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li> */}
           <li><p className="course-name">{lectureInfo ? lectureInfo.lecture_nm : ""}</p></li>
         </ul>
       </div>

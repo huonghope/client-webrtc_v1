@@ -154,21 +154,21 @@ class MeetingRoom extends Component {
 
     const handleError = error => {
       if (error) {
-        console.log("카메라를 찾을 수 없습니다.")
+        // console.log("카메라를 찾을 수 없습니다.")
         this.setState({
           errorDevice: true
         })
       }
       if (error.name === "ConstraintNotSatisfiedError") {
-        console.log(`The resolution is not supported by your device.`)
+        // console.log(`The resolution is not supported by your device.`)
       } else if (error.name === "PermissionDeniedError") {
-        console.log(
-          "Permissions have not been granted to use your camera and " +
-          "microphone, you need to allow the page access to your devices in " +
-          "order for the demo to work."
-        )
+        // console.log(
+        //   "Permissions have not been granted to use your camera and " +
+        //   "microphone, you need to allow the page access to your devices in " +
+        //   "order for the demo to work."
+        // )
       }
-      console.log(`getUserMedia error: ${error.name}`, error)
+      // console.log(`getUserMedia error: ${error.name}`, error)
     }
 
     //Check list devices
@@ -179,7 +179,7 @@ class MeetingRoom extends Component {
             const deviceInfo = deviceInfos[i];
             if (deviceInfo.kind === "audioinput") {
             } else if (deviceInfo.kind === "videoinput") {
-              console.log("video input", deviceInfo.label)
+              // console.log("video input", deviceInfo.label)
             } else {
               // console.log("Found another kind of device: ", deviceInfo);
             }
@@ -189,11 +189,9 @@ class MeetingRoom extends Component {
         const getStream = async () => {
           const response = await services.getCurrent()
           const { data } = response
-          console.log(peerCount)
           let constraints = {
             audio: {
               sampleSize: 8,
-              // channelCount: 2,
               echoCancellation: false
             },
           }
@@ -201,12 +199,11 @@ class MeetingRoom extends Component {
            * 강사의 화면 해상도: 1280 * 720 (HD)
            */
           if (data.user_tp === 'T' || data.user_tp === 'I') {
-            console.log("강사 화면 해상도")
             constraints.video = {
               frameRate: 15,
               logicalSurface: true,
-              width: { exact: 240 },
-              height: { exact: 120 },
+              width: { exact: 1280 },
+              height: { exact: 720 },
             }
             // setTimeout(() => {
             //   getSocket().emit("edit-stream")
@@ -219,26 +216,28 @@ class MeetingRoom extends Component {
              */
           } else {
             if (0 <= peerCount && peerCount <= 5) {
-              console.log("4명 들어갔으때", peerCount)
+              // console.log("4명 들어갔으때", peerCount)
               constraints.video = {
+                frameRate: 20,
                 width: { exact: 640 },
                 height: { exact: 480 }
               }
             } else if (6 <= peerCount && peerCount <= 16) {
-              console.log("5명 ~ 15명까지  들어갔으때", peerCount)
+              // console.log("5명 ~ 15명까지  들어갔으때", peerCount)
               constraints.video = {
+                frameRate: 15,
                 width: { exact: 320 },
                 height: { exact: 240 }
               }
             } else {
-              console.log("15 이상", peerCount)
+              // console.log("15 이상", peerCount)
               constraints.video = {
+                frameRate: 15,
                 width: { exact: 240 },
                 height: { exact: 120 }
               }
             }
           }
-          console.log("constraints", constraints)
           const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => handleError(e))
           handleSuccess(stream)
         }
@@ -248,7 +247,7 @@ class MeetingRoom extends Component {
           .then(getStream)
           .catch(handleError);
       } catch (e) {
-        console.log(e)
+        // console.log(e)
         handleError(e)
       }
     }
@@ -338,38 +337,46 @@ class MeetingRoom extends Component {
           }
         })
       }
+      //socket disconnect
       pc.close = () => {
-        console.log("pc closed")
+        getSocket().close()
       }
 
       if (this.state.localStream){
         this.state.localStream.getTracks().forEach(track => {
           const { isMainRoom, localStream } = this.state
-          let localStreamTemp = localStream
-          if(isMainRoom){
-            //강사화면 보내는 track를 해상도 조절함
-            console.log("강사화면 send track")
-            let videoTrack = localStream.getVideoTracks()[0];
-            let constraints = {
-              video : {
-                frameRate: 15,
-                logicalSurface: true,
-                width: { exact: 1280 },
-                height: { exact: 720 }
-              }
+          // let localStreamTemp = localStream
+          // if(isMainRoom){
+          //     // 강사화면 보내는 track를 해상도 조절함
+          //     let videoTrack = localStream.getVideoTracks()[0];
+          //     let constraints = {
+          //       video : {
+          //         frameRate: 15,
+          //         logicalSurface: true,
+          //         width: { exact: 1280 },
+          //         height: { exact: 720 }
+          //       }
+          //     }
+          //     videoTrack.applyConstraints(constraints.video).then(() => {
+          //     try {
+          //       localStreamTemp.addTrack(videoTrack)
+          //       pc.addTrack(track, localStreamTemp)
+          //     } catch (error) {
+          //       // console.log(error)             
+          //     } 
+          //   })
+          // }else{
+            try {
+                pc.addTrack(track, localStream)
+            } catch (error) {
+              // console.log(error)              
             }
-            videoTrack.applyConstraints(constraints.video).then(() => {
-              localStreamTemp.addTrack(videoTrack)
-              pc.addTrack(track, localStreamTemp)
-            })
-          }else{
-            pc.addTrack(track, localStream)
-          }
+          // }
         })
       }
       callback(pc)
     } catch (e) {
-      console.log("Something went wrong! pc not created!!", e)
+      // console.log("Something went wrong! pc not created!!", e)
       callback(null)
     }
   }
@@ -449,7 +456,7 @@ class MeetingRoom extends Component {
           }
         }
       } catch (error) {
-        console.log(error)
+        // console.log(error)
       }
     })
     /**
@@ -480,14 +487,15 @@ class MeetingRoom extends Component {
         this.createPeerConnection(data.socketID, pc => {
           try {
             try {
-              if (this.state.localStream)
-                pc.addStream(this.state.localStream)
+              if (this.state.localStream){
+                const { localStream } = this.state
+                pc.addStream(localStream)
+              }
             } catch (error) {
               console.log("Add Stream Error", error)
             }
-
             // 강사화면부터 학생화면을 sdp를 얼마나 주고싶으면 설정
-            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
+            data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:2000\r\n');
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {
                 pc.createAnswer(this.state.sdpConstraints).then((sdp) => {
@@ -515,7 +523,7 @@ class MeetingRoom extends Component {
     getSocket().on("answer", data => {
       let pc = null
       this.setState({ sdpData: data })
-      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n');
+      data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:750\r\n');
       pc = this.state.peerConnections[data.socketID];
       pc.setRemoteDescription(
         new RTCSessionDescription(data.sdp)
@@ -530,19 +538,19 @@ class MeetingRoom extends Component {
         let videoTrack = localStream.getVideoTracks()[0];
         let constraints = {}
         if (levelConstraints === "VGA") {
-          console.log("4명 들어갔으때", levelConstraints)
+          // console.log("4명 들어갔으때", levelConstraints)
           constraints.video = {
             width: { exact: 640 },
             height: { exact: 480 }
           }
         } else if (levelConstraints === "QVGA") {
-          console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
+          // console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
           constraints.video = {
             width: { exact: 320 },
             height: { exact: 240 }
           }
         } else if (levelConstraints === "QQVGA") {
-          console.log("15 이상", levelConstraints)
+          // console.log("15 이상", levelConstraints)
           constraints.video = {
             width: { exact: 240 },
             height: { exact: 120 }
@@ -552,7 +560,7 @@ class MeetingRoom extends Component {
           constraints.video.height.exact === videoTrack.getConstraints().height.exact) {
           return;
         }
-        console.log("after change", constraints)
+        
         await videoTrack.applyConstraints(constraints.video).then(() => {
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
@@ -624,14 +632,14 @@ class MeetingRoom extends Component {
       if (shareScream && sdpData) {
         //화면 공유했을때
         data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\nb=AS:.*\r\n/, 'm=video $1\r\nc=IN $2\r\n'); //remove
-        if (0 <= peerCount <= 10) {
-          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:90\r\n'); //update
-        } else if (11 <= peerCount <= 20) {
-          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:75\r\n');
+        if (0 <= peerCount && peerCount <= 10) {
+          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n'); //update
+        } else if (11 <= peerCount && peerCount <= 20) {
+          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:400\r\n');
         } else {
-          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:50\r\n');
+          data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:200\r\n');
         }
-        console.log("down sdp", data);
+        // console.log("down sdp", data);
         pc = peerConnections[sdpData.socketID];
         if (pc) {
           pc.createOffer().then(offer => pc.setLocalDescription(offer))
@@ -645,8 +653,8 @@ class MeetingRoom extends Component {
         //화면공유 취소
         pc = peerConnections[sdpData.socketID];
         data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\nb=AS:.*\r\n/, 'm=video $1\r\nc=IN $2\r\n'); //remove
-        data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:500\r\n'); //update
-        console.log("up sdp", data)
+        data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:750\r\n'); //update
+        // console.log("up sdp", data)
         if (pc) {
           pc.createOffer().then(offer => pc.setLocalDescription(offer))
             .then(() => {
@@ -714,13 +722,13 @@ class MeetingRoom extends Component {
   }
 
   calSleepTime = (peerCount) => {
-    if (0 <= peerCount <= 5) {
+    if (0 <= peerCount && peerCount <= 5) {
       return 1
     }
-    else if (6 <= peerCount <= 10) {
+    else if (6 <= peerCount && peerCount <= 10) {
       return 1.5
     }
-    else if (11 <= peerCount <= 20) {
+    else if (11 <= peerCount && peerCount <= 20) {
       return 2
     }
     else {
@@ -732,42 +740,59 @@ class MeetingRoom extends Component {
   /**
    *  화면공유할때 연결되어 있는 stream를 숨김 
    */
-  handleScreenMode = async () => {
+  handleScreenMode = () => {
     try {
       let videoConstraints = {
         video: {
           cursor: "always",
-          // aspectRatio: 1.33,
           frameRate: 15,
-          width: 640,
-          height: 480,
+          width: 1280,
+          height: 720,
           logicalSurface: true,
         },
         audio: true,
       };
       navigator.mediaDevices
         .getDisplayMedia(videoConstraints)
-        .then(stream => {
-          const { peerConnections, shareScreamForWhiteBoard, peerCount } = this.state
+        .then(async stream => {
+          const { localStream, peerConnections, shareScreamForWhiteBoard, peerCount } = this.state
           const sleepTime = this.calSleepTime(Number(peerCount))
+
           meetingRoomSocket.sendToPeer("share-scream", true);
-          // getSocket().emit("edit-stream")
+          getSocket().emit("edit-stream", false)
 
           let videoTrack = stream.getVideoTracks()[0]
+          // let constraints = {
+          //   video: {
+          //     frameRate: 15,
+          //     logicalSurface: true,
+          //     width: 1280,
+          //     height: 720 
+          //   }
+          // }
+          // await videoTrack.applyConstraints(constraints.video).then(() => {}).catch(e => console.log("화면 공유할때 constraints 적용이 안됨", e))
+
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
               return s.track.kind === videoTrack.kind
             })
             sender.replaceTrack(videoTrack)
-            //!들어가는사람개수만큼 시간이 조절할 필요함
             await this.sleep(1000 * sleepTime)
           })
 
+           // let constraints = {
+          //   video: {
+          //     frameRate: 15,
+          //     logicalSurface: true,
+          //     width: 1280,
+          //     height: 720 
+          //   }
+          // }
+          // await videoTrack.applyConstraints(constraints.video).then(() => {}).catch(e => console.log("화면 공유할때 constraints 적용이 안됨", e))
+          
           this.setState({
-            localStreamTemp: this.state.localStream,
-            // remoteStreamsTemp: this.state.remoteStreams,
+            localStreamTemp: localStream,
             localStream: stream,
-            // remoteStreams: [],
             shareScreamForWhiteBoard: !shareScreamForWhiteBoard
           })
 
@@ -780,12 +805,11 @@ class MeetingRoom extends Component {
                 return s.track.kind === videoTrack.kind
               })
               sender.replaceTrack(videoTrack)
-              //!들어가는사람개수만큼 시간이 조절할 필요함
               await this.sleep(1000 * sleepTime)
             })
             meetingRoomSocket.sendToPeer("share-scream", false);
+            getSocket().emit("edit-stream", false)
             this.setState({
-              // remoteStreams: this.state.remoteStreamsTemp,
               localStream: localStreamTemp,
               shareScreamForWhiteBoard: !shareScreamForWhiteBoard
             })
@@ -803,11 +827,10 @@ class MeetingRoom extends Component {
       let videoConstraints = {
         video: {
           cursor: "always",
-          // aspectRatio: 1.33,
           frameRate: 15,
-          width: 640,
-          height: 480,
           logicalSurface: true,
+          width: 1280,
+          height: 720 
         },
         audio: true,
       };
@@ -819,10 +842,19 @@ class MeetingRoom extends Component {
             return;
           }
           meetingRoomSocket.sendToPeer("share-scream", true);
-          getSocket().emit("edit-stream")
+          meetingRoomSocket.sendToPeer("edit-stream", true)
 
           const sleepTime = this.calSleepTime(Number(peerCount))
           let videoTrack = stream.getVideoTracks()[0]
+          // let constraints = {
+          //   video: {
+          //     frameRate: 15,
+          //     logicalSurface: true,
+          //     width: 1280,
+          //     height: 720 
+          //   }
+          // }
+          // await videoTrack.applyConstraints(constraints.video).then(async () => {}).catch(e => console.log("화면 공유할때 constraints 적용이 안됨", e))
 
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
@@ -836,22 +868,23 @@ class MeetingRoom extends Component {
             localStreamTemp: localStream,
             localStream: stream,
             shareScream: true,
-            // remoteStreams: [],
           })
-
+          
           //화면 공유 중지
+          //!해상도 확인할 필요함
           const { localStreamTemp } = this.state
           videoTrack.onended = () => {
             let videoTrack = localStreamTemp.getVideoTracks()[0]
             Object.values(peerConnections).forEach(async pc => {
               var sender = pc.getSenders().find(function (s) {
-                return s.track.kind === videoTrack.kind
-              }
+                  return s.track.kind === videoTrack.kind
+                }
               )
               sender.replaceTrack(videoTrack)
               await this.sleep(1000 * sleepTime)
             })
             meetingRoomSocket.sendToPeer("share-scream", false);
+            meetingRoomSocket.sendToPeer("edit-stream", false)
             this.setState({
               localStream: localStreamTemp,
               shareScream: false,
@@ -940,7 +973,7 @@ class MeetingRoom extends Component {
         }, 100)
       }
       mediaRecorder.start()
-      console.log("MediaRecorder started", mediaRecorder)
+      // console.log("MediaRecorder started", mediaRecorder)
 
       this.setState({
         mediaRecorder,
@@ -972,6 +1005,7 @@ class MeetingRoom extends Component {
       paintScream,
       loading,
       errorDevice,
+      shareScream,
       shareScreamForWhiteBoard
     } = this.state
 
@@ -1058,6 +1092,7 @@ class MeetingRoom extends Component {
               <div className="local-stream">
                 <LocalStreamComponent
                   localStream={localStream}
+                  shareScream={shareScream}
                 />
               </div>
               <div className="chat-component">

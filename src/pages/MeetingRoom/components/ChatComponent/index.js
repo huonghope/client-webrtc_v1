@@ -96,12 +96,10 @@ function ChatComponent(props) {
       })
       getSocket().on("res-sent-message", data => {
         let newMessage = data
-        console.log(data)
         setMessages(prevState => [...prevState, newMessage])
         scrollToBottom()
       })
       getSocket().on("res-sent-files", data => {
-        console.log(data)
         let newMessage = data
         setMessages(prevState => [...prevState, newMessage])
         scrollToBottom()
@@ -503,7 +501,7 @@ const WarningMessComponent = (type, resData) => {
   let footerText = " 메시지 전송되었습니다"
   switch (requestType.trim()) {
     case "test-concentration-fail":
-      footerText = "집중테스트 실패합니다."
+      footerText = "집중도 테스트를 실패하였습니다."
       break;
     case "disable-chat":
       footerText = "채팅 금지/허용 되었습니다."

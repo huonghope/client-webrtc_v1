@@ -4,11 +4,11 @@ const endpoint = process.env.REACT_APP_SERVER_SOCKET
 let socket = null;
 
 const onConnected = () => {
-  console.log("socket: connected - Welcome to page")
+  // console.log("socket: connected - Welcome to page")
 }
 
 const onDisconnect = () => {
-  console.log("socket: disconnect")
+  // console.log("socket: disconnect")
 }
 
 export const configSocket = async () => {

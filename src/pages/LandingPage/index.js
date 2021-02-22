@@ -59,13 +59,13 @@ function Landing(props) {
         setVideoInput(option)
         setListVideoInput(listVideoInput => [...listVideoInput, option])
       } else {
-        console.log('Some other kind of source/device: ', deviceInfo);
+        // console.log('Some other kind of source/device: ', deviceInfo);
       }
     }
   }
 
   function handleError(error) {
-    console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
+    // console.log('navigator.MediaDevices.getUserMedia error: ', error.message, error.name);
   }
 
   async function getStream(deviceId = null) {
@@ -112,7 +112,7 @@ function Landing(props) {
 
   const handleJoin = () => {
     if (!isVideo) {
-      alert('카메라 허락하지 않음 또는 찾지 못합니다')
+      alert('카메라 권한이 허용되어 있지 않거나 카메라를 찾을 수 없습니다.')
       return;
     } else {
       let roomInfo = JSON.parse(localStorage.getItem("roomInfo"))

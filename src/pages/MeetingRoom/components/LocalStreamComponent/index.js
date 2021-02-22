@@ -1,25 +1,45 @@
 
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import { useSelector } from 'react-redux';
 import Video from '../Video'
 import './style.scss'
 
 import meetingRoomSelectors from '../../MeetingRoom.Selector'
-
-// import headingController from '../HeadingController/HeadingController.Selector'
-
-function LocalStreamComponent({localStream}) {
-  // const dispatch = useDispatch();
-  // const localStreamState = useSelector(meetingRoomSelectors.getLocalStream);
-  // const localStreamSoundState = useSelector(headingController.getLocalStreamSoundState)
-  // const localStreamMicState = useSelector(headingController.getLocalStreamMicState)
-  // const localStreamCamState = useSelector(headingController.getLocalStreamCamState)
+function LocalStreamComponent({localStream, shareScream}) {
   const isHostUser = useSelector(meetingRoomSelectors.selectIsHostUser)
+  const [myStream, setMyStream] = useState(null)
 
   // useEffect(() => {
-  //   console.log("change", localStreamSoundState)
-  // }, [localStreamSoundState])
+  //   let init = async () => {
+  //     if(localStream && !shareScream){
+  //       try {
+  //         let tempStream = localStream
+  //         if(localStream.getVideoTracks){
+  //           let videoTrack = tempStream.getVideoTracks()[0]
+  //           let constraints = {
+  //             video: {
+  //               width:  { exact: 240 }, 
+  //               height: { exact: 120 }
+  //             }
+  //           }
+  //           await videoTrack.applyConstraints(constraints.video).then(async () => {
+  //             tempStream.addTrack(videoTrack)
+  //             setMyStream(tempStream)
+  //           }).catch(e => console.log(e))
+  //         }
+  //       } catch (error) {
+  //         console.log(error)
+  //       }
+  //     }
+  //   }
+  //   init()
+  // }, [localStream])
+  // if(!myStream)
+  //   return null
 
+  // if(myStream && myStream.getVideoTracks()[0].getConstraints().width.exact === 1280){
+    
+  // }
   return (
     <div className="local-stream__component">
       <Video
@@ -41,16 +61,14 @@ function LocalStreamComponent({localStream}) {
       autoPlay
       muted //local default true
     ></Video>
-    <div>
+    {/* <div>
       {
         localStream && `${localStream.getVideoTracks()[0].getConstraints().width.exact} : ${localStream.getVideoTracks()[0].getConstraints().height.exact}`
       }
-    </div>
+    </div> */}
     </div>
   )
 }
-
-
-
 export default LocalStreamComponent
+// export default React.memo(LocalStreamComponent)
 
