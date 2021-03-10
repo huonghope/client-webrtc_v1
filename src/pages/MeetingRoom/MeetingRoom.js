@@ -154,7 +154,7 @@ class MeetingRoom extends Component {
 
     const handleError = error => {
       if (error) {
-        // console.log("카메라를 찾을 수 없습니다.")
+        console.log("카메라를 찾을 수 없습니다.", error)
         this.setState({
           errorDevice: true
         })
@@ -200,11 +200,23 @@ class MeetingRoom extends Component {
            */
           if (data.user_tp === 'T' || data.user_tp === 'I') {
             constraints.video = {
-              frameRate: 15,
+              frameRate: { 
+                ideal: 15, max: 20 
+              },
               logicalSurface: true,
-              width: { exact: 1280 },
-              height: { exact: 720 },
+              width: { 
+                min: 640,
+                ideal: 1280,
+                max: 1920
+              },
+              height: { 
+                min: 480,
+                ideal: 720,
+                max: 1080 
+              },
+              facingMode: "user" 
             }
+
             // setTimeout(() => {
             //   getSocket().emit("edit-stream")
             // }, 15 * 1000);
@@ -247,7 +259,7 @@ class MeetingRoom extends Component {
           .then(getStream)
           .catch(handleError);
       } catch (e) {
-        // console.log(e)
+        console.log(e)
         handleError(e)
       }
     }
@@ -495,6 +507,7 @@ class MeetingRoom extends Component {
               console.log("Add Stream Error", error)
             }
             // 강사화면부터 학생화면을 sdp를 얼마나 주고싶으면 설정
+            console.log(data.sdp.sdp)
             data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\n/, 'm=video $1\r\nc=IN $2\r\nb=AS:2000\r\n');
             pc.setRemoteDescription(new RTCSessionDescription(data.sdp)).then(
               () => {

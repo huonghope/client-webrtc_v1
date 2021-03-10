@@ -63,7 +63,7 @@ function LocalStreamComponent({localStream, shareScream}) {
     ></Video>
     {/* <div>
       {
-        localStream && `${localStream.getVideoTracks()[0].getConstraints().width.exact} : ${localStream.getVideoTracks()[0].getConstraints().height.exact}`
+        localStream && `${localStream.getVideoTracks()[0].getConstraints().width} : ${localStream.getVideoTracks()[0].getConstraints().height}`
       }
     </div> */}
     </div>
