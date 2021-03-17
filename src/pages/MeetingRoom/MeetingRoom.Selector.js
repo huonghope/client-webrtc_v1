@@ -10,10 +10,14 @@ const selectIsHostUser = createSelector(
     [selectRaw],
     (room) => room.isHostUser
 )
-
+const selectShareScreen = createSelector(
+    [selectRaw],
+    (room) => room.shareScreen
+)
 const selectors = {
   getLocalStream,
-  selectIsHostUser
+  selectIsHostUser,
+  selectShareScreen
 };
 
 export default selectors;

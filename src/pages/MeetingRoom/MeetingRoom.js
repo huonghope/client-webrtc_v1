@@ -116,12 +116,12 @@ class MeetingRoom extends Component {
       isMainRoom: false,
 
       recordedBlobs: [],
-      shareScream: false,
-      shareScreamForWhiteBoard: false,
+      shareScreen: false,
+      shareScreemForWhiteBoard: false,
       disconnected: false,
 
-      fullScream: false,
-      paintScream: false,
+      fullScreen: false,
+      paintScreen: false,
       enableRecord: false,
       windowSize: false,
 
@@ -544,7 +544,7 @@ class MeetingRoom extends Component {
     })
 
     //학생화면의 해상도를 조절하는 이벤트
-    getSocket().on("alert-edit-scream", async ({ levelConstraints }) => {
+    getSocket().on("alert-edit-stream", async ({ levelConstraints }) => {
       const { localStream, peerConnections } = this.state
       if (localStream) {
         let localStreamTemp = localStream
@@ -638,11 +638,11 @@ class MeetingRoom extends Component {
         // })
       }
     })
-    getSocket().on("alert-share-scream", async ({ shareScream, peerCount }) => {
+    getSocket().on("alert-share-screen", async ({ shareScreen, peerCount }) => {
       const { sdpData, peerConnections } = this.state;
       let pc = null
       let data = sdpData
-      if (shareScream && sdpData) {
+      if (shareScreen && sdpData) {
         //화면 공유했을때
         data.sdp.sdp = data.sdp.sdp.replace(/m=video (.*)\r\nc=IN (.*)\r\nb=AS:.*\r\n/, 'm=video $1\r\nc=IN $2\r\n'); //remove
         if (0 <= peerCount && peerCount <= 10) {
@@ -730,7 +730,7 @@ class MeetingRoom extends Component {
 
   handleWindowSize = () => {
     this.setState({
-      fullScream: !this.state.fullScream
+      fullScreen: !this.state.fullScreen
     })
   }
 
@@ -768,11 +768,13 @@ class MeetingRoom extends Component {
       navigator.mediaDevices
         .getDisplayMedia(videoConstraints)
         .then(async stream => {
-          const { localStream, peerConnections, shareScreamForWhiteBoard, peerCount } = this.state
+
+          const { localStream, peerConnections, shareScreenForWhiteBoard, peerCount, shareScreen } = this.state
           const sleepTime = this.calSleepTime(Number(peerCount))
 
-          meetingRoomSocket.sendToPeer("share-scream", true);
+          meetingRoomSocket.sendToPeer("share-screen", true);
           getSocket().emit("edit-stream", false)
+          this.props.dispatch(meetingRoomAction.shareScreen(true))
 
           let videoTrack = stream.getVideoTracks()[0]
           // let constraints = {
@@ -793,25 +795,18 @@ class MeetingRoom extends Component {
             await this.sleep(1000 * sleepTime)
           })
 
-           // let constraints = {
-          //   video: {
-          //     frameRate: 15,
-          //     logicalSurface: true,
-          //     width: 1280,
-          //     height: 720 
-          //   }
-          // }
-          // await videoTrack.applyConstraints(constraints.video).then(() => {}).catch(e => console.log("화면 공유할때 constraints 적용이 안됨", e))
-          
           this.setState({
             localStreamTemp: localStream,
             localStream: stream,
-            shareScreamForWhiteBoard: !shareScreamForWhiteBoard
+            shareScreen: !shareScreen,
+            shareScreenForWhiteBoard: !shareScreenForWhiteBoard
           })
 
           //화면 공유 중지
           const { localStreamTemp } = this.state
           videoTrack.onended = () => {
+            this.props.dispatch(meetingRoomAction.shareScreen(false))
+
             let videoTrack = localStreamTemp.getVideoTracks()[0]
             Object.values(peerConnections).forEach(async pc => {
               var sender = pc.getSenders().find(function (s) {
@@ -820,11 +815,12 @@ class MeetingRoom extends Component {
               sender.replaceTrack(videoTrack)
               await this.sleep(1000 * sleepTime)
             })
-            meetingRoomSocket.sendToPeer("share-scream", false);
+            meetingRoomSocket.sendToPeer("share-screen", false);
             getSocket().emit("edit-stream", false)
             this.setState({
               localStream: localStreamTemp,
-              shareScreamForWhiteBoard: !shareScreamForWhiteBoard
+              shareScreen: !shareScreen,
+              shareScreenForWhiteBoard: !shareScreenForWhiteBoard
             })
           }
         })
@@ -849,13 +845,14 @@ class MeetingRoom extends Component {
       };
       navigator.mediaDevices.getDisplayMedia(videoConstraints)
         .then(async stream => {
-          const { peerConnections, shareScream, peerCount, localStream } = this.state
-          if (shareScream) {
+          const { peerConnections, shareScreen, peerCount, localStream } = this.state
+          if (shareScreen) {
             alert("다른 화면을 공유하고 있습니다. 공유한 화면을 중지하세요.")
             return;
           }
-          meetingRoomSocket.sendToPeer("share-scream", true);
+          meetingRoomSocket.sendToPeer("share-screan", true);
           meetingRoomSocket.sendToPeer("edit-stream", true)
+          this.props.dispatch(meetingRoomAction.shareScreen(true))
 
           const sleepTime = this.calSleepTime(Number(peerCount))
           let videoTrack = stream.getVideoTracks()[0]
@@ -880,13 +877,14 @@ class MeetingRoom extends Component {
           this.setState({
             localStreamTemp: localStream,
             localStream: stream,
-            shareScream: true,
+            shareScreen: true,
           })
           
           //화면 공유 중지
           //!해상도 확인할 필요함
           const { localStreamTemp } = this.state
           videoTrack.onended = () => {
+            this.props.dispatch(meetingRoomAction.shareScreen(false))
             let videoTrack = localStreamTemp.getVideoTracks()[0]
             Object.values(peerConnections).forEach(async pc => {
               var sender = pc.getSenders().find(function (s) {
@@ -896,11 +894,11 @@ class MeetingRoom extends Component {
               sender.replaceTrack(videoTrack)
               await this.sleep(1000 * sleepTime)
             })
-            meetingRoomSocket.sendToPeer("share-scream", false);
+            meetingRoomSocket.sendToPeer("share-screen", false);
             meetingRoomSocket.sendToPeer("edit-stream", false)
             this.setState({
               localStream: localStreamTemp,
-              shareScream: false,
+              shareScreen: false,
             })
           }
         })
@@ -908,10 +906,37 @@ class MeetingRoom extends Component {
       console.error("Error: " + err)
     }
   }
+  handleStopSharingScreen = () => {
+    if (!this.state.shareScreen) {
+      alert('공유되는 화면이 없습니다.')
+      return;
+    }
+    this.props.dispatch(meetingRoomAction.shareScreen(false))
+    const { peerConnections, peerCount, localStream, localStreamTemp } = this.state
+    const sleepTime = this.calSleepTime(Number(peerCount))
+    let videoTrack = localStreamTemp.getVideoTracks()[0]
+    Object.values(peerConnections).forEach(async pc => {
+      let sender = pc.getSenders().find(function (s) {
+          return s.track.kind === videoTrack.kind
+        }
+      )
+      sender.replaceTrack(videoTrack)
+      await this.sleep(1000 * sleepTime)
+    })
+    localStream.getVideoTracks().forEach((track) => {
+      track.stop();
+    });
+    meetingRoomSocket.sendToPeer("share-scream", false);
+    meetingRoomSocket.sendToPeer("edit-stream", false)
+    this.setState({
+      localStream: localStreamTemp,
+      shareScreen: false,
+    })
+  }
 
   handleWhiteBoard = () => {
     this.setState({
-      paintScream: !this.state.paintScream
+      paintScreen: !this.state.paintScreen
     })
   }
 
@@ -1007,6 +1032,7 @@ class MeetingRoom extends Component {
       }))
     }
   }
+
   render() {
     const {
       disconnected,
@@ -1014,12 +1040,11 @@ class MeetingRoom extends Component {
       peerConnections,
       remoteStreams,
       isMainRoom,
-      fullScream,
-      paintScream,
+      fullScreen,
+      paintScreen,
       loading,
       errorDevice,
-      shareScream,
-      shareScreamForWhiteBoard
+      shareScreen,
     } = this.state
 
     if (errorDevice) {
@@ -1045,7 +1070,7 @@ class MeetingRoom extends Component {
         window.close();
       }
     }
-    const windowSize = !fullScream ? "85%" : "100%"
+    const windowSize = !fullScreen ? "85%" : "100%"
 
     return (
       <div className="meeting-room">
@@ -1067,6 +1092,8 @@ class MeetingRoom extends Component {
                     handleWhiteBoard={this.handleWhiteBoard}
                     handleScreamRecording={this.handleScreamRecording}
                     handleScreenModeMain={this.handleScreenModeMain}
+                    handleStopSharingScreen={this.handleStopSharingScreen}
+                    shareScreen={shareScreen}
                   /> :
                   <HeadingControllerStudent
                     handleOutRoom={this.handleOutRoom}
@@ -1079,11 +1106,11 @@ class MeetingRoom extends Component {
             {
               !loading ?
                 isMainRoom ?
-                  paintScream ?
+                  paintScreen ?
                     <>
                       <WhiteBoard />
                       <RemoteStreamContainer
-                        paintScream={paintScream}
+                        paintScreen={paintScreen}
                         remoteStreams={remoteStreams}
                       />
                     </>
@@ -1100,12 +1127,12 @@ class MeetingRoom extends Component {
           </div>
         </div>
         {
-          !fullScream && (
+          !fullScreen && (
             <div className="right-content">
               <div className="local-stream">
                 <LocalStreamComponent
                   localStream={localStream}
-                  shareScream={shareScream}
+                  shareScreen={shareScreen}
                 />
               </div>
               <div className="chat-component">

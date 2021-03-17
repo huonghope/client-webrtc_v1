@@ -33,7 +33,17 @@ const actions = {
     } catch (error) {
       console.log(error)
     }
+  },
+  shareScreen: (status) => async(dispatch) => {
+    try {
+      console.log(status)
+      dispatch({
+        type: constants.SHARE_SCREEN,
+        payload: { status }
+      })
+    } catch (error) {
+      // console.log(error)
+    }
   }
-  
 };
 export default actions;

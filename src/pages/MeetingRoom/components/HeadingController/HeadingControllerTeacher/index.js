@@ -1,15 +1,16 @@
-import React, {useState } from "react"
+import React, {useState,useEffect } from "react"
 import Icon from "../../../../../constants/icons"
 import './style.scss'
 import '../style.scss'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 // import meetingRoomSelectors from '../../../MeetingRoom.Selector'
 import CountTime from "../../../../../components/CountTime";
 
 import headingControllerAction from '../HeadingController.Action'
 import headingControllerSocket from '../HeadingController.Socket'
+import roomSelector from '../../../MeetingRoom.Selector';
 
-function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,handleScreenModeMain, handleWhiteBoard, handleScreamRecording}) {
+function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,handleScreenModeMain,handleStopSharingScreen, handleWhiteBoard, handleScreamRecording}) {
 
   const dispatch = useDispatch();
 
@@ -20,6 +21,10 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
   const [windowSize, setWindowSize] = useState(false)
   const [paintScream, setPaintScream] = useState(false)
 
+  const [whiteBoard, setWhiteBoard] = useState(false)
+  const [sharingStream, setSharingStream] = useState(false)
+
+  const shareScreen = useSelector(roomSelector.selectShareScreen)
 
   const handleChangeWindowSize = (e = null) => {
     if(!windowSize){
@@ -34,6 +39,11 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
     }
     handleWindowSize()
   }
+
+  useEffect(() => {
+    setWhiteBoard(shareScreen)
+    setSharingStream(shareScreen)
+  }, [shareScreen])
   const handleStateMicAllStudent = () => {
     setStateMicAllStudent(!stateMicAllStudent)
     // dispatch(headingControllerAction.handleStateMicAllStudent())
@@ -57,16 +67,24 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
       setPaintScream(!paintScream)
       handleWhiteBoard()
       // handleWindowSize()
-      handleChangeWindowSize()
+      // handleChangeWindowSize()
       handleScreenMode()
     } else{
       //화이트보드 OFF
+        setWhiteBoard(!whiteBoard)
         setPaintScream(!paintScream)
         handleWhiteBoard()
       }
   }
-  
 
+  const handleClickShareScreen = () => {
+    if(sharingStream){
+      handleStopSharingScreen()
+    }else{
+      setWhiteBoard(!whiteBoard)
+    }
+  }
+  
   return <div className="heading-stream__controller">
     <div className={windowSize ? "heading-container__big" : "heading-container__small"}>
       <div className="heading-col">
@@ -108,12 +126,32 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
       </div>
       <div className="heading-col">
         <ul>
-          <li>
+          {/* <li>
             <img onClick={() => handleWhiteBoardClick()} src={Icon.lecScreenWhiteBoard} alt="board" />
             <span>화이트보드</span>
-          </li>
-          <li><img onClick={() => handleScreenModeMain()} src={Icon.lecScreenShare}  alt="share-scream" />
-          <span>화면공유</span>
+          </li> */}
+          <li className="btn-white">
+            <img  onClick={() => handleClickShareScreen()} src={sharingStream ? Icon.chatWTalkOffIcon :  Icon.lecScreenShare}  alt="share-scream"/>
+            <span style ={sharingStream ? {color: "red"} : {}}>{sharingStream ? "화면 공유 중지" : "화면공유" }</span>
+            {
+            whiteBoard && !sharingStream &&
+            <div className="wrapper-white">
+              <ul>
+                <li onClick={() => { 
+                  handleScreenModeMain(); 
+                }}>
+                  <img src={Icon.lecScreenShare}  alt="share-screen"/>
+                  <span>화면공유</span>
+                </li>
+                <li onClick={() => { 
+                  handleWhiteBoardClick();
+                }} >
+                  <img src={Icon.lecScreenWhiteBoard} alt="board"/>
+                  <span>화이트보드</span>
+                </li>
+              </ul>
+            </div>
+            } 
           </li>
         </ul>
       </div>

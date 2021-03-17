@@ -42,6 +42,51 @@
         letter-spacing: -0.5px;
       }
     }
+    .btn-white{
+      position: relative;
+    }
+    .wrapper-white{
+      position: absolute;
+      background: #5199ff;
+      transform: translateY(100%);
+      transform: translateX(-100%);
+
+      animation: animation 0.1s cubic-bezier(0.075, 0.82, 0.165, 1);
+      animation-fill-mode: forwards;
+  
+      -webkit-animation-fill-mode: forwards;
+      -moz-animation: animation 0.1s ease-out;
+      -webkit-animation: animation 0.1s ease-out;
+      -o-animation: animation 0.1s ease-out;
+
+      ul{
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        li{
+          display: flex;
+          align-items: center;
+          margin: 5px;
+          cursor: pointer;
+          border-bottom: 1px solid transparent;
+          &:hover{
+            border-bottom: 1px solid #ccc;
+          }
+        }
+      }
+      span{
+        white-space: nowrap;
+        margin-left: 10px;
+        display: block;
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: normal;
+        font-stretch: normal;
+        font-style: normal;
+        line-height: normal;
+        letter-spacing: -0.5px;
+      }
+    }
   }
   .record-time{
     color: red;
@@ -64,3 +109,30 @@
     }
   }
 } 
+
+@keyframes animation{
+  from { 
+      top: 0%;
+  }
+  to { 
+      top: 50%;
+  }   
+}
+
+@-moz-keyframes animation {
+  from { 
+      top: 0%;
+  }
+  to { 
+      top: 50%;
+  }   
+}
+
+@-webkit-keyframes animation {
+  from { 
+      top: 0%;
+  }
+  to { 
+      top: 50%;
+  }   
+}

@@ -4,6 +4,7 @@ import constants from './MeetingRoom.Constants'
 const initialState = {
   localStream: null,
   isHostUser: false,
+  shareScreen: false
 }
 
 export const roomReducer =(state = initialState, { type, payload })  =>
@@ -14,6 +15,9 @@ export const roomReducer =(state = initialState, { type, payload })  =>
         break;
       case constants.SET_HOST:
         draft.isHostUser = payload.isHostUser
+        break;
+      case constants.SHARE_SCREEN:
+        draft.shareScreen = payload.status
         break;
       default:
         return state

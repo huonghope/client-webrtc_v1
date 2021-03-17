@@ -331,10 +331,11 @@ class RemoteStreamContainer extends Component {
 
   render() {
     const { loading } = this.state
-    const { paintScream } = this.props
+    const { paintScreen } = this.props
+ 
     if (loading) {
       return (
-        <WrapperLoading className="loading" style={{background: 'black'}}>
+        <WrapperLoading className="loading" style={paintScreen ? {display: "none",background: 'black' } : {background: 'black'}}>
           <div style={{transform: `translateY(${-50}%)`}}>
             <img src={Icon.WaitImage} style={{width: "140px", height: "140px"}} alt = "waiting"/>
             <p style={{textAlign: 'center', color: 'white'}}>학생의 입장을<br/> 
@@ -344,7 +345,7 @@ class RemoteStreamContainer extends Component {
       )
     }
     return (
-      <div className="remote-stream__container" style={paintScream ? {display: "none"} : {}}>
+      <div className="remote-stream__container" style={paintScreen ? {display: "none"} : {}}>
         <div className="list-videos">
           <div className={`video-${this.state.rVideos.length}`}>
             {this.state.rVideos}

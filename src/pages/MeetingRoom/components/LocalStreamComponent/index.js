@@ -5,7 +5,7 @@ import Video from '../Video'
 import './style.scss'
 
 import meetingRoomSelectors from '../../MeetingRoom.Selector'
-function LocalStreamComponent({localStream, shareScream}) {
+function LocalStreamComponent({localStream, shareScrean}) {
   const isHostUser = useSelector(meetingRoomSelectors.selectIsHostUser)
   const [myStream, setMyStream] = useState(null)
 
