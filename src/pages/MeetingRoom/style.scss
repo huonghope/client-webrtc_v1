@@ -7,7 +7,7 @@
   Set % layout
   */
   .left-content{
-    width: 85%;
+    width: 100% !important;
     .heading-controller{
       width: 100%;
       height: 10%;
@@ -18,15 +18,10 @@
     }
   }
   .right-content{
-    width: 15%;
     min-width: 300px;
-    .local-stream{
-      width: 100%;
-      height: 20%;
-    }
     .chat-component{
       width: 100%;
-      height: 80%;
+      height: 100%;
     }
   }
 }

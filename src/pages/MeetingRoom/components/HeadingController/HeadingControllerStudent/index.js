@@ -8,6 +8,7 @@ import getSocket from "../../../../rootSocket";
 import headingControllerAction from '../HeadingController.Action'
 import roomSelector from '../../../MeetingRoom.Selector';
 import remoteStreamContainerSelector from '../../RemoteStreamContainer/RemoteStreamContainer.Selector'
+import LocalStreamComponent from "../../LocalStreamComponent"
 import { Button } from "../../../../../components/Button";
 
 function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
@@ -23,10 +24,11 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
   const request = useSelector(remoteStreamContainerSelector.getUserRequest)
   const dispatch = useDispatch();
 
+  const [showChatWindowState, setShowChatWindowState] = useState(false)
+  const localStream = useSelector(roomSelector.getLocalStream)
 
   const [isBtnRequestQuestion, setIsBtnRequestQuestion] = useState(false)
   const [isBtnRequestLecOut, setIsBtnRequestLecOut] = useState(false)
-
 
   //!이거 왜?
   useEffect(() => {
@@ -179,6 +181,12 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
       headingControllerSocket.emitUserCancelRequestLecOut(payload);
     }
   }
+
+  const handleShowChatWindowState = () => {
+    setShowChatWindowState(!showChatWindowState)
+    dispatch(headingControllerAction.handleShowChatWindowState())
+  }
+
   // const StyleButtonRequestQuestion = requestQuestionSended ? {backgroundColor: "white", color: "black"} : requestQuestionDoing ? {backgroundColor: "yellow", color: "black"} : {}
   const TextButtonRequestQuestion = requestQuestionSended ? "음성질문 요청중/취소..." : requestQuestionDoing ? "음성질문 끝내기" : "음성질문 요청"
   // const StyleButtonRequestLecOut = requestLecOutSended ? {backgroundColor: "white", color: "black"} : requestLecOutDoing ? {backgroundColor: "yellow", color: "black"} : {}
@@ -216,6 +224,21 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
         <ul>
           {/* <li><p>{JSON.parse(localStorage.getItem("asauth")).userInfoToken.userName} / </p></li> */}
           <li><p className="course-name">{lectureInfo ? lectureInfo.lecture_nm : ""}</p></li>
+        </ul>
+      </div>
+      <div className="heading-col">
+        <ul>
+          <li onClick={() => { handleShowChatWindowState(); }} >
+            <img src={ showChatWindowState ? Icon.chatWTalkOffIcon : Icon.chatWTalkOnIcon} alt="chat-window-button"/>
+            <span>채팅창</span>
+          </li>
+          <li>
+            <div className="local-stream">
+              <LocalStreamComponent
+                localStream={localStream}
+              />
+            </div>
+          </li>
         </ul>
       </div>
     </div>

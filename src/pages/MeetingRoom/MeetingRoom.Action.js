@@ -36,7 +36,6 @@ const actions = {
   },
   shareScreen: (status) => async(dispatch) => {
     try {
-      console.log(status)
       dispatch({
         type: constants.SHARE_SCREEN,
         payload: { status }

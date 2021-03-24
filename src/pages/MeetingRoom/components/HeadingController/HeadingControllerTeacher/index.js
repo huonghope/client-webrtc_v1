@@ -9,6 +9,7 @@ import CountTime from "../../../../../components/CountTime";
 import headingControllerAction from '../HeadingController.Action'
 import headingControllerSocket from '../HeadingController.Socket'
 import roomSelector from '../../../MeetingRoom.Selector';
+import LocalStreamComponent from "../../LocalStreamComponent"
 
 function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,handleScreenModeMain,handleStopSharingScreen, handleWhiteBoard, handleScreamRecording}) {
 
@@ -16,14 +17,17 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
 
   const [stateMicAllStudent, setStateMicAllStudent] = useState(false)
   const [micState, setMicState] = useState(false)
-  const [camState, setCamState] = useState(false)
+  const [camState, setCamState] = useState(true)
   const [recording, setRecording] = useState(false)
   const [windowSize, setWindowSize] = useState(false)
   const [paintScream, setPaintScream] = useState(false)
 
+  const [localStream, setLocalStream] = useState(false)
   const [whiteBoard, setWhiteBoard] = useState(false)
   const [sharingStream, setSharingStream] = useState(false)
+  const [showChatWindowState, setShowChatWindowState] = useState(false)
 
+  const localStreamFromMeetingRoom = useSelector(roomSelector.getLocalStream)
   const shareScreen = useSelector(roomSelector.selectShareScreen)
 
   const handleChangeWindowSize = (e = null) => {
@@ -39,6 +43,10 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
     }
     handleWindowSize()
   }
+
+  useEffect(() => {
+    setLocalStream(localStreamFromMeetingRoom)
+  }, [localStreamFromMeetingRoom])
 
   useEffect(() => {
     setWhiteBoard(shareScreen)
@@ -84,7 +92,12 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
       setWhiteBoard(!whiteBoard)
     }
   }
-  
+
+  const handleShowChatWindowState = () => {
+    setShowChatWindowState(!showChatWindowState)
+    dispatch(headingControllerAction.handleShowChatWindowState())
+  }
+
   return <div className="heading-stream__controller">
     <div className={windowSize ? "heading-container__big" : "heading-container__small"}>
       <div className="heading-col">
@@ -110,7 +123,13 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
             <span>내마이크</span>
           </li>
           <li>
-            <img onClick={() => handleCamState()} src={camState ? Icon.lecCamOffIcon : Icon.lecCamOnIcon} alt="mycam"/>
+            <img onClick={() => {
+              if (sharingStream) {
+                setSharingStream(false)
+                handleStopSharingScreen();
+              }
+              handleCamState()
+            }} src={camState ? Icon.lecCamOnIcon : Icon.lecCamOffIcon} alt="mycam"/>
             <span>내 웹캡</span>
           </li>
           <li>
@@ -137,13 +156,15 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
             whiteBoard && !sharingStream &&
             <div className="wrapper-white">
               <ul>
-                <li onClick={() => { 
-                  handleScreenModeMain(); 
+                <li onClick={() => {
+                  if (camState) handleCamState();
+                  handleScreenModeMain();
                 }}>
                   <img src={Icon.lecScreenShare}  alt="share-screen"/>
                   <span>화면공유</span>
                 </li>
-                <li onClick={() => { 
+                <li onClick={() => {
+                  if (camState) handleCamState();
                   handleWhiteBoardClick();
                 }} >
                   <img src={Icon.lecScreenWhiteBoard} alt="board"/>
@@ -153,6 +174,21 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
             </div>
             } 
           </li>
+
+          <li onClick={() => { handleShowChatWindowState(); }} >
+            <img src={ showChatWindowState ? Icon.chatWTalkOffIcon : Icon.chatWTalkOnIcon} alt="chat-window-button"/>
+            <span>채팅창</span>
+          </li>
+          {
+            (camState || sharingStream) &&
+            <li>
+              <div className="local-stream">
+                <LocalStreamComponent
+                  localStream={localStream}
+                />
+              </div>
+            </li>
+          }
         </ul>
       </div>
     </div>

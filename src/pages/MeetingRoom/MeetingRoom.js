@@ -27,6 +27,9 @@ import WrapperLoading from '../../components/Loading/WrapperLoading'
 import userAction from '../../features/UserFeature/actions'
 import userSelect from '../../features/UserFeature/selector'
 import services from '../../features/UserFeature/service'
+
+import headingControllerSelect from './components/HeadingController/HeadingController.Selector'
+
 import ysFixWebmDuration from 'fix-webm-duration'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
@@ -149,6 +152,7 @@ class MeetingRoom extends Component {
         loading: false,
         localStream: stream,
       })
+      this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
       // }
     }
 
@@ -802,6 +806,8 @@ class MeetingRoom extends Component {
             shareScreenForWhiteBoard: !shareScreenForWhiteBoard
           })
 
+          this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
+
           //화면 공유 중지
           const { localStreamTemp } = this.state
           videoTrack.onended = () => {
@@ -822,6 +828,7 @@ class MeetingRoom extends Component {
               shareScreen: !shareScreen,
               shareScreenForWhiteBoard: !shareScreenForWhiteBoard
             })
+            this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
           }
         })
     } catch (err) {
@@ -879,7 +886,8 @@ class MeetingRoom extends Component {
             localStream: stream,
             shareScreen: true,
           })
-          
+          this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
+
           //화면 공유 중지
           //!해상도 확인할 필요함
           const { localStreamTemp } = this.state
@@ -900,6 +908,7 @@ class MeetingRoom extends Component {
               localStream: localStreamTemp,
               shareScreen: false,
             })
+            this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
           }
         })
     } catch (err) {
@@ -932,6 +941,7 @@ class MeetingRoom extends Component {
       localStream: localStreamTemp,
       shareScreen: false,
     })
+    this.props.dispatch(meetingRoomAction.doCreateLocalStream(localStreamTemp))
   }
 
   handleWhiteBoard = () => {
@@ -1093,7 +1103,6 @@ class MeetingRoom extends Component {
                     handleScreamRecording={this.handleScreamRecording}
                     handleScreenModeMain={this.handleScreenModeMain}
                     handleStopSharingScreen={this.handleStopSharingScreen}
-                    shareScreen={shareScreen}
                   /> :
                   <HeadingControllerStudent
                     handleOutRoom={this.handleOutRoom}
@@ -1127,14 +1136,8 @@ class MeetingRoom extends Component {
           </div>
         </div>
         {
-          !fullScreen && (
+          this.props.showChatWindowState &&
             <div className="right-content">
-              <div className="local-stream">
-                <LocalStreamComponent
-                  localStream={localStream}
-                  shareScreen={shareScreen}
-                />
-              </div>
               <div className="chat-component">
                 <ChatComponent
                   remoteStreams={remoteStreams}
@@ -1142,7 +1145,6 @@ class MeetingRoom extends Component {
                 />
               </div>
             </div>
-          )
         }
       </div>
     )
@@ -1150,6 +1152,7 @@ class MeetingRoom extends Component {
 }
 
 const mapStateToProps = state => ({
+  showChatWindowState: headingControllerSelect.getShowChatWindowState(state),
   isHostUser: meetingRoomSelect.selectIsHostUser(state),
   localStream: meetingRoomSelect.getLocalStream(state),
   currentUser: userSelect.selectCurrentUser(state)

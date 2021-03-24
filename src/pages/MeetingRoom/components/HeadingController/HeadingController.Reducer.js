@@ -6,6 +6,7 @@ const initialState = {
   muteAllStudent: false,
   micState: true,
   camState: true,
+  showChatWindowState: false,
   micStateStudent: false,
   requestQuestionStatus: false,
   requestLecOutStatus: false,
@@ -36,6 +37,12 @@ export const localStreamReducer =(state = initialState, { type, payload })  =>
         break;
       case constants.CHANGE_CAM_STATE_ERROR:
         draft.camState = null
+        break;
+      case constants.CHANGE_SHOW_CHAT_WINDOW_STATE:
+        draft.showChatWindowState = !draft.showChatWindowState
+        break;
+      case constants.CHANGE_SHOW_CHAT_WINDOW_STATE_ERROR:
+        draft.showChatWindowState = null
         break;
       case constants.REQUEST_QUESTION_STATUS:
         draft.requestQuestionStatus = payload.status

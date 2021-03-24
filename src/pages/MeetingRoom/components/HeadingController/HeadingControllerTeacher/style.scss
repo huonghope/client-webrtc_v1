@@ -46,6 +46,7 @@
       position: relative;
     }
     .wrapper-white{
+      z-index: 1;
       position: absolute;
       background: #5199ff;
       transform: translateY(100%);

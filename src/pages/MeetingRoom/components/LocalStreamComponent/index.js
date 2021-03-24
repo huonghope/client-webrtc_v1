@@ -45,8 +45,8 @@ function LocalStreamComponent({localStream, shareScrean}) {
       <Video
       videoType="localVideo"
       videoStyles={{
-        width: "100%",
-        height: "100%"
+        width: "65px",
+        height: "42px"
       }}
       frameStyle={{
         height: "100%",
