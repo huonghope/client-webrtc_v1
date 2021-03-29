@@ -11,7 +11,7 @@ import remoteStreamContainerSelector from '../../RemoteStreamContainer/RemoteStr
 import LocalStreamComponent from "../../LocalStreamComponent"
 import { Button } from "../../../../../components/Button";
 
-function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
+function HeadingControllerStudent({ handleOutRoom, handleWindowSize, handleShowChatWindow, localStream }) {
 
   const [requestQuestionSended, setRequestQuestionSended] = useState(false)
   const [requestQuestionDoing, setRequestQuestionDoing] = useState(false)
@@ -24,8 +24,7 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
   const request = useSelector(remoteStreamContainerSelector.getUserRequest)
   const dispatch = useDispatch();
 
-  const [showChatWindowState, setShowChatWindowState] = useState(false)
-  const localStream = useSelector(roomSelector.getLocalStream)
+  const [showChatWindow, setShowChatWindow] = useState(false)
 
   const [isBtnRequestQuestion, setIsBtnRequestQuestion] = useState(false)
   const [isBtnRequestLecOut, setIsBtnRequestLecOut] = useState(false)
@@ -40,10 +39,10 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
   //!limit re-render ???
   /**
    * @request : store에 다가 저장하는 요청의 정보를 받아서 HeadingController 버튼의 상태를 변경
-   * @status : 
+   * @status :
    * - 'waiting'를 요청을 보내고 있음
    * - 1 && end_time === null: 해당하는 요청을 끝남
-   * 
+   *
    */
   useEffect(() => {
     //요청을 상태를 확인하기
@@ -80,7 +79,7 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
   //상태 확인 할 필요함
   useEffect(() => {
     //여기 확인
-    getSocket().on("alert-user-process-req-question", data => {  
+    getSocket().on("alert-user-process-req-question", data => {
       dispatch(headingControllerAction.handleChangeMicState(data))
       setRequestQuestionSended(false)
       setRequestQuestionDoing(data)
@@ -182,11 +181,6 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
     }
   }
 
-  const handleShowChatWindowState = () => {
-    setShowChatWindowState(!showChatWindowState)
-    dispatch(headingControllerAction.handleShowChatWindowState())
-  }
-
   // const StyleButtonRequestQuestion = requestQuestionSended ? {backgroundColor: "white", color: "black"} : requestQuestionDoing ? {backgroundColor: "yellow", color: "black"} : {}
   const TextButtonRequestQuestion = requestQuestionSended ? "음성질문 요청중/취소..." : requestQuestionDoing ? "음성질문 끝내기" : "음성질문 요청"
   // const StyleButtonRequestLecOut = requestLecOutSended ? {backgroundColor: "white", color: "black"} : requestLecOutDoing ? {backgroundColor: "yellow", color: "black"} : {}
@@ -228,8 +222,11 @@ function HeadingControllerStudent({ handleOutRoom, handleWindowSize }) {
       </div>
       <div className="heading-col">
         <ul>
-          <li onClick={() => { handleShowChatWindowState(); }} >
-            <img src={ showChatWindowState ? Icon.chatWTalkOffIcon : Icon.chatWTalkOnIcon} alt="chat-window-button"/>
+          <li onClick={() => {
+            setShowChatWindow(!showChatWindow)
+            handleShowChatWindow()
+          }}>
+            <img src={ showChatWindow ? Icon.chatWTalkOffIcon : Icon.chatWTalkOnIcon} alt="chat-window-button"/>
             <span>채팅창</span>
           </li>
           <li>

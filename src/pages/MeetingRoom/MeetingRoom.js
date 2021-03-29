@@ -28,8 +28,6 @@ import userAction from '../../features/UserFeature/actions'
 import userSelect from '../../features/UserFeature/selector'
 import services from '../../features/UserFeature/service'
 
-import headingControllerSelect from './components/HeadingController/HeadingController.Selector'
-
 import ysFixWebmDuration from 'fix-webm-duration'
 // const ffmpeg = require("ffmpeg.js/ffmpeg-mp4.js")
 
@@ -121,6 +119,7 @@ class MeetingRoom extends Component {
       recordedBlobs: [],
       shareScreen: false,
       shareScreemForWhiteBoard: false,
+      showChatWindow: false,
       disconnected: false,
 
       fullScreen: false,
@@ -152,7 +151,6 @@ class MeetingRoom extends Component {
         loading: false,
         localStream: stream,
       })
-      this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
       // }
     }
 
@@ -204,28 +202,28 @@ class MeetingRoom extends Component {
            */
           if (data.user_tp === 'T' || data.user_tp === 'I') {
             constraints.video = {
-              frameRate: { 
-                ideal: 15, max: 20 
+              frameRate: {
+                ideal: 15, max: 20
               },
               logicalSurface: true,
-              width: { 
+              width: {
                 min: 640,
                 ideal: 1280,
                 max: 1920
               },
-              height: { 
+              height: {
                 min: 480,
                 ideal: 720,
-                max: 1080 
+                max: 1080
               },
-              facingMode: "user" 
+              facingMode: "user"
             }
 
             // setTimeout(() => {
             //   getSocket().emit("edit-stream")
             // }, 15 * 1000);
             /**
-             * 학생: 
+             * 학생:
              * 4명 이하: 640 * 480 (VGA)
              * 15명 이하: 320 * 240 (QVGA)
              * 15 이상: 160 * 120 (QQVGA)
@@ -273,7 +271,7 @@ class MeetingRoom extends Component {
   sleep = async (ms) => {
     return new Promise((r) => setTimeout(() => r(), ms));
   }
-  //!PeerConnection 
+  //!PeerConnection
   createPeerConnection = (socketID, callback) => {
     try {
       // let xhr = new XMLHttpRequest();
@@ -378,14 +376,14 @@ class MeetingRoom extends Component {
           //       localStreamTemp.addTrack(videoTrack)
           //       pc.addTrack(track, localStreamTemp)
           //     } catch (error) {
-          //       // console.log(error)             
-          //     } 
+          //       // console.log(error)
+          //     }
           //   })
           // }else{
             try {
                 pc.addTrack(track, localStream)
             } catch (error) {
-              // console.log(error)              
+              // console.log(error)
             }
           // }
         })
@@ -496,7 +494,7 @@ class MeetingRoom extends Component {
     })
 
     /**
-     * B PC부터 보내는 sdp 정보를 A PC에서 받아서 처리하는 이벤트  
+     * B PC부터 보내는 sdp 정보를 A PC에서 받아서 처리하는 이벤트
      */
     getSocket().on("offer", data => {
       try {
@@ -535,7 +533,7 @@ class MeetingRoom extends Component {
     /**
      * A부터 받은 answer를 B PC에서 처리하는 이벤트
      * Audio 및 Video를 B PC에서 원하는 sdp값을 설정해서 A PC를 전달해줌
-     * 
+     *
      */
     getSocket().on("answer", data => {
       let pc = null
@@ -577,7 +575,7 @@ class MeetingRoom extends Component {
           constraints.video.height.exact === videoTrack.getConstraints().height.exact) {
           return;
         }
-        
+
         await videoTrack.applyConstraints(constraints.video).then(() => {
           Object.values(peerConnections).forEach(async pc => {
             var sender = pc.getSenders().find(function (s) {
@@ -600,22 +598,22 @@ class MeetingRoom extends Component {
         //       echoCancellation: false
         //     },
         // }
-        // if(levelConstraints === "VGA"){ 
+        // if(levelConstraints === "VGA"){
         //   console.log("4명 들어갔으때", levelConstraints)
         //   constraints.video ={
-        //       width: { exact: 640 }, 
+        //       width: { exact: 640 },
         //       height:{ exact: 480 }
         //   }
         // }else if(levelConstraints === "QVGA"){
         //   console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
         //   constraints.video = {
-        //       width: { exact: 320 }, 
+        //       width: { exact: 320 },
         //       height:{ exact: 240 }
         //   }
-        // }else if(levelConstraints === "QQVGA"){  
+        // }else if(levelConstraints === "QQVGA"){
         //   console.log("15 이상", levelConstraints)
         //   constraints.video = {
-        //       width: { exact: 240 }, 
+        //       width: { exact: 240 },
         //       height:{ exact: 120 }
         //   }
         // }
@@ -755,7 +753,7 @@ class MeetingRoom extends Component {
 
   //화면공유의 화이브보드
   /**
-   *  화면공유할때 연결되어 있는 stream를 숨김 
+   *  화면공유할때 연결되어 있는 stream를 숨김
    */
   handleScreenMode = () => {
     try {
@@ -786,7 +784,7 @@ class MeetingRoom extends Component {
           //     frameRate: 15,
           //     logicalSurface: true,
           //     width: 1280,
-          //     height: 720 
+          //     height: 720
           //   }
           // }
           // await videoTrack.applyConstraints(constraints.video).then(() => {}).catch(e => console.log("화면 공유할때 constraints 적용이 안됨", e))
@@ -805,8 +803,6 @@ class MeetingRoom extends Component {
             shareScreen: !shareScreen,
             shareScreenForWhiteBoard: !shareScreenForWhiteBoard
           })
-
-          this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
 
           //화면 공유 중지
           const { localStreamTemp } = this.state
@@ -828,7 +824,6 @@ class MeetingRoom extends Component {
               shareScreen: !shareScreen,
               shareScreenForWhiteBoard: !shareScreenForWhiteBoard
             })
-            this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
           }
         })
     } catch (err) {
@@ -846,7 +841,7 @@ class MeetingRoom extends Component {
           frameRate: 15,
           logicalSurface: true,
           width: 1280,
-          height: 720 
+          height: 720
         },
         audio: true,
       };
@@ -868,7 +863,7 @@ class MeetingRoom extends Component {
           //     frameRate: 15,
           //     logicalSurface: true,
           //     width: 1280,
-          //     height: 720 
+          //     height: 720
           //   }
           // }
           // await videoTrack.applyConstraints(constraints.video).then(async () => {}).catch(e => console.log("화면 공유할때 constraints 적용이 안됨", e))
@@ -886,7 +881,6 @@ class MeetingRoom extends Component {
             localStream: stream,
             shareScreen: true,
           })
-          this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
 
           //화면 공유 중지
           //!해상도 확인할 필요함
@@ -908,7 +902,6 @@ class MeetingRoom extends Component {
               localStream: localStreamTemp,
               shareScreen: false,
             })
-            this.props.dispatch(meetingRoomAction.doCreateLocalStream(this.state.localStream))
           }
         })
     } catch (err) {
@@ -941,7 +934,12 @@ class MeetingRoom extends Component {
       localStream: localStreamTemp,
       shareScreen: false,
     })
-    this.props.dispatch(meetingRoomAction.doCreateLocalStream(localStreamTemp))
+  }
+
+  handleShowChatWindow = () => {
+    this.setState({
+      showChatWindow: !this.state.showChatWindow
+    })
   }
 
   handleWhiteBoard = () => {
@@ -1054,7 +1052,7 @@ class MeetingRoom extends Component {
       paintScreen,
       loading,
       errorDevice,
-      shareScreen,
+      showChatWindow,
     } = this.state
 
     if (errorDevice) {
@@ -1080,7 +1078,7 @@ class MeetingRoom extends Component {
         window.close();
       }
     }
-    const windowSize = !fullScreen ? "85%" : "100%"
+    // const windowSize = !fullScreen ? "85%" : "100%"
 
     return (
       <div className="meeting-room">
@@ -1089,7 +1087,8 @@ class MeetingRoom extends Component {
           let videoTrack = localStream.getVideoTracks()[0]
           videoTrack.stop();
         }}>Hello</button> */}
-        <div className="left-content" id="left-content-id" style={{ width: windowSize }}>
+        {/*<div className="left-content" id="left-content-id" style={{ width: windowSize }}>*/}
+        <div className="left-content" id="left-content-id">
           <div className="heading-controller" style={{ background: 'black' }}>
             {
 
@@ -1103,10 +1102,14 @@ class MeetingRoom extends Component {
                     handleScreamRecording={this.handleScreamRecording}
                     handleScreenModeMain={this.handleScreenModeMain}
                     handleStopSharingScreen={this.handleStopSharingScreen}
+                    handleShowChatWindow={this.handleShowChatWindow}
+                    localStream={localStream}
                   /> :
                   <HeadingControllerStudent
                     handleOutRoom={this.handleOutRoom}
                     handleWindowSize={this.handleWindowSize}
+                    handleShowChatWindow={this.handleShowChatWindow}
+                    localStream={localStream}
                   />
                 : <WrapperLoading type={"bars"} color={"black"} />
             }
@@ -1136,7 +1139,7 @@ class MeetingRoom extends Component {
           </div>
         </div>
         {
-          this.props.showChatWindowState &&
+          showChatWindow &&
             <div className="right-content">
               <div className="chat-component">
                 <ChatComponent
@@ -1152,7 +1155,6 @@ class MeetingRoom extends Component {
 }
 
 const mapStateToProps = state => ({
-  showChatWindowState: headingControllerSelect.getShowChatWindowState(state),
   isHostUser: meetingRoomSelect.selectIsHostUser(state),
   localStream: meetingRoomSelect.getLocalStream(state),
   currentUser: userSelect.selectCurrentUser(state)

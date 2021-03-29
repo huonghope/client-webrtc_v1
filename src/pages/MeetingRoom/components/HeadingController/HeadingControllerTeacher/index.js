@@ -11,7 +11,7 @@ import headingControllerSocket from '../HeadingController.Socket'
 import roomSelector from '../../../MeetingRoom.Selector';
 import LocalStreamComponent from "../../LocalStreamComponent"
 
-function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,handleScreenModeMain,handleStopSharingScreen, handleWhiteBoard, handleScreamRecording}) {
+function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,handleScreenModeMain,handleStopSharingScreen, handleWhiteBoard, handleScreamRecording, handleShowChatWindow, localStream}) {
 
   const dispatch = useDispatch();
 
@@ -22,12 +22,10 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
   const [windowSize, setWindowSize] = useState(false)
   const [paintScream, setPaintScream] = useState(false)
 
-  const [localStream, setLocalStream] = useState(false)
   const [whiteBoard, setWhiteBoard] = useState(false)
   const [sharingStream, setSharingStream] = useState(false)
   const [showChatWindowState, setShowChatWindowState] = useState(false)
 
-  const localStreamFromMeetingRoom = useSelector(roomSelector.getLocalStream)
   const shareScreen = useSelector(roomSelector.selectShareScreen)
 
   const handleChangeWindowSize = (e = null) => {
@@ -43,10 +41,6 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
     }
     handleWindowSize()
   }
-
-  useEffect(() => {
-    setLocalStream(localStreamFromMeetingRoom)
-  }, [localStreamFromMeetingRoom])
 
   useEffect(() => {
     setWhiteBoard(shareScreen)
@@ -93,11 +87,6 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
     }
   }
 
-  const handleShowChatWindowState = () => {
-    setShowChatWindowState(!showChatWindowState)
-    dispatch(headingControllerAction.handleShowChatWindowState())
-  }
-
   return <div className="heading-stream__controller">
     <div className={windowSize ? "heading-container__big" : "heading-container__small"}>
       <div className="heading-col">
@@ -107,8 +96,8 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
             <span>나가기</span>
           </li>
           <li>
-            <img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} alt="change-win-size"/> 
-            <span>{windowSize ? "창모드" : "전체화면"}</span>  
+            <img onClick={() => handleChangeWindowSize()} src={windowSize ? Icon.lecWindowSmallIcon : Icon.lecWindowBigIcon} alt="change-win-size"/>
+            <span>{windowSize ? "창모드" : "전체화면"}</span>
           </li>
         </ul>
       </div>
@@ -172,10 +161,13 @@ function HeadingController({handleOutRoom, handleWindowSize, handleScreenMode,ha
                 </li>
               </ul>
             </div>
-            } 
+            }
           </li>
 
-          <li onClick={() => { handleShowChatWindowState(); }} >
+          <li onClick={() => {
+            setShowChatWindowState(!showChatWindowState)
+            handleShowChatWindow()
+          }}>
             <img src={ showChatWindowState ? Icon.chatWTalkOffIcon : Icon.chatWTalkOnIcon} alt="chat-window-button"/>
             <span>채팅창</span>
           </li>

@@ -1,8 +1,8 @@
 .local-stream__component{
-  width: 24px;
-  height: 24px;
-  z-index: 1;
-  margin-right: 40px;
+  width: 100%;
+  height: 100%;
+  background: black;
+  //z-index: -1;
   position: relative;
   > video {
     object-fit: cover;

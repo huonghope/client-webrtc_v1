@@ -31,8 +31,8 @@ class Video extends Component {
         this.mutemic(data.data)
       }
     })
-    
-    //학생화면 
+
+    //학생화면
     if(this.props.offMic){
       this.setState({
         mic: false
@@ -73,7 +73,7 @@ class Video extends Component {
           chat: status
         })
       }
-    }    
+    }
 
     //전체 mic를 off할떄 아이콘를 수정함
     if(!this.props.localStream && this.props.muteAllStudent !== nextProps.muteAllStudent){
@@ -143,9 +143,9 @@ class Video extends Component {
   }
 
 
-  
   render() {
     const { mic, camera, chat } = this.state;
+
     return (
       <>
         <video

@@ -54,7 +54,7 @@
 
       animation: animation 0.1s cubic-bezier(0.075, 0.82, 0.165, 1);
       animation-fill-mode: forwards;
-  
+
       -webkit-animation-fill-mode: forwards;
       -moz-animation: animation 0.1s ease-out;
       -webkit-animation: animation 0.1s ease-out;
@@ -109,31 +109,31 @@
       }
     }
   }
-} 
+}
 
 @keyframes animation{
-  from { 
+  from {
       top: 0%;
   }
-  to { 
+  to {
       top: 50%;
-  }   
+  }
 }
 
 @-moz-keyframes animation {
-  from { 
+  from {
       top: 0%;
   }
-  to { 
+  to {
       top: 50%;
-  }   
+  }
 }
 
 @-webkit-keyframes animation {
-  from { 
+  from {
       top: 0%;
   }
-  to { 
+  to {
       top: 50%;
-  }   
+  }
 }

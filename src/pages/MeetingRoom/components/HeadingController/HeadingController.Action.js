@@ -47,19 +47,6 @@ const actions = {
         });
     }
   },
-  handleShowChatWindowState :  (data) => async(dispatch) => {
-    try {
-      dispatch({
-        type: constants.CHANGE_SHOW_CHAT_WINDOW_STATE,
-        payload: { status: data}
-      });
-    } catch (error) {
-      dispatch({
-        type: constants.CHANGE_SHOW_CHAT_WINDOW_STATE_ERROR,
-      });
-      Errors.handle(error);
-    }
-  },
 
   //STUDENT
   listenRequestQuestion: (data) => async(dispatch) => {
