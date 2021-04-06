@@ -40,6 +40,8 @@ function ChatComponent(props) {
   const [imageZoom, setImageZoom] = useState(false)
   const [selectedImage, setSelectedImage] = useState("")
 
+  const [opacity, setOpacity] = useState(1)
+
 
   const scrollToBottom = () => {
     const chat = document.getElementById("chatList")
@@ -139,8 +141,8 @@ function ChatComponent(props) {
   }
   /**
    * 각 메시지유형에 따라 맞는 출려형태를 매핑함
-   * @param {*} userType 
-   * @param {*} data 
+   * @param {*} userType
+   * @param {*} data
    */
   const renderMessage = (userType, data) => {
     const { type } = data
@@ -288,7 +290,7 @@ function ChatComponent(props) {
   }
 
   return (
-    <div className="chat__component">
+    <div className="chat__component" style={{ opacity: opacity }}>
       {imageZoom && showEnlargedImage(selectedImage)}
       <div className="chat-content">
         <ul className="chat-rows" id="chatList">
@@ -302,6 +304,18 @@ function ChatComponent(props) {
             </div>
           ))}
         </ul>
+      </div>
+      <div className="chat-opacity-bar">
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.02}
+          value={opacity}
+          onChange={event => {
+            setOpacity(event.target.valueAsNumber)
+          }}
+        />
       </div>
       <div className="chat-tasks">
         <ul>
@@ -324,8 +338,8 @@ function ChatComponent(props) {
                           </li>
                           {listUser.map((user, idx) => (
                             <li onClick={() => handleOffChatForUser(
-                              user.user_idx, 
-                              user.socket_id, 
+                              user.user_idx,
+                              user.socket_id,
                               disableChatUser.find(e => e.user_idx === user.user_idx) ? true : false)} key={idx}>
                               {idx + 2}. {user.user_name}
                               {
@@ -366,11 +380,11 @@ function ChatComponent(props) {
   )
 }
 /**
- * 
- * @param {*} type : 자기또는 다름 유저 
+ *
+ * @param {*} type : 자기또는 다름 유저
  * @param {*} message : message 데이터
  */
-//!나중에 
+//!나중에
 const MessageComponent = (type, resData) => {
   const { data, sender } = resData;
   return (
