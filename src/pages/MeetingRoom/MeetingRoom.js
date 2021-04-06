@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { bindActionCreators } from "redux"
 import { connect } from 'react-redux'
+import { CSSTransition } from 'react-transition-group';
 
 
 import "./style.scss"
@@ -1138,17 +1139,19 @@ class MeetingRoom extends Component {
             }
           </div>
         </div>
-        {
-          showChatWindow &&
-            <div className="right-content">
-              <div className="chat-component">
-                <ChatComponent
-                  remoteStreams={remoteStreams}
-                  isMainRoom={isMainRoom}
-                />
-              </div>
-            </div>
-        }
+        <CSSTransition
+          in={showChatWindow}
+          timeout={240}
+          classNames='chat-slide'
+          unmountOnExit
+        >
+          <div className="chat-component">
+            <ChatComponent
+              remoteStreams={remoteStreams}
+              isMainRoom={isMainRoom}
+            />
+          </div>
+        </CSSTransition>
       </div>
     )
   }

@@ -29,25 +29,59 @@
   //    height: 80%;
   //  }
   //}
-  .right-content{
-    min-width: 300px;
-    .chat-component{
-      width: 100%;
-      height: 100%;
-    }
-  }
+  //.right-content{
+  //  min-width: 300px;
+  //  .chat-component{
+  //    width: 100%;
+  //    height: 100%;
+  //  }
+  //}
 }
-.chat-component-mobile{
-  height: 100vh;
-  width: 100vw;
+
+/**
+ *  Use slide transition effect to switch the chat window
+ */
+$chat-window-width: 360px;
+
+.chat-component {
+  width: $chat-window-width;
 }
+
+.chat-slide-enter,
+.chat-slide-exit {
+  overflow: hidden;
+  transition: width 240ms ease-out;
+}
+
+// Entering
+.chat-slide-enter {
+  width: 0;
+}
+// Entered
+.chat-slide-enter-active {
+  width: $chat-window-width;
+}
+// Exiting
+.chat-slide-exit {
+  width: $chat-window-width;
+}
+// Exited
+.chat-slide-exit-active {
+  width: 0;
+}
+
+
+//.chat-component-mobile{
+//  height: 100vh;
+//  width: 100vw;
+//}
 @media only screen and (max-width: 440px) {
   .meeting-room{
     .left-content{
       display: none;
     }
-    .right-content{
-      width: 100%;
-    }
+    //.right-content{
+    //  width: 100%;
+    //}
   }
 }
