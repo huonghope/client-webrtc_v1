@@ -36,9 +36,9 @@ class RemoteStreamContainer extends Component {
       //   remoteId: null,
       //   state: null,
       //   reqInfo: null
-      // }], 
-      
-    
+      // }],
+
+
       loading: true,
     }
   }
@@ -48,7 +48,7 @@ class RemoteStreamContainer extends Component {
    */
   componentDidMount() {
     /**
-     * all 
+     * all
      * 학생은 음성 질문요청, 자리비움 요청 등을 보낼떄 강사화면에서 알림
      * 이에는 요청한 학생들이 리스트를 저장함
      * @listDescRemotes 연결되어 있는 peer 리스트
@@ -60,13 +60,13 @@ class RemoteStreamContainer extends Component {
      * @data.type: 요청타입
      * @NOTE: 일단 각 요청타일 똑같이 구현했음
      */
-    
+
     /**
      * 자리비룸요청 이벤트 처리함
      * @status
      * - waiting: 보내고 있음
      * - false: 취소:
-     * 
+     *
      */
     getSocket().on("alert-host-lecOut", data => {
       const { listDescRemotes } = this.state;
@@ -87,7 +87,7 @@ class RemoteStreamContainer extends Component {
       }
       //해당하는 요청을 state 및 store에 다가 저장함
       let isExistsRequest = listUserRequest.find(e => e.userId === reqInfo.user_idx)
-      
+
       //현재유저는 요청 했으면 새로 요청을 수정함 또는 있는데 취소(status = false) => 제거함
       if(isExistsRequest){
         let filter = status ? listUserRequest.map(e => e.userId === reqInfo.user_idx ? valueRequest : e) :
@@ -130,7 +130,7 @@ class RemoteStreamContainer extends Component {
         status: status,
         reqInfo: reqInfo
       }
-  
+
       //해당하는 요청을 state 및 store에 다가 저장함
       let isExistsRequest = listUserRequest.find(e => e.userId === reqInfo.user_idx)
 
@@ -274,7 +274,7 @@ class RemoteStreamContainer extends Component {
         // console.log(listRequestTemp)
         this.props.dispatch(remoteStreamContainerAction.saveListUserRequest(listRequestTemp))
       }, 1000);
-      
+
 
 
       //해당하는룸의 강좌의 정보를 받아서 집중도 테스트값을 설정
@@ -332,13 +332,13 @@ class RemoteStreamContainer extends Component {
   render() {
     const { loading } = this.state
     const { paintScreen } = this.props
- 
+
     if (loading) {
       return (
         <WrapperLoading className="loading" style={paintScreen ? {display: "none",background: 'black' } : {background: 'black'}}>
           <div style={{transform: `translateY(${-50}%)`}}>
             <img src={Icon.WaitImage} style={{width: "140px", height: "140px"}} alt = "waiting"/>
-            <p style={{textAlign: 'center', color: 'white'}}>학생의 입장을<br/> 
+            <p style={{textAlign: 'center', color: 'white'}}>학생의 입장을<br/>
             기다리고 있습니다.</p>
           </div>
         </WrapperLoading>
@@ -410,6 +410,14 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
         req_question_status={req_question_status}
         userInfo={userInfo}
       />
+      {
+        rVideo.stream.getVideoTracks().length === 0 &&
+          <div className="no-cam-wrapper">
+            <div>
+              <img src={Icon.lecCamOffIcon} alt="no-cam" />
+            </div>
+          </div>
+      }
       <div className="btn-wrapper" style={req ? { display: "none" } : {}} >
         <WrapperTaskVideo
           userInfo={userInfo}
@@ -454,7 +462,7 @@ const sleep = async (ms) => {
   return new Promise((r) => setTimeout(() => r(), ms));
 }
 //socket_id 또는 유저의 id로 구분하면 좋을까??
-//처음에 들어갈때 
+//처음에 들어갈때
 const SetVideos =  (remoteStreams, props) => {
   // const dispatch = useDispatch();
   return new Promise((resolve, rej) => {
@@ -467,16 +475,16 @@ const SetVideos =  (remoteStreams, props) => {
     getInformationRoom(params).then(res => {
       const { data } = res
       //!여기서 유저인지 강사인지 구분해야됨
-      //!fist for 강사 또는 
+      //!fist for 강사 또는
       let listUser = data
-      
+
       //현재 연결되어 있는 Stream는 다시 체크할 필요함
       //연결되어있는 학생만 화면video 생성함
       listUser = listUser.filter(user => {
         let isExists = remoteStreams.filter(remoteStream => remoteStream.id === user.socket_id)
         if(isExists.length !== 0){
           return true;
-        } 
+        }
         return false;
       })
 
@@ -486,7 +494,7 @@ const SetVideos =  (remoteStreams, props) => {
         const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
         let [infoStreamBySocketId] = listUser.filter(element => element.socket_id === rVideo.name)
         _filterRemote[index].userInfo = infoStreamBySocketId
-        
+
         /**
          * @desc: 연결되어있는 리스트중에서 요청한 학생이 있는지 없는지 체크함
          * @requestQuestion : 질문이 요청하고 있으면 socket를 통해서 해당하는 학생이 음성질문 요청을 허락
@@ -499,19 +507,19 @@ const SetVideos =  (remoteStreams, props) => {
         let isExistsRequest = listUserRequest.find(e => e.userId === rVideo.userInfo.user_idx
         && e.status !== "0"
         && e.reqInfo.end_time === null) //요청이 없는 사람
-        let video = null  
+        let video = null
 
         //해당하는 학생이 요청하고 있고 끝나지 않는 경우에는
-        if (isExistsRequest) { 
+        if (isExistsRequest) {
           const { type } = isExistsRequest
           const {  status } = isExistsRequest
           let requestValue = false
           let req_question_status = false
           let req_lecOut_status = false
           let startTime = null
-          
+
           /**
-           * @desc : 요청을 보내고 있는 경우에는 어떤 요청했는지 판단해서 화면을 출력함 
+           * @desc : 요청을 보내고 있는 경우에는 어떤 요청했는지 판단해서 화면을 출력함
            * - 그렇지 않으면 어떤 요청을 진행하고 있는지 체크함
            */
           if (status === 'waiting') { //요청이 보내고 있음
@@ -576,7 +584,7 @@ const RenderVideoAfterProcessReq = (listUserRequest, rVideo, data) => {
   const { remoteSocketId, status, reqInfo, type } = data;
   let video = null;
   // let currentRequestUser = rVideo.name === remoteSocketId; //요청한 학생
-  let currentRequestUser = rVideo.userInfo.user_idx === reqInfo.user_idx; 
+  let currentRequestUser = rVideo.userInfo.user_idx === reqInfo.user_idx;
   const _videoTrack = rVideo.stream.getTracks().filter(track => track.kind === "video")
   if(currentRequestUser){
     video = _videoTrack ? (<VideoItem
@@ -649,7 +657,7 @@ const RenderVideoForRequest = (listUserRequest, rVideo, data) => {
         type={type}
       />
     ) : <img src={Icon.boardWarning} alt="warning" />
-  } else { 
+  } else {
     //반대되는 학생
     let isExistsRequest = listUserRequest.find(e => Number(e.userId) === Number(rVideo.userInfo.user_idx)) //요청이 없는 사람
     if (!isExistsRequest) { //!아무 요청이 없는 학생
@@ -769,7 +777,7 @@ const WrapperTaskVideo = ({ userInfo, socketId }) => {
     chatComponentSocket.emitDisableUserChat(payload)
   }
   useEffect(() => {
-    (async() => { 
+    (async() => {
       let params = {
         userId: userInfo.user_idx,
         userRoomId: localStorage.getItem("usr_id")
