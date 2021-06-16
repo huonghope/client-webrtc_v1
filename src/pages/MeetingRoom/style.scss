@@ -1,0 +1,94 @@
+//일반 PC UI
+.meeting-room{
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  .left-content{
+    width: 85%;
+    .heading-controller{
+      width: 100%;
+      height: 10%;
+    }
+    .remote-stream{
+      width: 100%;
+      height: 90%;
+    }
+  }
+  .right-content{
+    width: 15%;
+    min-width: 300px;
+    height: 100vh;
+    .local-stream{
+      width: 100%;
+      height: 20%;
+    }
+    .chat-component{
+      width: 100%;
+      height: 80%;
+    }
+  }
+}
+
+
+@media only screen and (max-width: 900px) {
+  .meeting-room{
+    .left-content{
+      width: 100%;
+      height: 100vh;
+    }
+    .right-content{
+      display: none;
+    }
+  }
+}
+
+@media only screen and (max-width: 540px) {
+  .meeting-room{
+    .left-content{
+      display: none;
+    }
+    .right-content{
+      display: block;
+      width: 100%;
+      min-width: 280px;
+      .local-stream{
+        height: 40%;
+      }
+      .chat-component{
+        height: 60%;
+      }
+    }
+  }
+} 
+
+//모바일 UI
+.mobile{
+  &-portrait{
+    .left-content{
+      display: none;
+    }
+    .right-content{
+      display: block;
+      width: 100%;
+      min-width: 280px;
+      .local-stream{
+        height: 40%;
+      }
+      .chat-component{
+        height: 60%;
+      }
+    }
+  }
+  &-landscape{
+    .left-content{
+      display: block;
+      width: 100%;
+      height: 100vh;
+    }
+    .right-content{
+      display: none;
+    }
+  }
+}
+

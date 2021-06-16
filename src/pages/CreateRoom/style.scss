@@ -1,0 +1,46 @@
+.create-room{
+    display: flex;
+    // align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 100vh;
+    &-container{
+        margin: auto;
+        width: 1200px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        >div{
+            display: flex;
+            justify-content: center;
+        }
+    }
+    &-made{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        // justify-content: center;
+        text-align: center;
+    }
+    &-join{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        // justify-content: center;
+        text-align: center;
+    }
+
+    button{
+        // padding: 10px 20px;
+        width: 50px;
+        height: 50px;
+        border: none;
+        background: blue;
+        color: white;
+        cursor: pointer;
+    }
+    input{
+        margin: 2rem;
+        padding: 1rem 2rem;
+    }
+}

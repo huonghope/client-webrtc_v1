@@ -1,0 +1,39 @@
+.heading-stream__controller{
+  height: 100%;
+  width: 100%;
+  .heading-container__small{
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: black;
+  }
+
+  .heading-col ul{
+    display: flex;
+    li{
+      margin: 0 10px;
+      // display: flex;
+      img{
+        cursor: pointer;
+      }
+    }
+    p{
+      color: white;
+    }
+  }
+  .record-time{
+    color: red;
+    border: 1px solid red;
+    border-radius: 40px;
+    padding: 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    h1{
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+}

@@ -1,0 +1,85 @@
+.container-alert{
+    width: 400px;
+    height: 200px;
+    background: white;
+    padding: 10px;
+
+    border-radius: 10px;
+    text-align: center;
+    // margin-top: 15%;
+
+    animation: animation 0.7s ease-out;
+    animation-fill-mode: forwards;
+
+    -webkit-animation-fill-mode: forwards;
+    -moz-animation: animation 0.7s ease-out;
+    -webkit-animation: animation 0.7s ease-out;
+    -o-animation: animation 0.7s ease-out;
+    
+    position: absolute;
+
+    top: 50%;
+    left: 50%; 
+    transform: translateX(-50%) translateY(-50%);
+
+    .clear-icon{
+        float: right;
+        cursor: pointer;
+    }
+    &__title{
+        margin-top: 20px;
+        font-size: 20px;
+    }
+    &__content{
+        margin-top: 20px;
+        font-weight: 500;
+        font-size: 12px;
+    }
+    &__btn{
+        margin-top: 10px;
+        button{
+            color: white;
+            border: none;
+            cursor: pointer;
+            outline: none;
+
+            border-radius: 5px;
+            margin: 10px;
+            min-width: 130px;
+            min-height: 40px;
+        }
+        &--cancel{
+            background: #ccc;
+        }
+        &--accept{
+            background: blue;
+        }
+    }
+}
+@keyframes animation{
+    from { 
+        top: 0%;
+    }
+    to { 
+        top: 50%;
+    }   
+}
+
+@-moz-keyframes animation {
+    from { 
+        top: 0%;
+    }
+    to { 
+        top: 50%;
+    }   
+}
+
+@-webkit-keyframes animation {
+    from { 
+        top: 0%;
+    }
+    to { 
+        top: 50%;
+    }   
+}
+
