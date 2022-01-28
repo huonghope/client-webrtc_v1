@@ -64,7 +64,7 @@ import chatWTalkOffIcon from '../assets/chat-icon/talk_off_white.png'
 
 
 import smallLoading from '../assets/loading.gif'
-
+import {ReactComponent as close} from '../assets/chat-icon/Svg/close.svg';
 const Icon = {
   //Lecture
   lecOutIcon, 
@@ -131,7 +131,8 @@ const Icon = {
   chatWTalkOffIcon,
 
 
-  smallLoading
+  smallLoading,
+  close
 }
 
 export default Icon

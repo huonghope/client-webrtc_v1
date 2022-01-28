@@ -49,7 +49,7 @@ const actions = {
           JSON.stringify(roomInfo)
         );
         getHistory().push(`/meeting`);
-        configSocket();
+        // configSocket();
       }else{
         alert("해당하는 강죄는 없습니다")
       }

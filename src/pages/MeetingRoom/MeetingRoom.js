@@ -9,7 +9,7 @@ import getSocket from "../rootSocket"
 import meetingRoomSocket from './MeetingRoom.Socket'
 import meetingRoomAction from "./MeetingRoom.Action"
 import meetingRoomSelect from './MeetingRoom.Selector'
-import meetingRoomService from './MeetingRoom.Service'
+import { setTimeRoomWithTime } from './MeetingRoom.Service'
 import userAction from '../../features/UserFeature/actions'
 import userSelect from '../../features/UserFeature/selector'
 import services from '../../features/UserFeature/service'
@@ -23,12 +23,16 @@ import ChatComponent from './components/ChatComponent'
 import WhiteBoard from './components/WhiteBoard'
 import WrapperLoading from '../../components/Loading/WrapperLoading'
 import HeadingControllerStudent from './components/HeadingController/HeadingControllerStudent/index'
+import AlertTime from '../../components/AlertTimeRoom';
+
 
 //import package
 import moment from 'moment'
+
 import adapter from 'webrtc-adapter'
 import ysFixWebmDuration from 'fix-webm-duration'
 import { withOrientationChange, isMobile } from 'react-device-detect'
+import { configSocket } from "../../pages/rootSocket";
 
 class MeetingRoom extends Component {
   constructor(props) {
@@ -50,61 +54,37 @@ class MeetingRoom extends Component {
       peerCount: 0,
 
       pc_config: {
-        "iceServers": [
-          // {
-          //   urls: 'stun:stun.l.google.com:19302',
-          //   username: "webrtc",
-          // },
-          { url: 'stun:stun01.sipphone.com' },
-          { url: 'stun:stun.ekiga.net' },
-          { url: 'stun:stun.fwdnet.net' },
-          { url: 'stun:stun.ideasip.com' },
-          { url: 'stun:stun.iptel.org' },
-          { url: 'stun:stun.rixtelecom.se' },
-          { url: 'stun:stun.schlund.de' },
-          { url: 'stun:stun.l.google.com:19302' },
-          { url: 'stun:stun1.l.google.com:19302' },
-          { url: 'stun:stun2.l.google.com:19302' },
-          { url: 'stun:stun3.l.google.com:19302' },
-          { url: 'stun:stun4.l.google.com:19302' },
-          { url: 'stun:stunserver.org' },
-          { url: 'stun:stun.softjoys.com' },
-          { url: 'stun:stun.voiparound.com' },
-          { url: 'stun:stun.voipbuster.com' },
-          { url: 'stun:stun.voipstunt.com' },
-          { url: 'stun:stun.voxgratia.org' },
-          { url: 'stun:stun.xten.com' },
+        'iceServers': [
+          {url: 'stun:stun01.sipphone.com'},
+          {url: 'stun:stun.ekiga.net'},
+          {url: 'stun:stun.fwdnet.net'},
+          {url: 'stun:stun.ideasip.com'},
+          {url: 'stun:stun.iptel.org'},
+          {url: 'stun:stun.rixtelecom.se'},
+          {url: 'stun:stun.schlund.de'},
+          {url: 'stun:stun.l.google.com:19302'},
+          {url: 'stun:stun1.l.google.com:19302'},
+          {url: 'stun:stun2.l.google.com:19302'},
+          {url: 'stun:stun3.l.google.com:19302'},
+          {url: 'stun:stun4.l.google.com:19302'},
+          {url: 'stun:stunserver.org'},
+          {url: 'stun:stun.softjoys.com'},
+          {url: 'stun:stun.voiparound.com'},
+          {url: 'stun:stun.voipbuster.com'},
+          {url: 'stun:stun.voipstunt.com'},
+          {url: 'stun:stun.voxgratia.org'},
+          {url: 'stun:stun.xten.com'},
           {
-            url: 'turn:numb.viagenie.ca',
-            credential: 'muazkh',
-            username: 'webrtc@live.com'
+            url: 'turn:lpturn.eny.li:5000?transport=tcp',
+            credential: 'plass12345',
+            username: 'plass',
           },
           {
-            url: 'turn:192.158.29.39:3478?transport=udp',
-            credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-            username: '28224511:1379330808'
+            url: 'turn:lpturn.eny.li:5000?transport=udp',
+            credential: 'plass12345',
+            username: 'plass',
           },
-          {
-            url: 'turn:192.158.29.39:3478?transport=tcp',
-            credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-            username: '28224511:1379330808'
-          },
-          //My Xirsys values sturn & turn
-          // {
-          //   credential: '109ae84a-70fb-11eb-9b70-0242ac140004',
-          //   urls: [
-          //     'stun:tk-turn2.xirsys.com',
-          //     'turn:tk-turn2.xirsys.com:80?transport=udp',
-          //     'turn:tk-turn2.xirsys.com:3478?transport=udp',
-          //     'turn:tk-turn2.xirsys.com:80?transport=tcp',
-          //     'turn:tk-turn2.xirsys.com:3478?transport=tcp',
-          //     'turns:tk-turn2.xirsys.com:443?transport=tcp',
-          //     'turns:tk-turn2.xirsys.com:5349?transport=tcp'
-          //   ],
-          //   username: 'UY1wRV4cKT7M7z7hJWrqQcSTgW7RhyqodNuA3BFGNwGHIZSZ8vBMTqSJEWAelxxrAAAAAGAs1UZIdW9uZ1JveWFs'
-          // },
-
-        ]
+        ],
       },
 
       sdpConstraints: {
@@ -142,19 +122,11 @@ class MeetingRoom extends Component {
     const { peerCount } = this.state
     //!refactory해야함
     const handleSuccess = stream => {
-      // const videoTracks = stream.getVideoTracks()
       this.props.dispatch(meetingRoomAction.whoIsOnline())
-      // if(this.props.localStream){
-      //   this.setState({
-      //     loading: false,
-      //     localStream: this.props.localStream,
-      //   })
-      // }else{
       this.setState({
         loading: false,
         localStream: stream,
       })
-      // }
     }
 
     const handleError = error => {
@@ -231,6 +203,7 @@ class MeetingRoom extends Component {
             if (!videoAvailable) {
               constraints.video = false
             } else {
+              let videoId = localStorage.getItem('videoId')
               constraints.video = {
                 frameRate: {
                   min: 10, ideal: 15, max: 20
@@ -238,17 +211,17 @@ class MeetingRoom extends Component {
                 width: {
                   min: 480,
                   ideal: 1280,
-                  // exact: 1280,
+                  exact: 1280,
                   max: 1280
                 },
                 height: {
                   min: 240,
                   ideal: 720,
-                  // exact: 720,
+                  exact: 720,
                   max: 720
                 },
+                deviceId: videoId ? videoId : null
               }
-              // constraints.video = true
             }
             await navigator.mediaDevices.getUserMedia(constraints).then(stream => {
               handleSuccess(stream)
@@ -293,6 +266,7 @@ class MeetingRoom extends Component {
           }
           handleSuccess(canvasStream)
         } else {
+          let videoId = localStorage.getItem('videoId')
           if (0 <= peerCount && peerCount <= 5) {
             // console.log("4명 들어갔으때", peerCount)
             constraints.video = {
@@ -300,34 +274,39 @@ class MeetingRoom extends Component {
               width: {
                 min: 640,
                 ideal: 1280,
-                // exact: 1280,
+                exact: 1280,
                 max: 1280
               },
               height: {
                 min: 480,
                 ideal: 720,
-                // exact: 480,
+                exact: 480,
                 max: 720
               },
+              deviceId: videoId ? videoId : null
             }
           } else if (6 <= peerCount && peerCount <= 16) {
             // console.log("5명 ~ 15명까지  들어갔으때", peerCount)
             constraints.video = {
               frameRate: 15,
               width: { exact: 320 },
-              height: { exact: 240 }
+              height: { exact: 240 },
+              deviceId: videoId ? videoId : null
             }
           } else {
             // console.log("15 이상", peerCount)
             constraints.video = {
               frameRate: 15,
               width: { exact: 240 },
-              height: { exact: 120 }
+              height: { exact: 120 },
+              deviceId: videoId ? videoId : null
             }
           }
+
           await navigator.mediaDevices.getUserMedia(constraints).then(stream => {
             handleSuccess(stream)
           }).catch(async e => {
+            console.log(e,'stream create failure')
             if (videoAvailable) {
               let constraints = {
                 video: true,
@@ -361,26 +340,13 @@ sleep = async (ms) => {
 //!PeerConnection 
 createPeerConnection = (socketID, callback) => {
   try {
-    // let xhr = new XMLHttpRequest();
-    // xhr.onreadystatechange = function ($evt) {
-    //     if (xhr.readyState == 4 && xhr.status == 200) {
-    //         let res = JSON.parse(xhr.responseText);
-    //            console.log("response: ", res.v.iceServers);
-    //     }
-    // }
-    // xhr.open("PUT", "https://global.xirsys.net/_turn/MyFirstApp", true);
-    // xhr.setRequestHeader("Authorization","Basic " + btoa(
-    //     "HuongRoyal:3eee5ab2-106e-11eb-b4ce-0242ac150003"));
-    // xhr.setRequestHeader("Content-Type","application/json");
-    // xhr.send(JSON.stringify({
-    //     "format": "urls"
-    // }));
     let pc = new RTCPeerConnection(this.state.pc_config)
-
     const peerConnections = {
       ...this.state.peerConnections,
       [socketID]: pc
     }
+
+    this.props.dispatch(meetingRoomAction.handleSetPeerConnections(peerConnections));
     this.setState({
       peerConnections
     })
@@ -400,10 +366,7 @@ createPeerConnection = (socketID, callback) => {
       let remoteStreams = this.state.remoteStreams
       let remoteVideo = {}
 
-      // 1. check if stream already exists in remoteStreams
       const rVideos = this.state.remoteStreams.filter(stream => stream.id === socketID)
-
-      // 2. if it does exist then add track
       if (rVideos.length) {
         _remoteStream = rVideos[0].stream
         _remoteStream.addTrack(e.track, _remoteStream)
@@ -418,7 +381,6 @@ createPeerConnection = (socketID, callback) => {
           )
         })
       } else {
-        // 3. if not, then create new stream and add track
         _remoteStream = new MediaStream()
         _remoteStream.addTrack(e.track, _remoteStream)
 
@@ -437,14 +399,12 @@ createPeerConnection = (socketID, callback) => {
         }
       })
     }
-    //socket disconnect
     pc.close = () => {
-      // getSocket().close()
     }
 
     if (this.state.localStream) {
       this.state.localStream.getTracks().forEach(track => {
-        const { isMainRoom, localStream } = this.state
+        const { localStream } = this.state
         try {
           pc.addTrack(track, localStream)
         } catch (error) {
@@ -459,16 +419,28 @@ createPeerConnection = (socketID, callback) => {
   }
 }
 componentDidMount() {
-
   this.detect()
   this.detectListener = window.addEventListener("resize", this.detect)
   this.props.dispatch(userAction.getCurrent())
   let fetchCurrentUser = async () => {
     const response = await services.getCurrent()
-    const { data } = response
-    this.props.dispatch(meetingRoomAction.setHostUser({ isHostUser: data.user_tp === 'T' || data.user_tp === 'I' }))
+    const { data } = response;
+    let isHostUser = false;
+    if(data.user_tp === 'T' || data.user_tp === 'I'){
+      isHostUser = true;
+      const params = {
+        userRoomId: JSON.parse(window.localStorage.getItem("usr_id")),
+      };
+      const response = await setTimeRoomWithTime(params);
+      const {message, result} = response;
+      if (!result) {
+        alert(message);
+        window.location.href = 'http://just-link.us/';
+      }
+    }
+    this.props.dispatch(meetingRoomAction.setHostUser({isHostUser}))
     this.setState({
-      isMainRoom: data.user_tp === 'T' || data.user_tp === 'I'
+      isMainRoom: isHostUser
     })
   }
 
@@ -534,31 +506,6 @@ componentDidMount() {
   getSocket().on("online-peer", socketID => {
     this.createPeerConnection(socketID, pc => {
       if (pc) {
-        // window.setInterval(function() {
-        //   pc.getStats(null).then(stats => {
-        //     let statsOutput = "";
-        //     // stats.forEach(report => {
-        //     //   console.log(report)
-        //     // })
-        //     stats.forEach(report => {
-        //       console.log(report)
-        //       // statsOutput += `<h2>Report: ${report.type}</h3>\n<strong>ID:</strong> ${report.id}<br>\n` +
-        //       //               `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`;
-        //       // // Now the statistics for this report; we intentially drop the ones we
-        //       // // sorted to the top above
-
-        //       // Object.keys(report).forEach(statName => {
-        //       //   if (statName !== "id" && statName !== "timestamp" && statName !== "type") {
-        //       //     statsOutput += `<strong>${statName}:</strong> ${report[statName]}<br>\n`;
-        //       //   }
-        //       // });
-        //       // console.log(statsOutput)
-        //     });
-
-        //     // document.querySelector(".msg-row").innerHTML = statsOutput;
-        //   });
-        // }, 1000);
-
         pc.createOffer(this.state.sdpConstraints).then(sdp => {
           pc.setLocalDescription(sdp)
           meetingRoomSocket.sendToPeer("offer", sdp, {
@@ -674,55 +621,6 @@ componentDidMount() {
         window.location.href = window.location.href
         console.log(reason)
       });
-
-      // console.log("change localstream", levelConstraints)
-      // let constraints = {
-      //     audio: {
-      //       sampleSize: 8,
-      //       channelCount: 2,
-      //       echoCancellation: false
-      //     },
-      // }
-      // if(levelConstraints === "VGA"){ 
-      //   console.log("4명 들어갔으때", levelConstraints)
-      //   constraints.video ={
-      //       width: { exact: 640 }, 
-      //       height:{ exact: 480 }
-      //   }
-      // }else if(levelConstraints === "QVGA"){
-      //   console.log("5명 ~ 15명까지  들어갔으때", levelConstraints)
-      //   constraints.video = {
-      //       width: { exact: 320 }, 
-      //       height:{ exact: 240 }
-      //   }
-      // }else if(levelConstraints === "QQVGA"){  
-      //   console.log("15 이상", levelConstraints)
-      //   constraints.video = {
-      //       width: { exact: 240 }, 
-      //       height:{ exact: 120 }
-      //   }
-      // }
-      // if(constraints.video.width.exact === localStream.getVideoTracks()[0].getConstraints().width.exact &&
-      //   constraints.video.height.exact === localStream.getVideoTracks()[0].getConstraints().height.exact){
-      //   return;
-      // }
-      // console.log("change localstream", constraints)
-      // localStream.getTracks().forEach(track => {
-      //   track.stop();
-      // });
-
-      // const stream = await navigator.mediaDevices.getUserMedia(constraints).catch(e => console.log(e))
-      // this.setState({
-      //   localStream: stream,
-      // })
-
-      // let videoTrack = stream.getVideoTracks()[0]
-      // Object.values(peerConnections).forEach(async pc => {
-      //   var sender = pc.getSenders().find(function (s) {
-      //     return s.track.kind === videoTrack.kind
-      //   })
-      //   sender.replaceTrack(videoTrack)
-      // })
     }
   })
   getSocket().on("alert-share-screen", async ({ shareScreen, peerCount }) => {
@@ -770,6 +668,20 @@ componentDidMount() {
     const pc = this.state.peerConnections[data.socketID];
     if (pc) pc.addIceCandidate(new RTCIceCandidate(data.candidate));
   })
+  getSocket().on('alert-time-room', (data) => {
+    const {level, time} = data;
+    if (level === 1 || level === 2) {
+      AlertTime({type: 'fix-time', time: time});
+    } else if (level === 3) {
+      AlertTime({type: 'count-time', handleDownAllTime: () => {
+        window.location.href = 'http://just-link.us/';
+        return null;
+      }});
+    } else if (level === 4) {
+      window.location.href = 'http://just-link.us/';
+      return null;
+    }
+  });
 }
 
 //!다른 학생도 나가는 건가?
@@ -864,16 +776,6 @@ handleScreenMode = () => {
         this.props.dispatch(meetingRoomAction.shareScreen(true))
 
         let videoTrack = stream.getVideoTracks()[0]
-        // let constraints = {
-        //   video: {
-        //     frameRate: 15,
-        //     logicalSurface: true,
-        //     width: 1280,
-        //     height: 720 
-        //   }
-        // }
-        // await videoTrack.applyConstraints(constraints.video).then(() => {}).catch(e => console.log("화면 공유할때 constraints 적용이 안됨", e))
-
         Object.values(peerConnections).forEach(async pc => {
           var sender = pc.getSenders().find(function (s) {
             return s.track.kind === videoTrack.kind
@@ -1043,6 +945,11 @@ handleDataAvailable = event => {
     }))
   }
 }
+componentWillUnmount() {
+  this.setState({
+    disconnected: true
+  })
+}
 handleScreamRecording = () => {
   // const { createFFmpeg, fetchFile } = FFmpeg
   // const ffmpeg = createFFmpeg({ log: true })
@@ -1142,7 +1049,6 @@ detect = () => {
   }
 }
 
-
 render() {
   const {
     disconnected,
@@ -1155,15 +1061,12 @@ render() {
     loading,
     errorDevice,
     shareScreen,
-    device,
     orientation
   } = this.state
-
   if (errorDevice) {
     console.log("카메라를 찾지 못합니다. 새로고침을 한번 하세요.")
     // return;
   }
-
   if (disconnected) {
     try {
       // disconnect socket
@@ -1252,18 +1155,15 @@ render() {
   )
 }
 }
-
 const mapStateToProps = state => ({
   isHostUser: meetingRoomSelect.selectIsHostUser(state),
   localStream: meetingRoomSelect.getLocalStream(state),
   currentUser: userSelect.selectCurrentUser(state)
 })
 
-
 function mapDispatchToProps(dispatch) {
   let actions = bindActionCreators({ MeetingRoom });
   return { ...actions, dispatch };
 }
 
-// MeetingRoom = withOrientationChange(MeetingRoom)
 export default connect(mapStateToProps, mapDispatchToProps)(MeetingRoom);

@@ -34,6 +34,19 @@ const actions = {
       console.log(error)
     }
   },
+  handleSetPeerConnections: (data) => async (dispatch) => {
+    try {
+      dispatch({
+        type: constants.SET_PEER_CONNECTIONS,
+        payload: data,
+      });
+    } catch (error) {
+      Errors.handle(error);
+      dispatch({
+        type: constants.SET_PEER_CONNECTIONS_ERROR,
+      });
+    }
+  },
   shareScreen: (status) => async(dispatch) => {
     try {
       console.log(status)

@@ -400,6 +400,7 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
     }
     remoteStreamContainer.emitProcessRequestUser(payload)
   }
+  console.log(rVideo.stream)
 
   return (
     <div className="video-item">
@@ -409,6 +410,7 @@ const VideoItem = ({ rVideo, userInfo, request, type, time, req_question_status,
         videoStream={rVideo.stream}
         req_question_status={req_question_status}
         userInfo={userInfo}
+        socketId={rVideo.id}
       />
       <div className="btn-wrapper" style={req ? { display: "none" } : {}} >
         <WrapperTaskVideo
@@ -466,6 +468,8 @@ const SetVideos =  (remoteStreams, props) => {
 
     getInformationRoom(params).then(res => {
       const { data } = res
+      console.log(data)
+      
       //!여기서 유저인지 강사인지 구분해야됨
       //!fist for 강사 또는 
       let listUser = data

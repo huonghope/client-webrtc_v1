@@ -43,7 +43,7 @@
     "webrtc-adapter": "^7.7.0"
   },
   "scripts": {
-    "start": "set PORT=3005 && react-scripts start",
+    "start": "export PORT=3005 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

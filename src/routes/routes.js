@@ -8,6 +8,9 @@ const privateRoutes = [
     permissionRequired: null,
     icon: "home"
   },
+]
+
+const publicRoutes = [
   {
     path: "/meeting",
     exact: false,
@@ -16,10 +19,7 @@ const privateRoutes = [
     label: "강좌 미팅",
     permissionRequired: null,
     icon: "home"
-  }
-]
-
-const publicRoutes = [
+  },
   {
     path: "/",
     exact: true,

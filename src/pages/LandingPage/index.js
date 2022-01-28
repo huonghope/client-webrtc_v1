@@ -8,6 +8,8 @@ import { useDispatch } from 'react-redux';
 import { Button } from '../../components/Button';
 import services from '../../features/UserFeature/service';
 import { isMobile } from 'react-device-detect'
+import { configSocket, socketDisconnect } from "../../pages/rootSocket";
+import { get } from 'immutable'
 
 function Landing(props) {
 
@@ -119,6 +121,7 @@ function Landing(props) {
     setLoading(true)
     const deviceTemp = listVideoInput.filter(dev => dev.value === deviceId)[0]
     setVideoInput(deviceTemp)
+    localStorage.setItem('videoId', deviceTemp.value)
     getStream(deviceTemp.value)
   }
 
@@ -129,17 +132,30 @@ function Landing(props) {
     } else {
       let roomInfo = JSON.parse(localStorage.getItem("roomInfo"))
       let asauth = JSON.parse(localStorage.getItem("asauth")).userInfoToken
+      // configSocket();
       props.history.push(`/meeting/open?room=${roomInfo.roomName}&user=${asauth.userId}`);
     }
   }
 
   useEffect(() => {
+    const checkConnecting = async () => {
+      let userRoomId = JSON.parse(localStorage.getItem("usr_id"))
+      let params = {
+        userRoomId
+      }
+      const res = await services.checkConnecting(params)
+      const { data } = res;
+      const { connecting } = data
+      if(connecting){
+        if (getSocket() != null) {
+          socketDisconnect()
+          window.location.reload()
+        }
+      }
+    }
+    
+    checkConnecting() 
     init()
-    // dispatch(meetingRoomAction.whoIsOnline())  
-    getSocket().on("user-role", data => {
-      const { userRole } = data
-      dispatch(meetingRoomAction.setHostUser({ isHostUser: userRole }));
-    })
 
     let fetchCurrentUser = async () => {
       const response = await services.getCurrent()

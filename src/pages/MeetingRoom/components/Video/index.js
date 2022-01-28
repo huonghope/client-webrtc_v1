@@ -1,5 +1,5 @@
-import React, { Component } from "react"
-import { connect } from "react-redux"
+import React, { Component, useEffect, useState } from "react"
+import { connect, useSelector } from "react-redux"
 import { bindActionCreators } from "redux"
 import headingControllerSelector from '../HeadingController/HeadingController.Selector'
 import chatComponentSelector from '../ChatComponent/ChatComponent.Selector'
@@ -7,6 +7,7 @@ import roomSelector from '../../MeetingRoom.Selector'
 import Icon from "../../../../constants/icons"
 import getSocket from "../../../rootSocket"
 import remoteStreamSelector from "../RemoteStreamContainer/RemoteStreamContainer.Selector"
+import './style.scss'
 
 class Video extends Component {
   constructor(props) {
@@ -147,6 +148,7 @@ class Video extends Component {
 
   render() {
     const { mic, camera, chat } = this.state;
+    const  { socketId , videoType, videoStream} = this.props;
     return (
       <>
         <video
@@ -163,8 +165,102 @@ class Video extends Component {
         ></video>
         {
           this.props.videoType === 'remoteVideo' &&
+            <VideoComponent 
+              mic={mic}
+              camera={camera}
+              chat={chat}
+              socketId={socketId}
+              videoType={videoType}
+              videoStream={videoStream}
+            />
+        }
+      </>
+    )
+  }
+}
+const VideoComponent = ({mic, camera, chat, socketId, videoType, videoStream}) => {
+
+
+  const [sendBitRate, setSendBitRate] = useState(0);
+  const [receiverBitRate, setReceiverBitRate] = useState(0);
+  const peerConnections = useSelector(roomSelector.selectPeerConnections);
+
+  // 해당 유저의 연결 상태를 출력함
+  useEffect(() => {
+    let interval = null;
+    let lastResultReceiver;
+    let lastResultSender;
+    let monitorTime = 1;
+    interval = window.setInterval(function() {
+      const peerConnection = peerConnections[socketId];
+      if (peerConnection) {
+        const {connectionState, iceConnectionState, iceGatheringState} = peerConnection;
+        if (connectionState === 'connected' && iceConnectionState === 'connected' && iceGatheringState === 'complete') {
+          let receiversVideo = peerConnection.getReceivers()[1];
+          let senderVideo = peerConnection.getSenders()[1];
+
+          if (receiversVideo === undefined || senderVideo === undefined) {
+            receiversVideo = peerConnection.getReceivers()[0];
+            senderVideo = peerConnection.getSenders()[0];
+          }
+          // console.log(peerConnection.getReceivers()[0]);
+          // console.log(peerConnection.getSenders());
+          try {
+            senderVideo.getStats(null).then((stats) => {
+              stats.forEach((report) => {
+                let bytes;
+                if (report.type === 'outbound-rtp') {
+                  if (report.isRemote) {
+                    return;
+                  }
+                  if (lastResultSender && lastResultSender.has(report.id)) {
+                    bytes = report.bytesSent;
+                    let currentKbps = ((8 * (bytes - lastResultSender.get(report.id).bytesSent)) / 1000 ) / monitorTime;
+                    // console.log('bytes ================', lastResultSender.get(report.id).bytesSent);
+                    let currentMbps = (currentKbps / 1000).toFixed(2);
+                    // console.log(lastResultSender.get(report.id).bytesSent);
+                    let bitrate = currentMbps >= 1 ? `${currentMbps}Mbps` : `${currentKbps}Kpbs`;
+                    setSendBitRate(bitrate);
+                  }
+                }
+              });
+              lastResultSender = stats;
+            });
+
+            receiversVideo.getStats(null).then((stats) => {
+              let bytes;
+              stats.forEach((report) => {
+                if (report.type === 'inbound-rtp') {
+                  if (report.isRemote) {
+                    return;
+                  }
+                  if (lastResultReceiver && lastResultReceiver.has(report.id)) {
+                    bytes = report.bytesReceived;
+                    // console.log(bytes);
+                    let currentKbps = ((8 * (bytes - lastResultReceiver.get(report.id).bytesReceived)) / 1000 ) / monitorTime;
+                    let currentMbps = (currentKbps / 1000).toFixed(2);
+                    let bitrate = currentMbps >= 1 ? `${currentMbps}Mbps` : `${currentKbps}Kpbs`;
+                    setReceiverBitRate(bitrate);
+                  }
+                }
+              });
+              lastResultReceiver = stats;
+            });
+          } catch (error) {
+          }
+        }
+      }
+    }, monitorTime * 1000);
+
+    return () => clearInterval(interval);
+  }, [peerConnections, socketId]);
+
+  return (
+    <>
+        {
+          videoType === 'remoteVideo' &&
           <div className="stream-info">
-            <ul>
+            <ul className="stream-info_devices">
               <li>
                 <img src={camera && Icon.lecCamOnIcon} alt="camera"/>
               </li>
@@ -175,11 +271,22 @@ class Video extends Component {
                 <img src={chat ? Icon.chatWTalkOnIcon : Icon.chatWTalkOffIcon} alt="chat-status"/>
               </li>
             </ul>
+            <ul className="stream-info_bitrate">
+                <li >
+                  <p>S <i className="fa fa-arrow-up"/> {sendBitRate}</p>
+                </li>
+                <li>
+                  <p>R <i className="fa fa-arrow-down"/> {receiverBitRate}</p>
+                </li>
+                <li><p>W:H {videoStream && `${videoStream.getVideoTracks()[0].getSettings().width} : ${videoStream.getVideoTracks()[0].getSettings().height}`}</p></li>
+                <li>
+                  {/* <p>{videoStream && `${videoStream.getVideoTracks()[0].getConstraints().width.exact} : ${videoStream.getVideoTracks()[0].getConstraints().height.exact}`}</p> */}
+                </li>
+            </ul>
           </div>
         }
       </>
-    )
-  }
+  )
 }
 
 const mapStateToProps = state => ({
@@ -199,7 +306,10 @@ const mapStateToProps = state => ({
   disableChatUser: chatComponentSelector.selectDisableChatUser(state),
 
   //user request
-  request: remoteStreamSelector.getUserRequest(state)
+  request: remoteStreamSelector.getUserRequest(state),
+
+  //peerConnections
+  peerConnections : roomSelector.selectPeerConnections(state)
 })
 
 

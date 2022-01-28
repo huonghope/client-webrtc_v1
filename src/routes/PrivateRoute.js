@@ -9,7 +9,7 @@ import { configSocket } from "../pages/rootSocket"
 const PrivateRoute = ({ component: Component, ...rest }) => {
   const currentUser = useSelector(userSelectors.selectCurrentUser)
   const dispatch = useDispatch()
-
+  
   useEffect(() => {
     if (isAuthenticated()) {
       const config = async() => {
