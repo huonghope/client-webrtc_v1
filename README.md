@@ -52,7 +52,7 @@ $ npm start
 #### 웹RTC 동작 방식 
 </br>
 <div align="center">
-  <img align="center" src="./docs/imgs/web-rtc.png" alt="Join Page" style="width:70%;height:70%;filter: drop-shadow(10px 10px 3px black);"/>
+  <img align="center" src="./docs/imgs/web-rtc.png" alt="Join Page" style="width:60%;height:60%;filter: drop-shadow(10px 10px 3px black);"/>
 </div>
 </br>
 
