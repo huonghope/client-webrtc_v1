@@ -91,7 +91,7 @@ LMS부터 유저가 설정페이지를 먼저 접근하며 이 페이지에서 �
 </br>
 <div align="center" style="display: flex; justify-content: space-between;">
   <img align="center" src="./docs/imgs/chat-diagram.png" alt="Chat page" style="width:50%;height:90%;filter: drop-shadow(10px 10px 3px black);"/>
-  <img align="center" src="./docs/imgs/chat-com.png" alt="Chat page" style="width:47%;height:90%;filter: drop-shadow(10px 10px 3px black);"/>
+  <img align="center" src="./docs/imgs/chat-com.png" alt="Chat page" style="width:20%;height:90%;filter: drop-shadow(10px 10px 3px black);"/>
 </div>
 </br>
 
