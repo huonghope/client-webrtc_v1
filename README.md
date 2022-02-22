@@ -82,7 +82,7 @@ LMS부터 유저가 설정페이지를 먼저 접근하며 이 페이지에서 �
 게스트 화면에서 가가기, 전체화면 또는 음성질문 요청, 자리비움 요청 기능 제공한다.
 </br>
 <div align="center">
-  <img align="center" src="./docs/imgs/guest-page.png" alt="Guest page" style="width:90%;height:90%;filter: drop-shadow(10px 10px 3px black);"/>
+  <img align="center" src="./docs/imgs/guest-page.png" alt="Guest page" style="width:70%;height:70%;filter: drop-shadow(10px 10px 3px black);"/>
 </div>
 </br>
 
